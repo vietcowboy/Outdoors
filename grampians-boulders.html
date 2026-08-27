@@ -133,8 +133,8 @@
   }
   .dual-slider input[type=range] {
     position: absolute;
-    left: 8px;
-    width: calc(100% - 16px);
+    left: 0;
+    width: 100%;
     height: 32px;
     top: 50%;
     z-index: 3;
@@ -192,7 +192,7 @@
     top: 50%;
     transform: translateY(-50%);
     height: 4px;
-    left: 24px; right: 24px;
+    left: 16px; right: 16px;
     background: var(--border);
     border-radius: 2px;
   }
@@ -810,12 +810,12 @@ function updateMapHighlight() {
 const minBubble = document.getElementById("min-bubble");
 const maxBubble = document.getElementById("max-bubble");
 
-// 24px = the 8px CSS inset on the range input itself, plus the native
-// thumb's own 16px radius (browsers inset a range thumb's travel by half
-// its width) — matching this exactly is what keeps the visible bubble
-// glued to the real (invisible) hit target instead of drifting from it
-// near the ends of the track.
-const SLIDER_PAD = 24;
+// 16px = the native thumb's own radius (browsers inset a range thumb's
+// travel by half its width, with no extra CSS inset on the input itself)
+// — matching this exactly is what keeps the visible bubble glued to the
+// real (invisible) hit target instead of drifting from it near the ends
+// of the track.
+const SLIDER_PAD = 16;
 function sliderPos(fraction) {
   return `calc(${SLIDER_PAD}px + (100% - ${SLIDER_PAD * 2}px) * ${fraction})`;
 }
