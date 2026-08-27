@@ -288,6 +288,10 @@
     white-space: nowrap;
   }
   th:hover { color: var(--text); }
+  .sort-icon { display: inline-block; margin-left: 0.3rem; font-size: 0.85em; color: var(--muted); opacity: 0.5; }
+  th:hover .sort-icon { opacity: 0.85; }
+  th.sort-active { color: var(--accent); }
+  th.sort-active .sort-icon { color: var(--accent); opacity: 1; }
   tbody tr:hover { background: var(--accent-light); }
   .grade-pill {
     display: inline-block;
@@ -500,7 +504,6 @@
 
   <div class="meta-row">
     <span id="result-count"></span>
-    <span>Click a column header to sort</span>
   </div>
 
   <div class="panel overflow">
@@ -508,9 +511,9 @@
     <table id="results-table">
       <thead>
         <tr>
-          <th data-key="grade">Problem</th>
-          <th data-key="area">Area</th>
-          <th data-key="boulder">Boulder</th>
+          <th data-key="grade">Problem<span class="sort-icon">⇅</span></th>
+          <th data-key="area">Area<span class="sort-icon">⇅</span></th>
+          <th data-key="boulder">Boulder<span class="sort-icon">⇅</span></th>
         </tr>
       </thead>
       <tbody id="results-body"></tbody>
@@ -1055,13 +1058,36 @@ function getCheckedStars() {
   return new Set([...starFilterChecks].filter(cb => cb.checked).map(cb => parseInt(cb.value)));
 }
 
+function updateSortIndicators() {
+  document.querySelectorAll("th[data-key]").forEach(th => {
+    const icon = th.querySelector(".sort-icon");
+    const active = th.dataset.key === sortKey;
+    th.classList.toggle("sort-active", active);
+    if (active) {
+      icon.textContent = sortDir === 1 ? "▲" : "▼";
+      th.setAttribute("aria-sort", sortDir === 1 ? "ascending" : "descending");
+    } else {
+      icon.textContent = "⇅";
+      th.setAttribute("aria-sort", "none");
+    }
+  });
+}
+
 document.querySelectorAll("th[data-key]").forEach(th => {
-  th.addEventListener("click", () => {
+  th.setAttribute("role", "button");
+  th.setAttribute("tabindex", "0");
+  const activate = () => {
     const key = th.dataset.key;
     if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+    updateSortIndicators();
     render();
+  };
+  th.addEventListener("click", activate);
+  th.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(); }
   });
 });
+updateSortIndicators();
 
 function gradeBandClass(grade) {
   if (grade <= 0) return "grade-green";
