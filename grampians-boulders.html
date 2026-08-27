@@ -240,22 +240,52 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 0.8rem;
+  }
+  .star-filter-left {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .stars-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 0;
   }
   .star-filter {
     display: flex;
-    gap: 0.8rem;
-    padding: 0.5rem 0.2rem;
+    gap: 0.5rem;
   }
-  .star-check {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.85rem;
+  .star-toggle {
+    min-width: 3.2rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
     color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 600;
     cursor: pointer;
   }
-  .star-check input { cursor: pointer; }
+  .star-toggle:hover { border-color: var(--accent); }
+  .star-toggle[aria-pressed="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .star-filter-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .star-filter-right #result-count {
+    color: var(--muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
 
   select, input[type=text] {
     width: 100%;
@@ -267,14 +297,6 @@
     font-size: 0.9rem;
   }
 
-  .meta-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 0.8rem 0 0.5rem;
-    color: var(--muted);
-    font-size: 0.85rem;
-  }
 
   table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
   th, td { text-align: left; padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--border); }
@@ -489,21 +511,22 @@
         <input type="text" id="search" placeholder="Problem name...">
       </div>
       <div class="control">
-        <label>Stars</label>
         <div class="star-filter-row">
-          <div class="star-filter" id="star-filter">
-            <label class="star-check"><input type="checkbox" value="1"> 1★</label>
-            <label class="star-check"><input type="checkbox" value="2" checked> 2★</label>
-            <label class="star-check"><input type="checkbox" value="3" checked> 3★</label>
+          <div class="star-filter-left">
+            <label class="stars-label">Stars</label>
+            <div class="star-filter" id="star-filter">
+              <button type="button" class="star-toggle" data-value="1" aria-pressed="false">1★</button>
+              <button type="button" class="star-toggle" data-value="2" aria-pressed="true">2★</button>
+              <button type="button" class="star-toggle" data-value="3" aria-pressed="true">3★</button>
+            </div>
           </div>
-          <button class="reset-btn" id="reset-filters" type="button">Reset filters</button>
+          <div class="star-filter-right">
+            <span id="result-count"></span>
+            <button class="reset-btn" id="reset-filters" type="button">Reset filters</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-
-  <div class="meta-row">
-    <span id="result-count"></span>
   </div>
 
   <div class="panel overflow">
@@ -1041,8 +1064,11 @@ maxSlider.addEventListener("input", handleSliders);
 areaFilter.addEventListener("change", () => { updateMapHighlight(); render(); });
 search.addEventListener("input", render);
 
-const starFilterChecks = document.querySelectorAll("#star-filter input[type=checkbox]");
-starFilterChecks.forEach(cb => cb.addEventListener("change", render));
+const starToggles = document.querySelectorAll(".star-toggle");
+starToggles.forEach(btn => btn.addEventListener("click", () => {
+  btn.setAttribute("aria-pressed", btn.getAttribute("aria-pressed") === "true" ? "false" : "true");
+  render();
+}));
 
 document.getElementById("reset-filters").addEventListener("click", () => {
   minSlider.value = GRADE_MIN;
@@ -1050,12 +1076,12 @@ document.getElementById("reset-filters").addEventListener("click", () => {
   updateTrackFill();
   areaFilter.value = "";
   search.value = "";
-  starFilterChecks.forEach(cb => cb.checked = cb.value !== "1");
+  starToggles.forEach(btn => btn.setAttribute("aria-pressed", btn.dataset.value !== "1" ? "true" : "false"));
   updateMapHighlight();
   render();
 });
 function getCheckedStars() {
-  return new Set([...starFilterChecks].filter(cb => cb.checked).map(cb => parseInt(cb.value)));
+  return new Set([...starToggles].filter(btn => btn.getAttribute("aria-pressed") === "true").map(btn => parseInt(btn.dataset.value)));
 }
 
 function updateSortIndicators() {
