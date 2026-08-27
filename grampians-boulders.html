@@ -232,6 +232,9 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     z-index: 2;
   }
+  @media (max-width: 640px) and (prefers-color-scheme: dark) {
+    .slider-bubble { color: #1b1d1a; }
+  }
 
   .star-filter-row {
     display: flex;
@@ -310,11 +313,19 @@
   .climb-link .go-arrow { color: var(--accent); font-size: 0.85em; text-decoration: none; }
   .boulder-cell { color: var(--muted); }
   .explainer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.85rem;
-    color: var(--muted);
-    margin-bottom: 0.7rem;
+    color: var(--text);
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 0.9rem;
     line-height: 1.4;
   }
+  .explainer::before { content: "ⓘ"; color: var(--accent); font-size: 1rem; flex-shrink: 0; }
   .icon-btn {
     background: none;
     border: 1px solid var(--border);
@@ -493,7 +504,7 @@
   </div>
 
   <div class="panel overflow">
-    <div class="explainer">Tap a climb's name to open its theCrag page for full details, photos, and topos.</div>
+    <div class="explainer">Tap a problem's name to open its theCrag page.</div>
     <table id="results-table">
       <thead>
         <tr>
