@@ -17,6 +17,14 @@
     --star: #c9932e;
     --closed: #b5493c;
     --closed-bg: #fbe9e6;
+    --grade-green: #2f7a4d;
+    --grade-green-bg: #e0f0e4;
+    --grade-orange: #b56a1f;
+    --grade-orange-bg: #f8e8d6;
+    --grade-red: #b23b3b;
+    --grade-red-bg: #f8dede;
+    --grade-purple: #7248a8;
+    --grade-purple-bg: #ece3f6;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -30,6 +38,14 @@
       --star: #e0b45a;
       --closed: #e08579;
       --closed-bg: #3a2723;
+      --grade-green: #7fd19c;
+      --grade-green-bg: #22362a;
+      --grade-orange: #e0a15c;
+      --grade-orange-bg: #3a2c1c;
+      --grade-red: #e08585;
+      --grade-red-bg: #3a2323;
+      --grade-purple: #c1a3ea;
+      --grade-purple-bg: #2f2438;
     }
   }
   * { box-sizing: border-box; }
@@ -170,10 +186,44 @@
     border-radius: 999px;
     font-size: 0.82rem;
   }
+  .grade-pill.grade-green  { background: var(--grade-green-bg);  color: var(--grade-green); }
+  .grade-pill.grade-orange { background: var(--grade-orange-bg); color: var(--grade-orange); }
+  .grade-pill.grade-red    { background: var(--grade-red-bg);    color: var(--grade-red); }
+  .grade-pill.grade-purple { background: var(--grade-purple-bg); color: var(--grade-purple); }
   .stars { color: var(--star); letter-spacing: 1px; }
   .stars.unrated { color: var(--muted); font-style: italic; letter-spacing: normal; font-size: 0.78rem; }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
+  .climb-link { display: inline-flex; align-items: baseline; gap: 0.3rem; font-weight: 600; color: var(--text); }
+  .climb-link:hover { color: var(--accent); text-decoration: underline; }
+  .climb-link .go-arrow { color: var(--accent); font-size: 0.85em; text-decoration: none; }
+  .boulder-cell { color: var(--muted); }
+  .explainer {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 0.7rem;
+    line-height: 1.4;
+  }
+  .map-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+  .map-header h2 { margin: 0; font-size: 1rem; }
+  .map-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.78rem;
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+  }
+  .map-toggle:hover { background: var(--accent-light); }
+  .map-body { margin-top: 0.8rem; }
+  .map-body[hidden] { display: none; }
   .closed-tag {
     display: inline-block;
     background: var(--closed-bg);
@@ -203,11 +253,17 @@
   <div class="subtitle">Quality problems from theCrag.com, V0-V17. Filter by grade, area, or search — the map highlights whatever area is selected.</div>
 
   <div class="panel">
-    <div id="map"></div>
-    <div class="map-caption">
-      Pins mark approximate car-park/trailhead locations, not exact boulder positions (theCrag blocks direct scraping, so these were sourced from park track notes and hiking references). Several small Victoria Range crags (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area) share one approximate regional pin. Selecting an area below dims every other pin.
+    <div class="map-header" id="map-header">
+      <h2>Map</h2>
+      <button class="map-toggle" id="map-toggle" type="button" aria-expanded="true">Hide ▾</button>
     </div>
-    <div class="map-caption" id="no-pin-note" style="display:none; color: var(--closed); font-weight: 600; margin-top: 0.3rem;"></div>
+    <div class="map-body" id="map-body">
+      <div id="map"></div>
+      <div class="map-caption">
+        Pins mark approximate car-park/trailhead locations, not exact boulder positions (theCrag blocks direct scraping, so these were sourced from park track notes and hiking references). Several small Victoria Range crags (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area) share one approximate regional pin. Selecting an area below dims every other pin.
+      </div>
+      <div class="map-caption" id="no-pin-note" style="display:none; color: var(--closed); font-weight: 600; margin-top: 0.3rem;"></div>
+    </div>
   </div>
 
   <div class="panel">
@@ -238,6 +294,7 @@
   </div>
 
   <div class="panel overflow">
+    <div class="explainer">Tap a climb's name to open its theCrag page for full details, photos, and topos.</div>
     <table id="results-table">
       <thead>
         <tr>
@@ -245,7 +302,7 @@
           <th data-key="name">Problem</th>
           <th data-key="stars">Stars</th>
           <th data-key="area">Area</th>
-          <th>Link</th>
+          <th data-key="boulder">Boulder</th>
         </tr>
       </thead>
       <tbody id="results-body"></tbody>
@@ -546,6 +603,19 @@ function handleSliders(e) {
   render();
 }
 
+const mapToggle = document.getElementById("map-toggle");
+const mapBody = document.getElementById("map-body");
+let mapOpen = true;
+function setMapOpen(open) {
+  mapOpen = open;
+  mapBody.hidden = !open;
+  mapToggle.textContent = open ? "Hide ▾" : "Show ▸";
+  mapToggle.setAttribute("aria-expanded", String(open));
+  if (open) setTimeout(() => map.invalidateSize(), 0);
+}
+mapToggle.addEventListener("click", (e) => { e.stopPropagation(); setMapOpen(!mapOpen); });
+document.getElementById("map-header").addEventListener("click", () => setMapOpen(!mapOpen));
+
 minSlider.addEventListener("input", handleSliders);
 maxSlider.addEventListener("input", handleSliders);
 areaFilter.addEventListener("change", () => { updateMapHighlight(); render(); });
@@ -559,6 +629,13 @@ document.querySelectorAll("th[data-key]").forEach(th => {
   });
 });
 
+function gradeBandClass(grade) {
+  if (grade <= 0) return "grade-green";
+  if (grade <= 4) return "grade-orange";
+  if (grade <= 10) return "grade-red";
+  return "grade-purple";
+}
+
 function render() {
   const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
   const areaVal = areaFilter.value;
@@ -571,7 +648,7 @@ function render() {
   );
 
   rows.sort((a, b) => {
-    let av = a[sortKey], bv = b[sortKey];
+    let av = a[sortKey] ?? "", bv = b[sortKey] ?? "";
     if (typeof av === "string") { av = av.toLowerCase(); bv = bv.toLowerCase(); }
     if (av < bv) return -1 * sortDir;
     if (av > bv) return 1 * sortDir;
@@ -583,11 +660,11 @@ function render() {
 
   resultsBody.innerHTML = rows.map(b => `
     <tr>
-      <td><span class="grade-pill">V${b.grade}</span></td>
-      <td>${b.name}</td>
+      <td><span class="grade-pill ${gradeBandClass(b.grade)}">V${b.grade}</span></td>
+      <td><a class="climb-link" href="${b.url}" target="_blank" rel="noopener">${b.name}<span class="go-arrow">↗</span></a></td>
       <td class="${b.stars < 0 ? 'stars unrated' : 'stars'}">${b.stars < 0 ? "testpiece, unrated" : "★".repeat(b.stars)}</td>
       <td>${b.area}${CLOSED_AREAS.includes(b.area) ? '<span class="closed-tag">TRACK CLOSED</span>' : ""}${b.closed ? '<span class="closed-tag">CLOSED</span>' : ""}</td>
-      <td><a href="${b.url}" target="_blank" rel="noopener">theCrag ↗</a></td>
+      <td class="boulder-cell">${b.boulder || "—"}</td>
     </tr>
   `).join("");
 }
