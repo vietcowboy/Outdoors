@@ -265,16 +265,13 @@
     border-radius: 8px;
     border: 1px solid var(--border);
     background: var(--panel);
-    color: var(--text);
-    font-size: 0.9rem;
-    font-weight: 600;
     cursor: pointer;
   }
+  .star-toggle-glyph { color: var(--star); font-size: 1rem; letter-spacing: 1px; }
   .star-toggle:hover { border-color: var(--accent); }
   .star-toggle[aria-pressed="true"] {
-    background: var(--accent);
+    background: var(--accent-light);
     border-color: var(--accent);
-    color: #fff;
   }
   .star-filter-right {
     display: flex;
@@ -285,6 +282,9 @@
     color: var(--muted);
     font-size: 0.85rem;
     white-space: nowrap;
+  }
+  @media (max-width: 640px) {
+    .star-filter-right { width: 100%; justify-content: flex-end; }
   }
 
   select, input[type=text] {
@@ -515,9 +515,9 @@
           <div class="star-filter-left">
             <label class="stars-label">Stars</label>
             <div class="star-filter" id="star-filter">
-              <button type="button" class="star-toggle" data-value="1" aria-pressed="false">1★</button>
-              <button type="button" class="star-toggle" data-value="2" aria-pressed="true">2★</button>
-              <button type="button" class="star-toggle" data-value="3" aria-pressed="true">3★</button>
+              <button type="button" class="star-toggle" data-value="1" aria-pressed="false"><span class="star-toggle-glyph">★</span></button>
+              <button type="button" class="star-toggle" data-value="2" aria-pressed="true"><span class="star-toggle-glyph">★★</span></button>
+              <button type="button" class="star-toggle" data-value="3" aria-pressed="true"><span class="star-toggle-glyph">★★★</span></button>
             </div>
           </div>
           <div class="star-filter-right">
