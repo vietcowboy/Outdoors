@@ -109,6 +109,10 @@
     align-items: flex-end;
   }
   .control { flex: 1; min-width: 220px; }
+  .grade-control { flex: 1; min-width: 220px; }
+  @media (min-width: 641px) {
+    .grade-control { max-width: 280px; }
+  }
   .control label {
     display: block;
     font-size: 0.78rem;
@@ -129,7 +133,8 @@
   }
   .dual-slider input[type=range] {
     position: absolute;
-    width: 100%;
+    left: 24px;
+    width: calc(100% - 48px);
     height: 32px;
     top: 50%;
     transform: translateY(-50%);
@@ -186,7 +191,7 @@
     top: 50%;
     transform: translateY(-50%);
     height: 4px;
-    left: 0; right: 0;
+    left: 24px; right: 24px;
     background: var(--border);
     border-radius: 2px;
   }
@@ -416,7 +421,7 @@
     </div>
 
     <div class="controls-row">
-      <div class="control" style="flex: 1; min-width: 220px; max-width: 280px;">
+      <div class="control grade-control">
         <label>V grade range: <span class="range-values" id="grade-range-label"></span></label>
         <div class="dual-slider">
           <div class="track"></div>
@@ -804,15 +809,19 @@ function updateMapHighlight() {
 const minBubble = document.getElementById("min-bubble");
 const maxBubble = document.getElementById("max-bubble");
 
+const SLIDER_PAD = 24;
+function sliderPos(fraction) {
+  return `calc(${SLIDER_PAD}px + (100% - ${SLIDER_PAD * 2}px) * ${fraction})`;
+}
 function updateTrackFill() {
   const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
-  const pctMin = ((min - GRADE_MIN) / (GRADE_MAX - GRADE_MIN)) * 100;
-  const pctMax = ((max - GRADE_MIN) / (GRADE_MAX - GRADE_MIN)) * 100;
-  trackFill.style.left = pctMin + "%";
-  trackFill.style.width = (pctMax - pctMin) + "%";
+  const fracMin = (min - GRADE_MIN) / (GRADE_MAX - GRADE_MIN);
+  const fracMax = (max - GRADE_MIN) / (GRADE_MAX - GRADE_MIN);
+  trackFill.style.left = sliderPos(fracMin);
+  trackFill.style.width = `calc((100% - ${SLIDER_PAD * 2}px) * ${fracMax - fracMin})`;
   rangeLabel.textContent = `V${min} – V${max}`;
-  minBubble.style.left = pctMin + "%";
-  maxBubble.style.left = pctMax + "%";
+  minBubble.style.left = sliderPos(fracMin);
+  maxBubble.style.left = sliderPos(fracMax);
   minBubble.textContent = "V" + min;
   maxBubble.textContent = "V" + max;
 }
