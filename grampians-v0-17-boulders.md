@@ -13,7 +13,7 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 - **Sundial Peak**: the walking track is currently **closed** due to fire damage to the boardwalk (as of mid-2025, expected into 2026). Silverband/Sundial Road access is open but the peak-area boulders may not be reachable. Check Parks Victoria "change of conditions" before planning around this area.
 - **Andersens (Hollow Mountain)**: climbing is **banned in Andersens East** under the Greater Gariwerd Landscape Management Plan. Only **West Andersens** (Clicke/Lower Clicke area) remains open. Verify each problem's zone on theCrag before relying on it.
 - **Cave of Man Hands** (Buandik Area, Victoria Range): **closed** by Parks Victoria since February 2019 for Aboriginal cultural heritage reasons.
-- **Juju Rock / Rabbit Rock** (near Mackeys Peak): **private property, invite-only** — not climbable without landowner consent.
+- **Juju Rock / Rabbit Rock** (near Mackeys Peak): **private property, invite-only** — not climbable without landowner consent. This includes **Overdose**, the one problem listed under Mackeys Peak below — it's actually on Juju Rock.
 - **Flat Rock / Epsilon Wall** (North Grampians): access has been under review since the 2019 Gariwerd management changes — theCrag suggests considering other areas, especially for large groups.
 - A **voluntary new-route moratorium** applies Grampians-wide — doesn't affect the problems below, but worth knowing if you hear talk of new lines.
 
@@ -24,7 +24,7 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 - **Northern Wonderland Range** is a solid all-round secondary cluster, with quality lines from V2 to V12.
 - **Southern Wonderland Range**, **North Grampians** (incl. Flat Rock/Epsilon Wall), and **Iskra Crag** each contribute a handful of good lines but aren't dense clusters on their own.
 - **Victoria Range** (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area) is spread across several small, remote crags a fair drive from the other areas — worth a dedicated trip if you're chasing the V14/V15 testpieces (Wave Swoop, Owning the Weather, The Stepping Stone, Road Sweet Home) rather than a casual add-on.
-- **Mackeys Peak** and **South-Eastern Grampians** (Mt Abrupt/The Piccaninny) are thin, minor additions — not worth a special trip on their own, but worth knowing about if you're already in the area.
+- **Mackeys Peak**'s one listed problem is actually private-access (see caveat above) — treat this area as informational only for now. **South-Eastern Grampians** (Mt Abrupt/The Piccaninny) is a thin, minor, publicly-accessible addition — not worth a special trip, but worth knowing about if you're already in the area.
 - **The Black Range**, **Black Range Granite**, and **Central Grampians** have no catalogued bouldering — trad/crack-climbing regions only, skip them for a bouldering trip.
 
 ## Mt Stapylton Amphitheatre / Taipan Wall (Trackside Boulders + sub-areas)
@@ -215,11 +215,11 @@ Confirm West vs. East (closed) status per route before relying on these.
 
 ## Mackeys Peak (Halls Gap Area)
 
-Nearby **Juju Rock** and **Rabbit Rock** reportedly hold excellent problems (V2-V12) but are on **private property, invite-only** — not included here since access requires landowner consent and exact route data couldn't be verified.
+**Correction:** the only problem found here, Overdose, turned out to be on **Juju Rock** — a satellite boulder at Mackeys Peak that is **private property, invite-only**, not the main public cliff. So despite being the one "Mackeys Peak" entry in this list, it is **not currently climbable without landowner consent**. Juju Rock and nearby Rabbit Rock reportedly hold other excellent problems (V2-V12) but aren't listed here since access requires consent and exact route data couldn't be fully verified.
 
 | Problem | Grade | Stars | Link |
 |---|---|---|---|
-| Overdose | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mackeys-peak/route/7163808171) |
+| Overdose (on Juju Rock — private, invite-only) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mackeys-peak/route/7163808171) |
 
 ## South-Eastern Grampians (Mt Abrupt / The Piccaninny)
 
