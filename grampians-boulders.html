@@ -419,7 +419,7 @@
     </div>
 
     <div class="controls-row">
-      <div class="control" style="flex: 2; min-width: 280px;">
+      <div class="control" style="flex: 1; min-width: 220px; max-width: 280px;">
         <label>V grade range: <span class="range-values" id="grade-range-label"></span></label>
         <div class="dual-slider">
           <div class="track"></div>
@@ -473,7 +473,9 @@
     <div class="empty" id="empty-msg" style="display:none;">No problems match these filters.</div>
   </div>
 
-  <footer class="site-footer">Visitors: <span id="visitor-count">…</span></footer>
+  <footer class="site-footer">
+    <img src="https://hits.sh/vietcowboy.github.io/Outdoors/grampians-boulders.svg?style=flat-square&label=visitors" alt="visitor count" height="20">
+  </footer>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -943,17 +945,6 @@ updateTrackFill();
 updateMapHighlight();
 render();
 
-// --- Visitor counter (counterapi.dev free anonymous counter — pings on every page load) ---
-(async () => {
-  const el = document.getElementById("visitor-count");
-  try {
-    const res = await fetch("https://api.counterapi.dev/v1/cragify-grampians/pageviews/up");
-    const data = await res.json();
-    el.textContent = (data && (data.count ?? data.value)) ?? "—";
-  } catch (err) {
-    el.textContent = "—";
-  }
-})();
 </script>
 </body>
 </html>
