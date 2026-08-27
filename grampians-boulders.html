@@ -91,6 +91,8 @@
     margin-bottom: 0.8rem;
   }
   .filters-header h2 { margin: 0; font-size: 1rem; }
+  .filters-header-left { display: flex; align-items: center; gap: 0.4rem; }
+  .reset-row { display: flex; justify-content: flex-end; margin-top: 0.9rem; }
   .reset-btn {
     background: transparent;
     border: 1px solid var(--border);
@@ -297,12 +299,8 @@
   .map-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    user-select: none;
+    justify-content: flex-end;
   }
-  .map-header-left { display: flex; align-items: center; gap: 0.4rem; }
-  .map-header h2 { margin: 0; font-size: 1rem; }
   .icon-btn {
     background: none;
     border: 1px solid var(--border);
@@ -406,16 +404,14 @@
 
   <div class="panel">
     <div class="filters-header">
-      <h2>Filters</h2>
-      <button class="reset-btn" id="reset-filters" type="button">Reset filters</button>
+      <div class="filters-header-left">
+        <h2>Filters</h2>
+        <button class="icon-btn" id="map-info-btn" type="button" aria-label="About this map" title="About this map">ⓘ</button>
+      </div>
     </div>
 
     <div class="map-header" id="map-header">
-      <div class="map-header-left">
-        <h2>Map</h2>
-        <button class="icon-btn" id="map-info-btn" type="button" aria-label="About this map" title="About this map">ⓘ</button>
-      </div>
-      <button class="map-toggle" id="map-toggle" type="button" aria-expanded="true">Hide ▾</button>
+      <button class="map-toggle" id="map-toggle" type="button" aria-expanded="true">Hide map ▾</button>
     </div>
     <div class="map-body" id="map-body">
       <div id="map"></div>
@@ -450,6 +446,10 @@
           <label class="star-check"><input type="checkbox" value="3" checked> 3★</label>
         </div>
       </div>
+    </div>
+
+    <div class="reset-row">
+      <button class="reset-btn" id="reset-filters" type="button">Reset filters</button>
     </div>
   </div>
 
@@ -834,12 +834,11 @@ let mapOpen = true;
 function setMapOpen(open) {
   mapOpen = open;
   mapBody.hidden = !open;
-  mapToggle.textContent = open ? "Hide ▾" : "Show ▸";
+  mapToggle.textContent = open ? "Hide map ▾" : "Show map ▸";
   mapToggle.setAttribute("aria-expanded", String(open));
   if (open) setTimeout(() => map.invalidateSize(), 0);
 }
-mapToggle.addEventListener("click", (e) => { e.stopPropagation(); setMapOpen(!mapOpen); });
-document.getElementById("map-header").addEventListener("click", () => setMapOpen(!mapOpen));
+mapToggle.addEventListener("click", () => setMapOpen(!mapOpen));
 
 // --- Map info modal ---
 const mapInfoModal = document.getElementById("map-info-modal");
