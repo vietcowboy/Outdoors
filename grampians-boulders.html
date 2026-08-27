@@ -378,6 +378,16 @@
   }
   .empty { text-align: center; color: var(--muted); padding: 2rem 0; }
   .site-footer { text-align: center; color: var(--muted); font-size: 0.78rem; padding: 1rem 0 0.5rem; }
+  .attribution {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+  .attribution strong { display: block; color: var(--text); font-size: 0.82rem; margin-bottom: 0.4rem; }
+  .attribution a { color: var(--accent); }
   .overflow { overflow-x: auto; }
 
   .leaflet-tooltip.area-label {
@@ -473,6 +483,11 @@
       <tbody id="results-body"></tbody>
     </table>
     <div class="empty" id="empty-msg" style="display:none;">No problems match these filters.</div>
+  </div>
+
+  <div class="attribution">
+    <strong>Data &amp; attribution</strong>
+    <p>Climbing information displayed on this site has been sourced from <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> and is provided for informational purposes only. This is an independent project and is not affiliated with, endorsed by, or sponsored by theCrag. Climb information may be incomplete, inaccurate or out of date. Always assess conditions, access restrictions and risks yourself before climbing. theCrag and its respective contributors retain all applicable rights to their content and data.</p>
   </div>
 
   <footer class="site-footer">
