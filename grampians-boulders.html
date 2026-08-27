@@ -137,6 +137,7 @@
     width: calc(100% - 48px);
     height: 32px;
     top: 50%;
+    z-index: 3;
     transform: translateY(-50%);
     margin: 0;
     -webkit-appearance: none;
@@ -834,6 +835,24 @@ function handleSliders(e) {
   updateTrackFill();
   render();
 }
+
+// Bring whichever thumb the cursor is nearest to the front, so hover/click
+// always resolves to the intended thumb on the first pass instead of
+// requiring a second attempt when the two overlapping inputs disagree
+// about which one owns that pixel.
+const sliderWrap = document.querySelector(".dual-slider");
+function updateSliderStacking(clientX) {
+  const rect = sliderWrap.getBoundingClientRect();
+  const usablePx = rect.width - SLIDER_PAD * 2;
+  const frac = Math.min(1, Math.max(0, (clientX - rect.left - SLIDER_PAD) / usablePx));
+  const value = GRADE_MIN + frac * (GRADE_MAX - GRADE_MIN);
+  const minVal = parseInt(minSlider.value), maxVal = parseInt(maxSlider.value);
+  const minCloser = Math.abs(value - minVal) <= Math.abs(value - maxVal);
+  minSlider.style.zIndex = minCloser ? 5 : 3;
+  maxSlider.style.zIndex = minCloser ? 3 : 5;
+}
+sliderWrap.addEventListener("pointermove", (e) => updateSliderStacking(e.clientX));
+sliderWrap.addEventListener("pointerdown", (e) => updateSliderStacking(e.clientX));
 
 const mapToggle = document.getElementById("map-toggle");
 const mapBody = document.getElementById("map-body");
