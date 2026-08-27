@@ -70,6 +70,34 @@
 
   #map { height: 340px; border-radius: 8px; width: 100%; }
   .map-caption { color: var(--muted); font-size: 0.78rem; margin-top: 0.6rem; line-height: 1.4; }
+  .selection-pin {
+    width: 24px;
+    height: 24px;
+    background: #d32f2f;
+    border: 2px solid #fff;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    margin: 4px 0 0 4px;
+  }
+
+  .filters-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+  }
+  .filters-header h2 { margin: 0; font-size: 1rem; }
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.78rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .reset-btn:hover { color: var(--accent); border-color: var(--accent); }
 
   .controls-row {
     display: flex;
@@ -107,6 +135,7 @@
     appearance: none;
     background: transparent;
     pointer-events: none;
+    outline: none;
   }
   .dual-slider input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -116,6 +145,7 @@
     border-radius: 50%;
     background: transparent;
     border: none;
+    box-shadow: none;
     cursor: pointer;
   }
   .dual-slider input[type=range]::-moz-range-thumb {
@@ -125,11 +155,28 @@
     border-radius: 50%;
     background: transparent;
     border: none;
+    box-shadow: none;
     cursor: pointer;
   }
   .dual-slider input[type=range]::-webkit-slider-runnable-track {
     height: 32px;
     background: transparent;
+    box-shadow: none;
+  }
+  .dual-slider input[type=range]::-moz-range-track {
+    height: 32px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+  .dual-slider input[type=range]::-moz-range-progress {
+    background: transparent;
+  }
+  .dual-slider input[type=range]:focus {
+    outline: none;
+  }
+  .dual-slider input[type=range]::-moz-focus-outer {
+    border: 0;
   }
   .dual-slider .track {
     position: absolute;
@@ -152,13 +199,13 @@
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: var(--accent);
     color: #fff;
     font-weight: 700;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -230,7 +277,8 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   .problem-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
-  .problem-title-row { display: flex; align-items: center; gap: 16px; }
+  .problem-title-row { display: flex; align-items: flex-start; gap: 16px; }
+  .problem-name-col { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
   .star-row { font-size: 0.85rem; letter-spacing: 1px; color: var(--star); line-height: 1; }
   .star-row.unrated { color: var(--muted); opacity: 0.7; }
   .climb-link { display: inline-flex; align-items: baseline; gap: 0.3rem; font-weight: 600; color: var(--text); }
@@ -363,11 +411,15 @@
       </div>
       <p>Pins mark approximate car-park/trailhead locations, not exact boulder positions (theCrag blocks direct scraping, so these were sourced from park track notes and hiking references).</p>
       <p>Several small Victoria Range crags (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area) share one approximate regional pin.</p>
-      <p>Tap a pin to filter the list to that area. Selecting an area below (or tapping a pin) dims every other pin.</p>
+      <p>Tap a pin to filter the list to that area. Selecting an area below (or tapping a pin) drops a red marker on the selected pin.</p>
     </div>
   </div>
 
   <div class="panel">
+    <div class="filters-header">
+      <h2>Filters</h2>
+      <button class="reset-btn" id="reset-filters" type="button">Reset filters</button>
+    </div>
     <div class="controls-row">
       <div class="control" style="flex: 2; min-width: 280px;">
         <label>V grade range: <span class="range-values" id="grade-range-label"></span></label>
@@ -700,19 +752,31 @@ function selectRegion(regionKey) {
 
 const noPinNote = document.getElementById("no-pin-note");
 
+const selectionPinIcon = L.divIcon({
+  className: "selection-pin-icon",
+  html: '<div class="selection-pin"></div>',
+  iconSize: [26, 34],
+  iconAnchor: [13, 34]
+});
+let selectionMarker = null;
+
 function updateMapHighlight() {
   const selectedArea = areaFilter.value;
   const hasKnownRegion = selectedArea ? Object.prototype.hasOwnProperty.call(AREA_TO_REGION, selectedArea) : true;
   const selectedRegion = selectedArea && hasKnownRegion ? AREA_TO_REGION[selectedArea] : null;
-  const showAll = !selectedArea;
 
-  Object.entries(regionMarkers).forEach(([key, marker]) => {
-    if (showAll || key === selectedRegion) {
-      marker.setStyle({ fillOpacity: 0.65, opacity: 1, radius: 11 });
-    } else {
-      marker.setStyle({ fillOpacity: 0.12, opacity: 0.25, radius: 7 });
-    }
+  Object.values(regionMarkers).forEach(marker => {
+    marker.setStyle({ fillOpacity: 0.7, opacity: 1, radius: 11, color: "#2e7d32", fillColor: "#2e7d32", weight: 2 });
   });
+
+  if (selectionMarker) {
+    map.removeLayer(selectionMarker);
+    selectionMarker = null;
+  }
+  if (selectedRegion) {
+    const r = REGIONS[selectedRegion];
+    selectionMarker = L.marker([r.lat, r.lng], { icon: selectionPinIcon, interactive: false }).addTo(map);
+  }
 
   if (selectedArea && !hasKnownRegion) {
     noPinNote.textContent = `No verified location for "${selectedArea}" — pin omitted rather than guessed.`;
@@ -749,8 +813,8 @@ function updateTrackFill() {
   rangeLabel.textContent = `V${min} – V${max}`;
   minBubble.style.left = pctMin + "%";
   maxBubble.style.left = pctMax + "%";
-  minBubble.textContent = min;
-  maxBubble.textContent = max;
+  minBubble.textContent = "V" + min;
+  maxBubble.textContent = "V" + max;
 }
 
 function handleSliders(e) {
@@ -791,6 +855,17 @@ search.addEventListener("input", render);
 
 const starFilterChecks = document.querySelectorAll("#star-filter input[type=checkbox]");
 starFilterChecks.forEach(cb => cb.addEventListener("change", render));
+
+document.getElementById("reset-filters").addEventListener("click", () => {
+  minSlider.value = GRADE_MIN;
+  maxSlider.value = GRADE_MAX;
+  updateTrackFill();
+  areaFilter.value = "";
+  search.value = "";
+  starFilterChecks.forEach(cb => cb.checked = true);
+  updateMapHighlight();
+  render();
+});
 function getCheckedStars() {
   return new Set([...starFilterChecks].filter(cb => cb.checked).map(cb => parseInt(cb.value)));
 }
@@ -850,9 +925,11 @@ function render() {
         <div class="problem-cell">
           <div class="problem-title-row">
             <span class="grade-pill ${gradeBandClass(b.grade)}">V${b.grade}</span>
-            <a class="climb-link" href="${b.url}" target="_blank" rel="noopener">${b.name}<span class="go-arrow">↗</span></a>
+            <div class="problem-name-col">
+              <a class="climb-link" href="${b.url}" target="_blank" rel="noopener">${b.name}<span class="go-arrow">↗</span></a>
+              ${starBadge(b.stars)}
+            </div>
           </div>
-          ${starBadge(b.stars)}
         </div>
       </td>
       <td>${b.area}${CLOSED_AREAS.includes(b.area) ? '<span class="closed-tag">TRACK CLOSED</span>' : ""}${b.closed ? '<span class="closed-tag">CLOSED</span>' : ""}</td>
