@@ -12,6 +12,9 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 
 - **Sundial Peak**: the walking track is currently **closed** due to fire damage to the boardwalk (as of mid-2025, expected into 2026). Silverband/Sundial Road access is open but the peak-area boulders may not be reachable. Check Parks Victoria "change of conditions" before planning around this area.
 - **Andersens (Hollow Mountain)**: climbing is **banned in Andersens East** under the Greater Gariwerd Landscape Management Plan. Only **West Andersens** (Clicke/Lower Clicke area) remains open. Verify each problem's zone on theCrag before relying on it.
+- **Cave of Man Hands** (Buandik Area, Victoria Range): **closed** by Parks Victoria since February 2019 for Aboriginal cultural heritage reasons.
+- **Juju Rock / Rabbit Rock** (near Mackeys Peak): **private property, invite-only** — not climbable without landowner consent.
+- **Flat Rock / Epsilon Wall** (North Grampians): access has been under review since the 2019 Gariwerd management changes — theCrag suggests considering other areas, especially for large groups.
 - A **voluntary new-route moratorium** applies Grampians-wide — doesn't affect the problems below, but worth knowing if you hear talk of new lines.
 
 ## Best clusters for a weekend trip
@@ -19,8 +22,10 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 - **Hollow Mountain / Andersens** and **Mt Stapylton Amphitheatre / Taipan (Trackside Boulders)** are the deepest all-round clusters — quality problems across nearly the entire V0-13 range, plus Hollow Mountain holds the Grampians' three V15 testpieces (Wheel of Life, Wheel of Life Direct, Sleepy Rave). Best picks for a base regardless of grade.
 - **Sundial Peak** has excellent average quality (multiple ★★★ from V1 to V9) but is currently access-restricted — call ahead.
 - **Northern Wonderland Range** is a solid all-round secondary cluster, with quality lines from V2 to V12.
-- **Southern Wonderland Range**, **North Grampians**, and **Iskra Crag** each contribute a handful of good lines but aren't dense clusters on their own.
-- **Victoria Range** (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion) is spread across several small, remote crags a fair drive from the other areas — worth a dedicated trip if you're chasing the V14/V15 testpieces (Wave Swoop, Owning the Weather, The Stepping Stone, Road Sweet Home) rather than a casual add-on.
+- **Southern Wonderland Range**, **North Grampians** (incl. Flat Rock/Epsilon Wall), and **Iskra Crag** each contribute a handful of good lines but aren't dense clusters on their own.
+- **Victoria Range** (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area) is spread across several small, remote crags a fair drive from the other areas — worth a dedicated trip if you're chasing the V14/V15 testpieces (Wave Swoop, Owning the Weather, The Stepping Stone, Road Sweet Home) rather than a casual add-on.
+- **Mackeys Peak** and **South-Eastern Grampians** (Mt Abrupt/The Piccaninny) are thin, minor additions — not worth a special trip on their own, but worth knowing about if you're already in the area.
+- **The Black Range**, **Black Range Granite**, and **Central Grampians** have no catalogued bouldering — trad/crack-climbing regions only, skip them for a bouldering trip.
 
 ## Mt Stapylton Amphitheatre / Taipan Wall (Trackside Boulders + sub-areas)
 
@@ -91,6 +96,7 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Solid State | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/323128686) |
 | Lightening Arete | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143313816) |
 | Rise of the Machines | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/116508945) |
+| American Dream | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/435614397) |
 | Critical Mass | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/129688557) |
 | Giddy Up | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/129683028) |
 | Gasoline | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/155889138) |
@@ -164,28 +170,71 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Problem | Grade | Stars | Link |
 |---|---|---|---|
 | Curtain Call | V3 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984647) |
+| Epsilon Crack | V5 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984791) |
 | Encore | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/1399665435) |
 | Grand Opening | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/6121247490) |
+| Pussy Power | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/967672857) |
 | The Show Must Go On | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984593) |
+| Leave it all behind | V9 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/642380586) |
 | 100 Pound Club | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984695) |
+| Lullaby | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984839) |
 | Magician's Code | V12 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/4625109903) |
+| Mugabe | V12 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/143428884) |
 
 ## Iskra Crag
 
 | Problem | Grade | Stars | Link |
 |---|---|---|---|
+| Parallel Lines | V11 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769408) |
 | Last Action Hiro | V12 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769651) |
+| Mana (Lemonade Wall) | V13 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769816) |
 
-## Victoria Range (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion — a fair drive, spread across several small crags)
+## Victoria Range (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area — a fair drive, spread across several small crags)
+
+**Cave of Man Hands** (a sector within Buandik Area) has been **closed by Parks Victoria since February 2019** for Aboriginal cultural heritage reasons — the three problems below from that sector are listed for reference only, not as currently climbable.
 
 | Problem | Grade | Stars | Sub-area | Link |
 |---|---|---|---|---|
 | Mr Grace | V1 | ★★ | Crag X | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/crag-x/route/15173173) |
+| Cookie Monster | V2 | ★★ | Buandik Area | [theCrag](https://www.thecrag.com/climbing/australia/grampians/buandik-area/route/1218542874) |
 | Cats Can Climb Too | V2 | ★★ | Mountain Lion | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mountain-lion/route/773191896) |
 | Hippo Campus | V4 | ★★ | Mt Fox Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009282965) |
 | Comfortably Numb | V7 | ★★★ | Possum Rocks | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/possum-rocks/route/15184951) |
 | Mind Over Matter | V8 | ★★★ | Mt Fox Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/999197994) |
+| Hurry up the rain is coming | V9 | ★★ | Buandik Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/768904893) |
+| Hillary Step | V9 | ★★★ | Buandik Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/768924219) |
+| Manhandled | V11 | ★★ | Buandik Area (Cave of Man Hands — closed) | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/430630128) |
+| Dos Manos | V11 | ★★ | Buandik Area (Cave of Man Hands — closed) | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/430630362) |
+| The Sound of One Man Hand Clapping | V11 | ★★ | Buandik Area (Cave of Man Hands — closed) | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/430630479) |
+| Roobiks Cube | V12 | ★★★ | Buandik Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/768927588) |
+| Dick Snot | V13 | ★★ | Eureka Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/eureka-area/route/660018906) |
 | Wave Swoop | V14 | ★★★ | Mt Fox Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009282842) |
 | Owning the Weather | V14 | ★★★ | Mt Fox Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009257726) |
 | The Stepping Stone | V15 | testpiece, ★ unrated | Victoria Range (general) | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/route/3343458645) |
 | Road Sweet Home | V15 | testpiece, ★ unrated | Buandik Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/3343430844) |
+
+## Mackeys Peak (Halls Gap Area)
+
+Nearby **Juju Rock** and **Rabbit Rock** reportedly hold excellent problems (V2-V12) but are on **private property, invite-only** — not included here since access requires landowner consent and exact route data couldn't be verified.
+
+| Problem | Grade | Stars | Link |
+|---|---|---|---|
+| Overdose | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mackeys-peak/route/7163808171) |
+
+## South-Eastern Grampians (Mt Abrupt / The Piccaninny)
+
+A minor, thinly-documented bouldering area near Dunkeld — worth knowing about, not a trip anchor.
+
+| Problem | Grade | Stars | Sub-area | Link |
+|---|---|---|---|---|
+| The Frisbee Flop | V3 | ★★ | The Piccaninny | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/south-eastern-grampians/route/414129708) |
+| The History of Screaming | V5 | ★★ | Mt Abrupt | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-abrupt/route/432283485) |
+| Reclusive Wanker | V7 | ★★ | Mt Abrupt | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-abrupt/route/550645278) |
+
+## Regions with no catalogued bouldering
+
+Checked directly and confirmed **no documented boulder problems** on theCrag — these are trad/crack-climbing regions, not bouldering destinations, despite occasional prose claims of bouldering "potential":
+
+- **The Black Range**
+- **Black Range Granite** (near Stawell)
+- **Central Grampians** (Bundaleer, Summerday Valley) — the one exception, Iskra Crag, is already included above; its exact top-level region tag is ambiguous in theCrag's own data.
