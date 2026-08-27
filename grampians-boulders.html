@@ -302,8 +302,6 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   .problem-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
-  .problem-title-row { display: flex; align-items: flex-start; gap: 16px; }
-  .problem-name-col { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
   .star-row { font-size: 0.85rem; letter-spacing: 1px; color: var(--star); line-height: 1; }
   .star-row.unrated { color: var(--muted); opacity: 0.7; }
   .climb-link { display: inline-flex; align-items: baseline; gap: 0.3rem; font-weight: 600; color: var(--text); }
@@ -1030,13 +1028,9 @@ function render() {
     <tr>
       <td>
         <div class="problem-cell">
-          <div class="problem-title-row">
-            <span class="grade-pill ${gradeBandClass(b.grade)}">V${b.grade}</span>
-            <div class="problem-name-col">
-              <a class="climb-link" href="${b.url}" target="_blank" rel="noopener">${b.name}<span class="go-arrow">↗</span></a>
-              ${starBadge(b.stars)}
-            </div>
-          </div>
+          <span class="grade-pill ${gradeBandClass(b.grade)}">V${b.grade}</span>
+          <a class="climb-link" href="${b.url}" target="_blank" rel="noopener">${b.name}<span class="go-arrow">↗</span></a>
+          ${starBadge(b.stars)}
         </div>
       </td>
       <td>${b.area}${CLOSED_AREAS.includes(b.area) ? '<span class="closed-tag">TRACK CLOSED</span>' : ""}${b.closed ? '<span class="closed-tag">CLOSED</span>' : ""}</td>
