@@ -70,6 +70,9 @@
 
   #map { height: 340px; border-radius: 8px; width: 100%; }
   .map-caption { color: var(--muted); font-size: 0.78rem; margin-top: 0.6rem; line-height: 1.4; }
+  .map-header { margin-bottom: 0.4rem; }
+  .map-body { margin-bottom: 1.2rem; }
+  .map-body[hidden] { margin-bottom: 0; }
   .selection-pin {
     width: 24px;
     height: 24px;
@@ -389,20 +392,6 @@
   <h1>Cragify</h1>
   <div class="subtitle">Grampians boulder problems from theCrag.com, V0-V17. Filter by grade, area, or search — the map highlights whatever area is selected.</div>
 
-  <div class="panel">
-    <div class="map-header" id="map-header">
-      <div class="map-header-left">
-        <h2>Map</h2>
-        <button class="icon-btn" id="map-info-btn" type="button" aria-label="About this map" title="About this map">ⓘ</button>
-      </div>
-      <button class="map-toggle" id="map-toggle" type="button" aria-expanded="true">Hide ▾</button>
-    </div>
-    <div class="map-body" id="map-body">
-      <div id="map"></div>
-      <div class="map-caption" id="no-pin-note" style="display:none; color: var(--closed); font-weight: 600; margin-top: 0.3rem;"></div>
-    </div>
-  </div>
-
   <div class="modal-overlay" id="map-info-modal" hidden>
     <div class="modal-box">
       <div class="modal-header">
@@ -420,6 +409,19 @@
       <h2>Filters</h2>
       <button class="reset-btn" id="reset-filters" type="button">Reset filters</button>
     </div>
+
+    <div class="map-header" id="map-header">
+      <div class="map-header-left">
+        <h2>Map</h2>
+        <button class="icon-btn" id="map-info-btn" type="button" aria-label="About this map" title="About this map">ⓘ</button>
+      </div>
+      <button class="map-toggle" id="map-toggle" type="button" aria-expanded="true">Hide ▾</button>
+    </div>
+    <div class="map-body" id="map-body">
+      <div id="map"></div>
+      <div class="map-caption" id="no-pin-note" style="display:none; color: var(--closed); font-weight: 600; margin-top: 0.3rem;"></div>
+    </div>
+
     <div class="controls-row">
       <div class="control" style="flex: 2; min-width: 280px;">
         <label>V grade range: <span class="range-values" id="grade-range-label"></span></label>
