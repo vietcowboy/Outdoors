@@ -25,6 +25,11 @@
     --grade-red-bg: #f8dede;
     --grade-purple: #7248a8;
     --grade-purple-bg: #ece3f6;
+    --star-0: #9a9a94;
+    --star-1: #b3702c;
+    --star-2: #9a9aa6;
+    --star-3: #c9932e;
+    --star-digit: #ffffff;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -46,6 +51,10 @@
       --grade-red-bg: #3a2323;
       --grade-purple: #c1a3ea;
       --grade-purple-bg: #2f2438;
+      --star-0: #86867e;
+      --star-1: #cf8b46;
+      --star-2: #b7b7c4;
+      --star-3: #e0b45a;
     }
   }
   * { box-sizing: border-box; }
@@ -190,10 +199,33 @@
   .grade-pill.grade-orange { background: var(--grade-orange-bg); color: var(--grade-orange); }
   .grade-pill.grade-red    { background: var(--grade-red-bg);    color: var(--grade-red); }
   .grade-pill.grade-purple { background: var(--grade-purple-bg); color: var(--grade-purple); }
-  .stars { color: var(--star); letter-spacing: 1px; }
-  .stars.unrated { color: var(--muted); font-style: italic; letter-spacing: normal; font-size: 0.78rem; }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
+  .problem-cell { display: flex; align-items: center; gap: 0.5rem; }
+  .star-badge {
+    position: relative;
+    flex: 0 0 auto;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: inline-grid;
+    place-items: center;
+  }
+  .star-badge .star-glyph { font-size: 1.5rem; line-height: 1; }
+  .star-badge.tier-0 .star-glyph { color: var(--star-0); }
+  .star-badge.tier-1 .star-glyph { color: var(--star-1); }
+  .star-badge.tier-2 .star-glyph { color: var(--star-2); }
+  .star-badge.tier-3 .star-glyph { color: var(--star-3); }
+  .star-badge .star-num {
+    position: absolute;
+    top: 52%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--star-digit);
+  }
+  .star-badge.unrated .star-glyph { color: var(--muted); opacity: 0.6; }
+  .star-badge.unrated .star-num { font-size: 0.85rem; color: var(--text); }
   .climb-link { display: inline-flex; align-items: baseline; gap: 0.3rem; font-weight: 600; color: var(--text); }
   .climb-link:hover { color: var(--accent); text-decoration: underline; }
   .climb-link .go-arrow { color: var(--accent); font-size: 0.85em; text-decoration: none; }
@@ -300,7 +332,6 @@
         <tr>
           <th data-key="grade">Grade</th>
           <th data-key="name">Problem</th>
-          <th data-key="stars">Stars</th>
           <th data-key="area">Area</th>
           <th data-key="boulder">Boulder</th>
         </tr>
@@ -321,8 +352,8 @@ const BOULDERS = [
   {name:"Van Diemen's Traverse", grade:0, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15019441"},
 
   {name:"Wrecking Ball", grade:1, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/294051264"},
-  {name:"Pony", grade:1, stars:2, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1006762767"},
-  {name:"One Flash and You're Ash", grade:1, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614177"},
+  {name:"Pony", grade:1, stars:2, area:"Sundial Peak", boulder:"Den of Dwarfs", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1006762767"},
+  {name:"One Flash and You're Ash", grade:1, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"Inflammatory Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614177"},
   {name:"Mr Grace", grade:1, stars:2, area:"Crag X (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/crag-x/route/15173173"},
 
   {name:"D'Artagnan", grade:2, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1406370627"},
@@ -331,45 +362,45 @@ const BOULDERS = [
   {name:"Flake of Fear", grade:2, stars:2, area:"Southern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/southern-wonderland-range/route/693147504"},
   {name:"Cats Can Climb Too", grade:2, stars:2, area:"Mountain Lion (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/mountain-lion/route/773191896"},
 
-  {name:"Uppercut", grade:3, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614273"},
-  {name:"Hard Right", grade:3, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17613745"},
-  {name:"Peregrinator", grade:3, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437529534"},
+  {name:"Uppercut", grade:3, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"Upper Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614273"},
+  {name:"Hard Right", grade:3, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"Amazing Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17613745"},
+  {name:"Peregrinator", grade:3, stars:3, area:"Mt Stapylton Amphitheatre", boulder:"Peregrinator Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437529534"},
   {name:"Surfing Without a Mouse", grade:3, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17613505"},
   {name:"Faith", grade:3, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/183824733"},
   {name:"Ethanol", grade:3, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/154370916"},
   {name:"Red Saturn", grade:3, stars:2, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1766199810"},
-  {name:"Curtain Call", grade:3, stars:2, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984647"},
+  {name:"Curtain Call", grade:3, stars:2, area:"North Grampians", boulder:"Epsilon Wall", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984647"},
   {name:"The Frisbee Flop", grade:3, stars:2, area:"South-Eastern Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/south-eastern-grampians/route/414129708"},
 
   {name:"Volume 1000", grade:4, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17610991"},
-  {name:"Nested", grade:4, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/1213829298"},
+  {name:"Nested", grade:4, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"Titanic Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/1213829298"},
   {name:"4:45", grade:4, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143311143"},
-  {name:"Iliad", grade:4, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15021301"},
+  {name:"Iliad", grade:4, stars:2, area:"Hollow Mountain / Andersens", boulder:"Iliad Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15021301"},
   {name:"Hike the Moon", grade:4, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/1247142495"},
-  {name:"Diversion", grade:4, stars:2, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946695393"},
+  {name:"Diversion", grade:4, stars:2, area:"Northern Wonderland Range", boulder:"Immersion Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946695393"},
   {name:"And Then There Was Red", grade:4, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584823996"},
-  {name:"Hippo Campus", grade:4, stars:2, area:"Mt Fox Area (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009282965"},
-  {name:"Overdose", grade:4, stars:2, area:"Mackeys Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/mackeys-peak/route/7163808171"},
+  {name:"Hippo Campus", grade:4, stars:2, area:"Mt Fox Area (Victoria Range)", boulder:"The Mental Block", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009282965"},
+  {name:"Overdose", grade:4, stars:2, area:"Mackeys Peak", boulder:"Juju Rock (private, invite-only)", url:"https://www.thecrag.com/en/climbing/australia/grampians/mackeys-peak/route/7163808171", closed:true},
 
   {name:"Voltaren", grade:5, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614129"},
-  {name:"Nice Max", grade:5, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984401"},
-  {name:"Wimmelfriedhof", grade:5, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025171"},
+  {name:"Nice Max", grade:5, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"The Citadel", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984401"},
+  {name:"Wimmelfriedhof", grade:5, stars:3, area:"Hollow Mountain / Andersens", boulder:"Hollow Mountain Cave", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025171"},
   {name:"Epinephrine", grade:5, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/294028473"},
   {name:"Out of the Bleau", grade:5, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15020161"},
-  {name:"The Beanstalk", grade:5, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946613037"},
-  {name:"Encore", grade:5, stars:2, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/1399665435"},
-  {name:"Korean Jesus", grade:5, stars:3, area:"Southern Wonderland Range", url:"https://www.thecrag.com/climbing/australia/grampians/southern-wonderland-range/route/1394431227"},
-  {name:"Epsilon Crack", grade:5, stars:3, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984791"},
-  {name:"The History of Screaming", grade:5, stars:2, area:"South-Eastern Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-abrupt/route/432283485"},
+  {name:"The Beanstalk", grade:5, stars:3, area:"Northern Wonderland Range", boulder:"The Beanstalk Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946613037"},
+  {name:"Encore", grade:5, stars:2, area:"North Grampians", boulder:"Epsilon Wall", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/1399665435"},
+  {name:"Korean Jesus", grade:5, stars:3, area:"Southern Wonderland Range", boulder:"Korean Jesus Boulder", url:"https://www.thecrag.com/climbing/australia/grampians/southern-wonderland-range/route/1394431227"},
+  {name:"Epsilon Crack", grade:5, stars:3, area:"North Grampians", boulder:"Epsilon Wall", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984791"},
+  {name:"The History of Screaming", grade:5, stars:2, area:"South-Eastern Grampians", boulder:"Bernard's Boulders", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-abrupt/route/432283485"},
 
-  {name:"Scary Monster", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984545"},
+  {name:"Scary Monster", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"The Citadel", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984545"},
   {name:"The Beginning of a Great Adventure", grade:6, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612281"},
   {name:"Conga Fury VAR", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/3292878177"},
-  {name:"Breakfast of Champions", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437409831"},
-  {name:"Compaction", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/214219062"},
+  {name:"Breakfast of Champions", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"Amazing Boulder", url:"https://www.thecrag.com/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437409831"},
+  {name:"Compaction", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"Butchers Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/214219062"},
   {name:"Shattering Dreams", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612485"},
   {name:"Between the Sheeps", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps/route/14985787"},
-  {name:"Drowning Dicaprio", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275293"},
+  {name:"Drowning Dicaprio", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"Titanic Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275293"},
   {name:"Transcience", grade:6, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/166771842"},
   {name:"Running Man", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/212845047"},
   {name:"Riding Shotgun", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15022771"},
@@ -380,103 +411,103 @@ const BOULDERS = [
   {name:"Hot Mama Vibes", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/875234193"},
   {name:"Ridunculous", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/andersens/route/212841252"},
   {name:"This Way Up", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/andersens/route/143315448"},
-  {name:"White Shadow", grade:6, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9285995439"},
+  {name:"White Shadow", grade:6, stars:3, area:"Sundial Peak", boulder:"White Shadow Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9285995439"},
   {name:"Sex Panther", grade:6, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/2172285696"},
-  {name:"Evac", grade:6, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356093456"},
-  {name:"Magic Daddy", grade:6, stars:2, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356800988"},
-  {name:"Stoplight Arete Left Variant", grade:6, stars:2, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584821590"},
+  {name:"Evac", grade:6, stars:3, area:"Sundial Peak", boulder:"The Walker Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356093456"},
+  {name:"Magic Daddy", grade:6, stars:2, area:"Sundial Peak", boulder:"Magic Daddy Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356800988"},
+  {name:"Stoplight Arete Left Variant", grade:6, stars:2, area:"Northern Wonderland Range", boulder:"Stoplight Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584821590"},
   {name:"Plastic Facts", grade:6, stars:2, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946670598"},
 
   {name:"Waiting in the Air", grade:7, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17611261"},
   {name:"Mr Knox", grade:7, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327786447"},
-  {name:"Solid State", grade:7, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/323128686"},
+  {name:"Solid State", grade:7, stars:3, area:"Hollow Mountain / Andersens", boulder:"3 Star Buttress", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/323128686"},
   {name:"Lightening Arete", grade:7, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143313816"},
   {name:"Rise of the Machines", grade:7, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/116508945"},
-  {name:"Bermuda", grade:7, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9340387380"},
-  {name:"Copperhead", grade:7, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/586875555"},
-  {name:"Baloo", grade:7, stars:2, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/9136039452"},
-  {name:"Grand Opening", grade:7, stars:2, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/6121247490"},
-  {name:"The Show Must Go On", grade:7, stars:2, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984593"},
+  {name:"Bermuda", grade:7, stars:3, area:"Sundial Peak", boulder:"Beige Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9340387380"},
+  {name:"Copperhead", grade:7, stars:3, area:"Northern Wonderland Range", boulder:"Ceramics Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/586875555"},
+  {name:"Baloo", grade:7, stars:2, area:"Northern Wonderland Range", boulder:"Bear Necessities Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/9136039452"},
+  {name:"Grand Opening", grade:7, stars:2, area:"North Grampians", boulder:"Epsilon Wall", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/6121247490"},
+  {name:"The Show Must Go On", grade:7, stars:2, area:"North Grampians", boulder:"Epsilon Wall", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984593"},
   {name:"Comfortably Numb", grade:7, stars:3, area:"Possum Rocks (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/possum-rocks/route/15184951"},
   {name:"Pussy Power", grade:7, stars:2, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/967672857"},
-  {name:"Reclusive Wanker", grade:7, stars:2, area:"South-Eastern Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-abrupt/route/550645278"},
+  {name:"Reclusive Wanker", grade:7, stars:2, area:"South-Eastern Grampians", boulder:"Bernard's Boulders", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-abrupt/route/550645278"},
 
-  {name:"The Oyster", grade:8, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1998020319"},
-  {name:"Ammagamma Standing Start", grade:8, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/143471631"},
+  {name:"The Oyster", grade:8, stars:3, area:"Mt Stapylton Amphitheatre", boulder:"Orphan Boulders", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1998020319"},
+  {name:"Ammagamma Standing Start", grade:8, stars:3, area:"Mt Stapylton Amphitheatre", boulder:"The Citadel", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/143471631"},
   {name:"Brama Sutra", grade:8, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17613157"},
   {name:"Conga Fury", grade:8, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/184112103"},
-  {name:"American Dream", grade:8, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/435614397"},
+  {name:"American Dream", grade:8, stars:3, area:"Hollow Mountain / Andersens", boulder:"Lower Clicke", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/435614397"},
   {name:"Critical Mass", grade:8, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/129688557"},
   {name:"Giddy Up", grade:8, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/129683028"},
   {name:"Gasoline", grade:8, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/155889138"},
-  {name:"Beige is All The Rage", grade:8, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/2582276799"},
-  {name:"Rick Steel", grade:8, stars:2, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1767256773"},
-  {name:"CMD", grade:8, stars:2, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356795633"},
+  {name:"Beige is All The Rage", grade:8, stars:3, area:"Sundial Peak", boulder:"Beige Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/2582276799"},
+  {name:"Rick Steel", grade:8, stars:2, area:"Sundial Peak", boulder:"Magic Daddy Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1767256773"},
+  {name:"CMD", grade:8, stars:2, area:"Sundial Peak", boulder:"The Walker Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356795633"},
   {name:"Submersion", grade:8, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/9237991191"},
-  {name:"Rick & Morty", grade:8, stars:2, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946655790"},
-  {name:"Mind Over Matter", grade:8, stars:3, area:"Mt Fox Area (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/999197994"},
+  {name:"Rick & Morty", grade:8, stars:2, area:"Northern Wonderland Range", boulder:"Rick & Morty Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946655790"},
+  {name:"Mind Over Matter", grade:8, stars:3, area:"Mt Fox Area (Victoria Range)", boulder:"The Mental Block", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/999197994"},
 
-  {name:"Raging Bull", grade:9, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/5736069321"},
-  {name:"The Pearl", grade:9, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/7165735287"},
-  {name:"CaveMan", grade:9, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024691"},
-  {name:"The Walker", grade:9, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356794418"},
-  {name:"The Quickening", grade:9, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1006774092"},
-  {name:"The Gathering (V9/10)", grade:9, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9247623537"},
-  {name:"Immersion", grade:9, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946695522"},
-  {name:"100 Pound Club", grade:9, stars:3, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984695"},
-  {name:"Leave it all behind", grade:9, stars:2, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/642380586"},
-  {name:"Hurry up the rain is coming", grade:9, stars:2, area:"Buandik Area (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/768904893"},
-  {name:"Hillary Step", grade:9, stars:3, area:"Buandik Area (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/768924219"},
+  {name:"Raging Bull", grade:9, stars:3, area:"Mt Stapylton Amphitheatre", boulder:"Farside", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/5736069321"},
+  {name:"The Pearl", grade:9, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"Orphan Boulders", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/7165735287"},
+  {name:"CaveMan", grade:9, stars:3, area:"Hollow Mountain / Andersens", boulder:"Hollow Mountain Cave", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024691"},
+  {name:"The Walker", grade:9, stars:3, area:"Sundial Peak", boulder:"The Walker Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356794418"},
+  {name:"The Quickening", grade:9, stars:3, area:"Sundial Peak", boulder:"Quickening Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1006774092"},
+  {name:"The Gathering (V9/10)", grade:9, stars:3, area:"Sundial Peak", boulder:"Quickening Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9247623537"},
+  {name:"Immersion", grade:9, stars:3, area:"Northern Wonderland Range", boulder:"Immersion Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946695522"},
+  {name:"100 Pound Club", grade:9, stars:3, area:"North Grampians", boulder:"Epsilon Wall", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984695"},
+  {name:"Leave it all behind", grade:9, stars:2, area:"North Grampians", boulder:"West Flank Boulders", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/642380586"},
+  {name:"Hurry up the rain is coming", grade:9, stars:2, area:"Buandik Area (Victoria Range)", boulder:"Made It Area", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/768904893"},
+  {name:"Hillary Step", grade:9, stars:3, area:"Buandik Area (Victoria Range)", boulder:"Amusement Park", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/768924219"},
 
-  {name:"The Viking", grade:10, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/440887803"},
+  {name:"The Viking", grade:10, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"The Citadel", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/440887803"},
   {name:"Etch-a-Sketch", grade:10, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327786558"},
   {name:"Daddy Chill", grade:10, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/6117850374"},
-  {name:"Annagramma", grade:10, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024739"},
-  {name:"Gripmaster", grade:10, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15026131"},
-  {name:"Stoplight Arete", grade:10, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584820759"},
-  {name:"Blockhead", grade:10, stars:2, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946626558"},
+  {name:"Annagramma", grade:10, stars:3, area:"Hollow Mountain / Andersens", boulder:"Hollow Mountain Cave", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024739"},
+  {name:"Gripmaster", grade:10, stars:3, area:"Hollow Mountain / Andersens", boulder:"The Kindergarten", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15026131"},
+  {name:"Stoplight Arete", grade:10, stars:3, area:"Northern Wonderland Range", boulder:"Stoplight Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584820759"},
+  {name:"Blockhead", grade:10, stars:2, area:"Northern Wonderland Range", boulder:"Blockhead Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946626558"},
   {name:"The Departed", grade:10, stars:3, area:"Southern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/southern-wonderland-range/route/1501909128"},
-  {name:"Lullaby", grade:10, stars:2, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984839"},
+  {name:"Lullaby", grade:10, stars:2, area:"North Grampians", boulder:"Epsilon Wall", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984839"},
 
-  {name:"Mad Max", grade:11, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984353"},
-  {name:"Athena", grade:11, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/4625155041"},
+  {name:"Mad Max", grade:11, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"The Citadel", url:"https://www.thecrag.com/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984353"},
+  {name:"Athena", grade:11, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"The Citadel", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/4625155041"},
   {name:"Tantrum", grade:11, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/1997620989"},
-  {name:"Dead Can't Dance", grade:11, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025075"},
+  {name:"Dead Can't Dance", grade:11, stars:3, area:"Hollow Mountain / Andersens", boulder:"Hollow Mountain Cave", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025075"},
   {name:"Forced Entry", grade:11, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15022213"},
-  {name:"Gobsmacker", grade:11, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143314677"},
-  {name:"The Bakelite Concept", grade:11, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946670469"},
-  {name:"Parallel Lines", grade:11, stars:3, area:"Iskra Crag", url:"https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769408"},
-  {name:"Manhandled", grade:11, stars:2, area:"Buandik Area (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/430630128", closed:true},
-  {name:"Dos Manos", grade:11, stars:2, area:"Buandik Area (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/430630362", closed:true},
-  {name:"The Sound of One Man Hand Clapping", grade:11, stars:2, area:"Buandik Area (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/430630479", closed:true},
+  {name:"Gobsmacker", grade:11, stars:2, area:"Hollow Mountain / Andersens", boulder:"Gobsmacker Corner", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143314677"},
+  {name:"The Bakelite Concept", grade:11, stars:3, area:"Northern Wonderland Range", boulder:"Bakelite Concept Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946670469"},
+  {name:"Parallel Lines", grade:11, stars:3, area:"Iskra Crag", boulder:"Lemonade Wall", url:"https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769408"},
+  {name:"Manhandled", grade:11, stars:2, area:"Buandik Area (Victoria Range)", boulder:"Cave of Man Hands", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/430630128", closed:true},
+  {name:"Dos Manos", grade:11, stars:2, area:"Buandik Area (Victoria Range)", boulder:"Cave of Man Hands", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/430630362", closed:true},
+  {name:"The Sound of One Man Hand Clapping", grade:11, stars:2, area:"Buandik Area (Victoria Range)", boulder:"Cave of Man Hands", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/430630479", closed:true},
 
-  {name:"Lost For Life", grade:12, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984305"},
-  {name:"Sleepy Hollow", grade:12, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15024451"},
-  {name:"Manticore", grade:12, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327798999"},
+  {name:"Lost For Life", grade:12, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"The Citadel", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984305"},
+  {name:"Sleepy Hollow", grade:12, stars:3, area:"Hollow Mountain / Andersens", boulder:"Hollow Mountain Cave", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15024451"},
+  {name:"Manticore", grade:12, stars:3, area:"Hollow Mountain / Andersens", boulder:"B4 Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327798999"},
   {name:"Giada", grade:12, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/836031057"},
   {name:"Silver Platter", grade:12, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946645818"},
-  {name:"Magician's Code", grade:12, stars:2, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/4625109903"},
-  {name:"Last Action Hiro", grade:12, stars:2, area:"Iskra Crag", url:"https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769651"},
-  {name:"Mugabe", grade:12, stars:2, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/143428884"},
-  {name:"Roobiks Cube", grade:12, stars:3, area:"Buandik Area (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/768927588"},
+  {name:"Magician's Code", grade:12, stars:2, area:"North Grampians", boulder:"West Flank Boulders", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/4625109903"},
+  {name:"Last Action Hiro", grade:12, stars:2, area:"Iskra Crag", boulder:"Lemonade Wall", url:"https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769651"},
+  {name:"Mugabe", grade:12, stars:2, area:"North Grampians", boulder:"Epsilon Wall", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/143428884"},
+  {name:"Roobiks Cube", grade:12, stars:3, area:"Buandik Area (Victoria Range)", boulder:"Amusement Park", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/768927588"},
 
   {name:"On the Beach", grade:13, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437526465"},
-  {name:"Ammagamma", grade:13, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14983969"},
-  {name:"Zeus (Boulder)", grade:13, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/4625145690"},
-  {name:"Pigeon Superstition", grade:13, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/440857419"},
-  {name:"CaveRave", grade:13, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15024931"},
-  {name:"SleepyMan", grade:13, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024643"},
-  {name:"Mana (Lemonade Wall)", grade:13, stars:3, area:"Iskra Crag", url:"https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769816"},
+  {name:"Ammagamma", grade:13, stars:3, area:"Mt Stapylton Amphitheatre", boulder:"The Citadel", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14983969"},
+  {name:"Zeus (Boulder)", grade:13, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"The Citadel", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/4625145690"},
+  {name:"Pigeon Superstition", grade:13, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"The Citadel", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/440857419"},
+  {name:"CaveRave", grade:13, stars:3, area:"Hollow Mountain / Andersens", boulder:"Hollow Mountain Cave", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15024931"},
+  {name:"SleepyMan", grade:13, stars:3, area:"Hollow Mountain / Andersens", boulder:"Hollow Mountain Cave", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024643"},
+  {name:"Mana (Lemonade Wall)", grade:13, stars:3, area:"Iskra Crag", boulder:"Lemonade Wall", url:"https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769816"},
   {name:"Dick Snot", grade:13, stars:2, area:"Eureka Area (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/eureka-area/route/660018906"},
 
-  {name:"Cookie Monster", grade:2, stars:2, area:"Buandik Area (Victoria Range)", url:"https://www.thecrag.com/climbing/australia/grampians/buandik-area/route/1218542874"},
+  {name:"Cookie Monster", grade:2, stars:2, area:"Buandik Area (Victoria Range)", boulder:"Made It Area", url:"https://www.thecrag.com/climbing/australia/grampians/buandik-area/route/1218542874"},
 
-  {name:"Wave Swoop", grade:14, stars:3, area:"Mt Fox Area (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009282842"},
-  {name:"Owning the Weather", grade:14, stars:3, area:"Mt Fox Area (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009257726"},
+  {name:"Wave Swoop", grade:14, stars:3, area:"Mt Fox Area (Victoria Range)", boulder:"Blank Bloc", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009282842"},
+  {name:"Owning the Weather", grade:14, stars:3, area:"Mt Fox Area (Victoria Range)", boulder:"Blank Bloc", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009257726"},
 
-  {name:"The Wheel of Life", grade:15, stars:-1, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025795"},
-  {name:"The Wheel of Life Direct", grade:15, stars:-1, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/1038996927"},
-  {name:"Sleepy Rave", grade:15, stars:-1, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15024547"},
+  {name:"The Wheel of Life", grade:15, stars:-1, area:"Hollow Mountain / Andersens", boulder:"Hollow Mountain Cave", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025795"},
+  {name:"The Wheel of Life Direct", grade:15, stars:-1, area:"Hollow Mountain / Andersens", boulder:"Hollow Mountain Cave", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/1038996927"},
+  {name:"Sleepy Rave", grade:15, stars:-1, area:"Hollow Mountain / Andersens", boulder:"Hollow Mountain Cave", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15024547"},
   {name:"The Stepping Stone", grade:15, stars:-1, area:"Victoria Range (general)", url:"https://www.thecrag.com/en/climbing/australia/grampians/route/3343458645"},
   {name:"Road Sweet Home", grade:15, stars:-1, area:"Buandik Area (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/3343430844"}
 ];
@@ -636,6 +667,17 @@ function gradeBandClass(grade) {
   return "grade-purple";
 }
 
+function starBadge(stars) {
+  if (stars < 0) {
+    return `<span class="star-badge unrated" title="Testpiece — extremely rare ascents, no reliable star rating on theCrag">
+      <span class="star-glyph">★</span><span class="star-num">?</span>
+    </span>`;
+  }
+  return `<span class="star-badge tier-${stars}" title="${stars} star${stars === 1 ? '' : 's'} on theCrag">
+    <span class="star-glyph">★</span><span class="star-num">${stars}</span>
+  </span>`;
+}
+
 function render() {
   const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
   const areaVal = areaFilter.value;
@@ -661,8 +703,12 @@ function render() {
   resultsBody.innerHTML = rows.map(b => `
     <tr>
       <td><span class="grade-pill ${gradeBandClass(b.grade)}">V${b.grade}</span></td>
-      <td><a class="climb-link" href="${b.url}" target="_blank" rel="noopener">${b.name}<span class="go-arrow">↗</span></a></td>
-      <td class="${b.stars < 0 ? 'stars unrated' : 'stars'}">${b.stars < 0 ? "testpiece, unrated" : "★".repeat(b.stars)}</td>
+      <td>
+        <div class="problem-cell">
+          ${starBadge(b.stars)}
+          <a class="climb-link" href="${b.url}" target="_blank" rel="noopener">${b.name}<span class="go-arrow">↗</span></a>
+        </div>
+      </td>
       <td>${b.area}${CLOSED_AREAS.includes(b.area) ? '<span class="closed-tag">TRACK CLOSED</span>' : ""}${b.closed ? '<span class="closed-tag">CLOSED</span>' : ""}</td>
       <td class="boulder-cell">${b.boulder || "—"}</td>
     </tr>
