@@ -58,7 +58,17 @@
   }
   .wrap { max-width: 960px; margin: 0 auto; }
   h1 { font-size: 1.4rem; margin: 0 0 0.2rem; }
-  .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem; }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 0.6rem; }
+  .attribution-cta {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 0.82rem;
+    padding: 0;
+    margin-bottom: 1.2rem;
+    cursor: pointer;
+    text-decoration: underline;
+  }
 
   .panel {
     background: var(--panel);
@@ -404,6 +414,17 @@
 <div class="wrap">
   <h1>Cragify</h1>
   <div class="subtitle">Grampians boulder problems from theCrag.com, V0-V17. Filter by grade, area, or search — the map highlights whatever area is selected.</div>
+  <button class="attribution-cta" id="attribution-btn" type="button">Data &amp; attribution</button>
+
+  <div class="modal-overlay" id="attribution-modal" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <strong>Data &amp; attribution</strong>
+        <button class="icon-btn" id="attribution-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <p>Climbing information displayed on this site has been sourced from <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> and is provided for informational purposes only. This is an independent project and is not affiliated with, endorsed by, or sponsored by theCrag. Climb information may be incomplete, inaccurate or out of date. Always assess conditions, access restrictions and risks yourself before climbing. theCrag and its respective contributors retain all applicable rights to their content and data.</p>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="map-info-modal" hidden>
     <div class="modal-box">
@@ -918,7 +939,21 @@ const mapInfoClose = document.getElementById("map-info-close");
 mapInfoBtn.addEventListener("click", (e) => { e.stopPropagation(); mapInfoModal.hidden = false; });
 mapInfoClose.addEventListener("click", () => { mapInfoModal.hidden = true; });
 mapInfoModal.addEventListener("click", (e) => { if (e.target === mapInfoModal) mapInfoModal.hidden = true; });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") mapInfoModal.hidden = true; });
+
+// --- Attribution modal ---
+const attributionModal = document.getElementById("attribution-modal");
+const attributionBtn = document.getElementById("attribution-btn");
+const attributionClose = document.getElementById("attribution-close");
+attributionBtn.addEventListener("click", () => { attributionModal.hidden = false; });
+attributionClose.addEventListener("click", () => { attributionModal.hidden = true; });
+attributionModal.addEventListener("click", (e) => { if (e.target === attributionModal) attributionModal.hidden = true; });
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    mapInfoModal.hidden = true;
+    attributionModal.hidden = true;
+  }
+});
 
 minSlider.addEventListener("input", handleSliders);
 maxSlider.addEventListener("input", handleSliders);
