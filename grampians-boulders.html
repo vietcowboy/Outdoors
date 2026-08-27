@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Grampians Boulders</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #f7f5f2;
+    --panel: #ffffff;
+    --text: #1f2320;
+    --muted: #6b6f6c;
+    --border: #e2ddd5;
+    --accent: #4a6b4f;
+    --accent-light: #dce8dd;
+    --star: #c9932e;
+    --closed: #b5493c;
+    --closed-bg: #fbe9e6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1d1a;
+      --panel: #24261f;
+      --text: #eae7df;
+      --muted: #a3a79c;
+      --border: #3a3d34;
+      --accent: #8fbf95;
+      --accent-light: #2c3a2b;
+      --star: #e0b45a;
+      --closed: #e08579;
+      --closed-bg: #3a2723;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 1.5rem;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 1.4rem; margin: 0 0 0.2rem; }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: flex-end;
+  }
+  .control { flex: 1; min-width: 220px; }
+  .control label {
+    display: block;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+  .range-values {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .dual-slider {
+    position: relative;
+    height: 2rem;
+  }
+  .dual-slider input[type=range] {
+    position: absolute;
+    width: 100%;
+    top: 0.6rem;
+    margin: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    pointer-events: none;
+  }
+  .dual-slider input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    pointer-events: auto;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--panel);
+    cursor: pointer;
+    margin-top: -6px;
+  }
+  .dual-slider input[type=range]::-moz-range-thumb {
+    pointer-events: auto;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--panel);
+    cursor: pointer;
+  }
+  .dual-slider input[type=range]::-webkit-slider-runnable-track {
+    height: 4px;
+    background: transparent;
+  }
+  .dual-slider .track {
+    position: absolute;
+    top: 0.85rem;
+    height: 4px;
+    left: 0; right: 0;
+    background: var(--border);
+    border-radius: 2px;
+  }
+  .dual-slider .track-fill {
+    position: absolute;
+    top: 0.85rem;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  select, input[type=text] {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0.8rem 0 0.5rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--border); }
+  th {
+    color: var(--muted);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  th:hover { color: var(--text); }
+  tbody tr:hover { background: var(--accent-light); }
+  .grade-pill {
+    display: inline-block;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+  }
+  .stars { color: var(--star); letter-spacing: 1px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .closed-tag {
+    display: inline-block;
+    background: var(--closed-bg);
+    color: var(--closed);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    margin-left: 0.4rem;
+  }
+  .empty { text-align: center; color: var(--muted); padding: 2rem 0; }
+  .overflow { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Grampians Boulders</h1>
+  <div class="subtitle">Quality (2-3★) problems from theCrag.com. Filter by grade, area, or search.</div>
+
+  <div class="panel">
+    <div class="controls-row">
+      <div class="control" style="flex: 2; min-width: 280px;">
+        <label>V grade range: <span class="range-values" id="grade-range-label"></span></label>
+        <div class="dual-slider">
+          <div class="track"></div>
+          <div class="track-fill" id="track-fill"></div>
+          <input type="range" id="min-grade" min="6" max="14" value="6" step="1">
+          <input type="range" id="max-grade" min="6" max="14" value="14" step="1">
+        </div>
+      </div>
+      <div class="control">
+        <label for="area-filter">Area</label>
+        <select id="area-filter"></select>
+      </div>
+      <div class="control">
+        <label for="search">Search</label>
+        <input type="text" id="search" placeholder="Problem name...">
+      </div>
+    </div>
+  </div>
+
+  <div class="meta-row">
+    <span id="result-count"></span>
+    <span>Click a column header to sort</span>
+  </div>
+
+  <div class="panel overflow">
+    <table id="results-table">
+      <thead>
+        <tr>
+          <th data-key="grade">Grade</th>
+          <th data-key="name">Problem</th>
+          <th data-key="stars">Stars</th>
+          <th data-key="area">Area</th>
+          <th>Link</th>
+        </tr>
+      </thead>
+      <tbody id="results-body"></tbody>
+    </table>
+    <div class="empty" id="empty-msg" style="display:none;">No problems match these filters.</div>
+  </div>
+</div>
+
+<script>
+const CLOSED_AREAS = ["Sundial Peak"];
+
+const BOULDERS = [
+  {name:"Scary Monster", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984545"},
+  {name:"The Beginning of a Great Adventure", grade:6, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612281"},
+  {name:"Conga Fury VAR", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/3292878177"},
+  {name:"Breakfast of Champions", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437409831"},
+  {name:"Compaction", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/214219062"},
+  {name:"Shattering Dreams", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612485"},
+  {name:"Between the Sheeps", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps/route/14985787"},
+  {name:"Drowning Dicaprio", grade:6, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275293"},
+  {name:"Waiting in the Air", grade:7, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17611261"},
+  {name:"The Oyster", grade:8, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1998020319"},
+  {name:"Brama Sutra", grade:8, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17613157"},
+  {name:"Conga Fury", grade:8, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/184112103"},
+  {name:"Raging Bull", grade:9, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/5736069321"},
+  {name:"The Pearl", grade:9, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/7165735287"},
+  {name:"The Viking", grade:10, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/440887803"},
+  {name:"Mad Max", grade:11, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984353"},
+  {name:"Athena", grade:11, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/4625155041"},
+  {name:"Lost For Life", grade:12, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984305"},
+  {name:"On the Beach", grade:13, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437526465"},
+  {name:"Ammagamma", grade:13, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14983969"},
+  {name:"Zeus (Boulder)", grade:13, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/4625145690"},
+  {name:"Pigeon Superstition", grade:13, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/440857419"},
+
+  {name:"Transcience", grade:6, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/166771842"},
+  {name:"Running Man", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/212845047"},
+  {name:"Riding Shotgun", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15022771"},
+  {name:"Discovery", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/116513043"},
+  {name:"Gillette", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/436232493"},
+  {name:"Vicious Delicious", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/436229241"},
+  {name:"As the Crow Flies", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/183829173"},
+  {name:"Hot Mama Vibes", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/875234193"},
+  {name:"Ridunculous", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/andersens/route/212841252"},
+  {name:"This Way Up", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/andersens/route/143315448"},
+  {name:"Mr Knox", grade:7, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327786447"},
+  {name:"Solid State", grade:7, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/323128686"},
+  {name:"Lightening Arete", grade:7, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143313816"},
+  {name:"Rise of the Machines", grade:7, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/116508945"},
+  {name:"Critical Mass", grade:8, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/129688557"},
+  {name:"Giddy Up", grade:8, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/129683028"},
+  {name:"Gasoline", grade:8, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/155889138"},
+  {name:"CaveMan", grade:9, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024691"},
+  {name:"Etch-a-Sketch", grade:10, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327786558"},
+  {name:"Daddy Chill", grade:10, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/6117850374"},
+  {name:"Annagramma", grade:10, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024739"},
+  {name:"Gripmaster", grade:10, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15026131"},
+  {name:"Tantrum", grade:11, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/1997620989"},
+  {name:"Dead Can't Dance", grade:11, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025075"},
+  {name:"Forced Entry", grade:11, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15022213"},
+  {name:"Gobsmacker", grade:11, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143314677"},
+  {name:"Sleepy Hollow", grade:12, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15024451"},
+  {name:"Manticore", grade:12, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327798999"},
+  {name:"Giada", grade:12, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/836031057"},
+  {name:"CaveRave", grade:13, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15024931"},
+  {name:"SleepyMan", grade:13, stars:3, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024643"},
+
+  {name:"White Shadow", grade:6, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9285995439"},
+  {name:"Sex Panther", grade:6, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/2172285696"},
+  {name:"Evac", grade:6, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356093456"},
+  {name:"Magic Daddy", grade:6, stars:2, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356800988"},
+  {name:"Bermuda", grade:7, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9340387380"},
+  {name:"Beige is All The Rage", grade:8, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/2582276799"},
+  {name:"Rick Steel", grade:8, stars:2, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1767256773"},
+  {name:"CMD", grade:8, stars:2, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356795633"},
+  {name:"The Walker", grade:9, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356794418"},
+  {name:"The Quickening", grade:9, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1006774092"},
+  {name:"The Gathering (V9/10)", grade:9, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9247623537"},
+
+  {name:"Stoplight Arete Left Variant", grade:6, stars:2, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584821590"},
+  {name:"Plastic Facts", grade:6, stars:2, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946670598"},
+  {name:"Copperhead", grade:7, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/586875555"},
+  {name:"Baloo", grade:7, stars:2, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/9136039452"},
+  {name:"Submersion", grade:8, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/9237991191"},
+  {name:"Rick & Morty", grade:8, stars:2, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946655790"},
+  {name:"Immersion", grade:9, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946695522"},
+  {name:"Stoplight Arete", grade:10, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584820759"},
+  {name:"Blockhead", grade:10, stars:2, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946626558"},
+  {name:"The Bakelite Concept", grade:11, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946670469"},
+  {name:"Silver Platter", grade:12, stars:3, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946645818"},
+
+  {name:"Grand Opening", grade:7, stars:2, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/6121247490"},
+  {name:"The Show Must Go On", grade:7, stars:2, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984593"},
+  {name:"100 Pound Club", grade:9, stars:3, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984695"},
+  {name:"Magician's Code", grade:12, stars:2, area:"North Grampians", url:"https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/4625109903"},
+
+  {name:"Comfortably Numb", grade:7, stars:3, area:"Possum Rocks (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/possum-rocks/route/15184951"},
+  {name:"Mind Over Matter", grade:8, stars:3, area:"Mt Fox Area", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/999197994"},
+  {name:"The Departed", grade:10, stars:3, area:"Southern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/southern-wonderland-range/route/1501909128"},
+  {name:"Last Action Hiro", grade:12, stars:2, area:"Iskra Crag", url:"https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769651"},
+  {name:"Wave Swoop", grade:14, stars:3, area:"Mt Fox Area", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009282842"},
+  {name:"Owning the Weather", grade:14, stars:3, area:"Mt Fox Area", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009257726"}
+];
+
+const GRADE_MIN = 6, GRADE_MAX = 14;
+let sortKey = "grade", sortDir = 1;
+
+const minSlider = document.getElementById("min-grade");
+const maxSlider = document.getElementById("max-grade");
+const trackFill = document.getElementById("track-fill");
+const rangeLabel = document.getElementById("grade-range-label");
+const areaFilter = document.getElementById("area-filter");
+const search = document.getElementById("search");
+const resultsBody = document.getElementById("results-body");
+const resultCount = document.getElementById("result-count");
+const emptyMsg = document.getElementById("empty-msg");
+
+const areas = [...new Set(BOULDERS.map(b => b.area))].sort();
+areaFilter.innerHTML = '<option value="">All areas</option>' + areas.map(a => `<option value="${a}">${a}</option>`).join("");
+
+function updateTrackFill() {
+  const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
+  const pctMin = ((min - GRADE_MIN) / (GRADE_MAX - GRADE_MIN)) * 100;
+  const pctMax = ((max - GRADE_MIN) / (GRADE_MAX - GRADE_MIN)) * 100;
+  trackFill.style.left = pctMin + "%";
+  trackFill.style.width = (pctMax - pctMin) + "%";
+  rangeLabel.textContent = `V${min} – V${max}`;
+}
+
+function handleSliders(e) {
+  let min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
+  if (min > max) {
+    if (e && e.target === minSlider) maxSlider.value = min; else minSlider.value = max;
+  }
+  updateTrackFill();
+  render();
+}
+
+minSlider.addEventListener("input", handleSliders);
+maxSlider.addEventListener("input", handleSliders);
+areaFilter.addEventListener("change", render);
+search.addEventListener("input", render);
+
+document.querySelectorAll("th[data-key]").forEach(th => {
+  th.addEventListener("click", () => {
+    const key = th.dataset.key;
+    if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+    render();
+  });
+});
+
+function render() {
+  const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
+  const areaVal = areaFilter.value;
+  const q = search.value.trim().toLowerCase();
+
+  let rows = BOULDERS.filter(b =>
+    b.grade >= min && b.grade <= max &&
+    (!areaVal || b.area === areaVal) &&
+    (!q || b.name.toLowerCase().includes(q))
+  );
+
+  rows.sort((a, b) => {
+    let av = a[sortKey], bv = b[sortKey];
+    if (typeof av === "string") { av = av.toLowerCase(); bv = bv.toLowerCase(); }
+    if (av < bv) return -1 * sortDir;
+    if (av > bv) return 1 * sortDir;
+    return a.grade - b.grade;
+  });
+
+  resultCount.textContent = `${rows.length} problem${rows.length === 1 ? "" : "s"}`;
+  emptyMsg.style.display = rows.length ? "none" : "block";
+
+  resultsBody.innerHTML = rows.map(b => `
+    <tr>
+      <td><span class="grade-pill">V${b.grade}</span></td>
+      <td>${b.name}</td>
+      <td class="stars">${"★".repeat(b.stars)}</td>
+      <td>${b.area}${CLOSED_AREAS.includes(b.area) ? '<span class="closed-tag">TRACK CLOSED</span>' : ""}</td>
+      <td><a href="${b.url}" target="_blank" rel="noopener">theCrag ↗</a></td>
+    </tr>
+  `).join("");
+}
+
+updateTrackFill();
+render();
+</script>
+</body>
+</html>
