@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Grampians Boulders</title>
+<title>Cragify</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
@@ -93,12 +93,15 @@
   }
   .dual-slider {
     position: relative;
-    height: 2rem;
+    height: 2.6rem;
+    margin-top: 0.3rem;
   }
   .dual-slider input[type=range] {
     position: absolute;
     width: 100%;
-    top: 0.6rem;
+    height: 32px;
+    top: 50%;
+    transform: translateY(-50%);
     margin: 0;
     -webkit-appearance: none;
     appearance: none;
@@ -108,30 +111,30 @@
   .dual-slider input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
     pointer-events: auto;
-    width: 16px;
-    height: 16px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: var(--accent);
-    border: 2px solid var(--panel);
+    background: transparent;
+    border: none;
     cursor: pointer;
-    margin-top: -6px;
   }
   .dual-slider input[type=range]::-moz-range-thumb {
     pointer-events: auto;
-    width: 16px;
-    height: 16px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: var(--accent);
-    border: 2px solid var(--panel);
+    background: transparent;
+    border: none;
     cursor: pointer;
   }
   .dual-slider input[type=range]::-webkit-slider-runnable-track {
-    height: 4px;
+    height: 32px;
     background: transparent;
   }
   .dual-slider .track {
     position: absolute;
-    top: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
     height: 4px;
     left: 0; right: 0;
     background: var(--border);
@@ -139,11 +142,45 @@
   }
   .dual-slider .track-fill {
     position: absolute;
-    top: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
     height: 4px;
     background: var(--accent);
     border-radius: 2px;
   }
+  .slider-bubble {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.72rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    z-index: 2;
+  }
+
+  .star-filter {
+    display: flex;
+    gap: 0.8rem;
+    padding: 0.5rem 0.2rem;
+  }
+  .star-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .star-check input { cursor: pointer; }
 
   select, input[type=text] {
     width: 100%;
@@ -192,7 +229,8 @@
   .grade-pill.grade-purple { background: var(--grade-purple-bg); color: var(--grade-purple); }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  .problem-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.2rem; }
+  .problem-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+  .problem-title-row { display: flex; align-items: center; gap: 16px; }
   .star-row { font-size: 0.85rem; letter-spacing: 1px; color: var(--star); line-height: 1; }
   .star-row.unrated { color: var(--muted); opacity: 0.7; }
   .climb-link { display: inline-flex; align-items: baseline; gap: 0.3rem; font-weight: 600; color: var(--text); }
@@ -212,7 +250,56 @@
     cursor: pointer;
     user-select: none;
   }
+  .map-header-left { display: flex; align-items: center; gap: 0.4rem; }
   .map-header h2 { margin: 0; font-size: 1rem; }
+  .icon-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--muted);
+    width: 1.4rem;
+    height: 1.4rem;
+    line-height: 1;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .icon-btn:hover { color: var(--text); background: var(--accent-light); }
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+  }
+  .modal-overlay[hidden] { display: none; }
+  .modal-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem 1.4rem;
+    max-width: 480px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+  }
+  .modal-box p {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 0.5rem 0;
+  }
   .map-toggle {
     background: none;
     border: 1px solid var(--border);
@@ -236,6 +323,7 @@
     margin-left: 0.4rem;
   }
   .empty { text-align: center; color: var(--muted); padding: 2rem 0; }
+  .site-footer { text-align: center; color: var(--muted); font-size: 0.78rem; padding: 1rem 0 0.5rem; }
   .overflow { overflow-x: auto; }
 
   .leaflet-tooltip.area-label {
@@ -250,20 +338,32 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Grampians Boulders</h1>
-  <div class="subtitle">Quality problems from theCrag.com, V0-V17. Filter by grade, area, or search — the map highlights whatever area is selected.</div>
+  <h1>Cragify</h1>
+  <div class="subtitle">Grampians boulder problems from theCrag.com, V0-V17. Filter by grade, area, or search — the map highlights whatever area is selected.</div>
 
   <div class="panel">
     <div class="map-header" id="map-header">
-      <h2>Map</h2>
+      <div class="map-header-left">
+        <h2>Map</h2>
+        <button class="icon-btn" id="map-info-btn" type="button" aria-label="About this map" title="About this map">ⓘ</button>
+      </div>
       <button class="map-toggle" id="map-toggle" type="button" aria-expanded="true">Hide ▾</button>
     </div>
     <div class="map-body" id="map-body">
       <div id="map"></div>
-      <div class="map-caption">
-        Pins mark approximate car-park/trailhead locations, not exact boulder positions (theCrag blocks direct scraping, so these were sourced from park track notes and hiking references). Several small Victoria Range crags (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area) share one approximate regional pin. Selecting an area below dims every other pin.
-      </div>
       <div class="map-caption" id="no-pin-note" style="display:none; color: var(--closed); font-weight: 600; margin-top: 0.3rem;"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="map-info-modal" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <strong>About this map</strong>
+        <button class="icon-btn" id="map-info-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <p>Pins mark approximate car-park/trailhead locations, not exact boulder positions (theCrag blocks direct scraping, so these were sourced from park track notes and hiking references).</p>
+      <p>Several small Victoria Range crags (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area) share one approximate regional pin.</p>
+      <p>Tap a pin to filter the list to that area. Selecting an area below (or tapping a pin) dims every other pin.</p>
     </div>
   </div>
 
@@ -274,6 +374,8 @@
         <div class="dual-slider">
           <div class="track"></div>
           <div class="track-fill" id="track-fill"></div>
+          <div class="slider-bubble" id="min-bubble">0</div>
+          <div class="slider-bubble" id="max-bubble">17</div>
           <input type="range" id="min-grade" min="0" max="17" value="0" step="1">
           <input type="range" id="max-grade" min="0" max="17" value="17" step="1">
         </div>
@@ -285,6 +387,14 @@
       <div class="control">
         <label for="search">Search</label>
         <input type="text" id="search" placeholder="Problem name...">
+      </div>
+      <div class="control">
+        <label>Stars</label>
+        <div class="star-filter" id="star-filter">
+          <label class="star-check"><input type="checkbox" value="1" checked> 1★</label>
+          <label class="star-check"><input type="checkbox" value="2" checked> 2★</label>
+          <label class="star-check"><input type="checkbox" value="3" checked> 3★</label>
+        </div>
       </div>
     </div>
   </div>
@@ -299,8 +409,7 @@
     <table id="results-table">
       <thead>
         <tr>
-          <th data-key="grade">Grade</th>
-          <th data-key="name">Problem</th>
+          <th data-key="grade">Problem</th>
           <th data-key="area">Area</th>
           <th data-key="boulder">Boulder</th>
         </tr>
@@ -309,6 +418,8 @@
     </table>
     <div class="empty" id="empty-msg" style="display:none;">No problems match these filters.</div>
   </div>
+
+  <footer class="site-footer">Visitors: <span id="visitor-count">…</span></footer>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -514,6 +625,11 @@ const AREA_TO_REGION = {
   // rather than guessed. Selecting them dims every pin (see updateMapHighlight).
 };
 
+const REGION_TO_AREAS = {};
+Object.entries(AREA_TO_REGION).forEach(([area, region]) => {
+  (REGION_TO_AREAS[region] ||= []).push(area);
+});
+
 const GRADE_MIN = 0, GRADE_MAX = 17;
 let sortKey = "grade", sortDir = 1;
 
@@ -549,10 +665,38 @@ Object.entries(REGIONS).forEach(([key, r]) => {
   }).addTo(map);
   const confNote = r.confidence !== "high" ? ` (${r.confidence} confidence location)` : "";
   marker.bindTooltip(r.label + confNote, { className: "area-label", direction: "top", offset: [0, -8] });
+  marker.on("click", () => selectRegion(key));
   regionMarkers[key] = marker;
   allBounds.push([r.lat, r.lng]);
 });
 map.fitBounds(allBounds, { padding: [30, 30] });
+
+map.on("popupopen", (e) => {
+  const node = e.popup._contentNode;
+  if (!node) return;
+  node.querySelectorAll(".marker-popup-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      areaFilter.value = btn.dataset.area;
+      updateMapHighlight();
+      render();
+      map.closePopup();
+    });
+  });
+});
+
+function selectRegion(regionKey) {
+  const areasForRegion = REGION_TO_AREAS[regionKey] || [];
+  if (areasForRegion.length === 1) {
+    areaFilter.value = areasForRegion[0];
+    updateMapHighlight();
+    render();
+  } else if (areasForRegion.length > 1) {
+    const html = `<div class="marker-popup"><strong>${REGIONS[regionKey].label}</strong>` +
+      areasForRegion.map(a => `<button class="marker-popup-btn" data-area="${a}">${a}</button>`).join("") +
+      `</div>`;
+    regionMarkers[regionKey].bindPopup(html).openPopup();
+  }
+}
 
 const noPinNote = document.getElementById("no-pin-note");
 
@@ -577,15 +721,25 @@ function updateMapHighlight() {
     noPinNote.style.display = "none";
   }
 
-  if (selectedRegion) {
-    const r = REGIONS[selectedRegion];
-    map.flyTo([r.lat, r.lng], 12, { duration: 0.6 });
-  } else {
-    map.flyToBounds(allBounds, { padding: [30, 30], duration: 0.6 });
+  // Map animations can throw if the map panel is minimised (zero-size container).
+  // Never let that block the rest of the filter pipeline (this was the "area filter
+  // silently stops working while map is hidden" bug) — swallow errors here.
+  if (mapOpen) {
+    try {
+      if (selectedRegion) {
+        const r = REGIONS[selectedRegion];
+        map.flyTo([r.lat, r.lng], 12, { duration: 0.6 });
+      } else {
+        map.flyToBounds(allBounds, { padding: [30, 30], duration: 0.6 });
+      }
+    } catch (err) { /* ignore map animation errors */ }
   }
 }
 
 // --- Slider setup ---
+const minBubble = document.getElementById("min-bubble");
+const maxBubble = document.getElementById("max-bubble");
+
 function updateTrackFill() {
   const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
   const pctMin = ((min - GRADE_MIN) / (GRADE_MAX - GRADE_MIN)) * 100;
@@ -593,6 +747,10 @@ function updateTrackFill() {
   trackFill.style.left = pctMin + "%";
   trackFill.style.width = (pctMax - pctMin) + "%";
   rangeLabel.textContent = `V${min} – V${max}`;
+  minBubble.style.left = pctMin + "%";
+  maxBubble.style.left = pctMax + "%";
+  minBubble.textContent = min;
+  maxBubble.textContent = max;
 }
 
 function handleSliders(e) {
@@ -617,10 +775,25 @@ function setMapOpen(open) {
 mapToggle.addEventListener("click", (e) => { e.stopPropagation(); setMapOpen(!mapOpen); });
 document.getElementById("map-header").addEventListener("click", () => setMapOpen(!mapOpen));
 
+// --- Map info modal ---
+const mapInfoModal = document.getElementById("map-info-modal");
+const mapInfoBtn = document.getElementById("map-info-btn");
+const mapInfoClose = document.getElementById("map-info-close");
+mapInfoBtn.addEventListener("click", (e) => { e.stopPropagation(); mapInfoModal.hidden = false; });
+mapInfoClose.addEventListener("click", () => { mapInfoModal.hidden = true; });
+mapInfoModal.addEventListener("click", (e) => { if (e.target === mapInfoModal) mapInfoModal.hidden = true; });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") mapInfoModal.hidden = true; });
+
 minSlider.addEventListener("input", handleSliders);
 maxSlider.addEventListener("input", handleSliders);
 areaFilter.addEventListener("change", () => { updateMapHighlight(); render(); });
 search.addEventListener("input", render);
+
+const starFilterChecks = document.querySelectorAll("#star-filter input[type=checkbox]");
+starFilterChecks.forEach(cb => cb.addEventListener("change", render));
+function getCheckedStars() {
+  return new Set([...starFilterChecks].filter(cb => cb.checked).map(cb => parseInt(cb.value)));
+}
 
 document.querySelectorAll("th[data-key]").forEach(th => {
   th.addEventListener("click", () => {
@@ -651,11 +824,13 @@ function render() {
   const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
   const areaVal = areaFilter.value;
   const q = search.value.trim().toLowerCase();
+  const checkedStars = getCheckedStars();
 
   let rows = BOULDERS.filter(b =>
     b.grade >= min && b.grade <= max &&
     (!areaVal || b.area === areaVal) &&
-    (!q || b.name.toLowerCase().includes(q))
+    (!q || b.name.toLowerCase().includes(q)) &&
+    (b.stars < 0 || checkedStars.has(b.stars))
   );
 
   rows.sort((a, b) => {
@@ -671,10 +846,12 @@ function render() {
 
   resultsBody.innerHTML = rows.map(b => `
     <tr>
-      <td><span class="grade-pill ${gradeBandClass(b.grade)}">V${b.grade}</span></td>
       <td>
         <div class="problem-cell">
-          <a class="climb-link" href="${b.url}" target="_blank" rel="noopener">${b.name}<span class="go-arrow">↗</span></a>
+          <div class="problem-title-row">
+            <span class="grade-pill ${gradeBandClass(b.grade)}">V${b.grade}</span>
+            <a class="climb-link" href="${b.url}" target="_blank" rel="noopener">${b.name}<span class="go-arrow">↗</span></a>
+          </div>
           ${starBadge(b.stars)}
         </div>
       </td>
@@ -687,6 +864,18 @@ function render() {
 updateTrackFill();
 updateMapHighlight();
 render();
+
+// --- Visitor counter (counterapi.dev free anonymous counter — pings on every page load) ---
+(async () => {
+  const el = document.getElementById("visitor-count");
+  try {
+    const res = await fetch("https://api.counterapi.dev/v1/cragify-grampians/pageviews/up");
+    const data = await res.json();
+    el.textContent = (data && (data.count ?? data.value)) ?? "—";
+  } catch (err) {
+    el.textContent = "—";
+  }
+})();
 </script>
 </body>
 </html>
