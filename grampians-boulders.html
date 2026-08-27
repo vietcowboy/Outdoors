@@ -70,7 +70,6 @@
 
   #map { height: 340px; border-radius: 8px; width: 100%; }
   .map-caption { color: var(--muted); font-size: 0.78rem; margin-top: 0.6rem; line-height: 1.4; }
-  .map-header { margin-bottom: 0.4rem; }
   .map-body { margin-bottom: 1.2rem; }
   .map-body[hidden] { margin-bottom: 0; }
   .selection-pin {
@@ -92,7 +91,6 @@
   }
   .filters-header h2 { margin: 0; font-size: 1rem; }
   .filters-header-left { display: flex; align-items: center; gap: 0.4rem; }
-  .reset-row { display: flex; justify-content: flex-end; margin-top: 0.9rem; }
   .reset-btn {
     background: transparent;
     border: 1px solid var(--border);
@@ -219,6 +217,12 @@
     z-index: 2;
   }
 
+  .star-filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+  }
   .star-filter {
     display: flex;
     gap: 0.8rem;
@@ -295,11 +299,6 @@
     color: var(--muted);
     margin-bottom: 0.7rem;
     line-height: 1.4;
-  }
-  .map-header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
   }
   .icon-btn {
     background: none;
@@ -408,11 +407,9 @@
         <h2>Filters</h2>
         <button class="icon-btn" id="map-info-btn" type="button" aria-label="About this map" title="About this map">ⓘ</button>
       </div>
-    </div>
-
-    <div class="map-header" id="map-header">
       <button class="map-toggle" id="map-toggle" type="button" aria-expanded="true">Hide map ▾</button>
     </div>
+
     <div class="map-body" id="map-body">
       <div id="map"></div>
       <div class="map-caption" id="no-pin-note" style="display:none; color: var(--closed); font-weight: 600; margin-top: 0.3rem;"></div>
@@ -440,16 +437,15 @@
       </div>
       <div class="control">
         <label>Stars</label>
-        <div class="star-filter" id="star-filter">
-          <label class="star-check"><input type="checkbox" value="1" checked> 1★</label>
-          <label class="star-check"><input type="checkbox" value="2" checked> 2★</label>
-          <label class="star-check"><input type="checkbox" value="3" checked> 3★</label>
+        <div class="star-filter-row">
+          <div class="star-filter" id="star-filter">
+            <label class="star-check"><input type="checkbox" value="1" checked> 1★</label>
+            <label class="star-check"><input type="checkbox" value="2" checked> 2★</label>
+            <label class="star-check"><input type="checkbox" value="3" checked> 3★</label>
+          </div>
+          <button class="reset-btn" id="reset-filters" type="button">Reset filters</button>
         </div>
       </div>
-    </div>
-
-    <div class="reset-row">
-      <button class="reset-btn" id="reset-filters" type="button">Reset filters</button>
     </div>
   </div>
 
