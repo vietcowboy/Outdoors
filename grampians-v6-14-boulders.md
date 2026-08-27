@@ -32,6 +32,7 @@ For a filterable, slider-based view of this same data, open [grampians-boulders.
 | Drowning Dicaprio | V6 | ★★ | Mt Stapylton Campground | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275293) |
 | Waiting in the Air | V7 | ★★★ | Trackside | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17611261) |
 | The Oyster | V8 | ★★★ | Trackside | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1998020319) |
+| Ammagamma Standing Start | V8 | ★★★ | Trackside | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/143471631) |
 | Brama Sutra | V8 | ★★ | Trackside | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17613157) |
 | Conga Fury | V8 | ★★ | Trackside | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/184112103) |
 | Raging Bull | V9 | ★★★ | Trackside | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/5736069321) |
