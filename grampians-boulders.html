@@ -94,7 +94,7 @@
     padding: 0 1.5rem 1.5rem;
   }
   @media (max-width: 640px) {
-    body { padding: 0 0.75rem 0.75rem; }
+    body { padding: 0 0.75rem 32px; }
   }
   .wrap { max-width: 1280px; margin: 0 auto; }
   .main-layout { display: flex; flex-direction: column; gap: 1rem; }
@@ -124,7 +124,7 @@
       border-radius: 0 0 10px 10px;
       border-top: none;
       margin-top: 0;
-      padding-top: 24px;
+      padding-top: 16px;
     }
   }
   .panel.results-panel { padding-left: 0; padding-right: 0; }
@@ -591,6 +591,11 @@
   .attribution strong { display: block; color: var(--text); font-size: 0.82rem; margin-bottom: 0.4rem; }
   .attribution a, .modal-box p a { color: var(--link); font-weight: 600; }
   .attribution a.support-cta, .modal-box a.support-cta { color: var(--on-accent); }
+  @media (min-width: 961px) {
+    .attribution-panel { display: flex; flex-direction: column; gap: 24px; }
+    .attribution { display: contents; }
+    .support-block { display: flex; flex-direction: column; gap: 0.5rem; }
+  }
   .overflow { overflow-x: auto; }
   @media (max-width: 960px) {
     /* overflow-x:auto implicitly sets overflow-y:auto too, which makes this
@@ -732,9 +737,11 @@
         <p>Climb information may be incomplete, inaccurate or out of date. Always check current access restrictions, conditions and risks before climbing.</p>
         <p>All third-party content and trademarks remain the property of their respective owners.</p>
       </div>
+      <div class="support-block">
+        <p>Support <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> to help keep the platform going.</p>
+        <a class="support-cta" href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener">Support theCrag →</a>
+      </div>
       <button class="attribution-cta attribution-cta-panel" type="button">Data &amp; attribution</button>
-      <p>Support <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> to help keep the platform going.</p>
-      <a class="support-cta" href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener">Support theCrag →</a>
     </div>
 
     <footer class="site-footer">
