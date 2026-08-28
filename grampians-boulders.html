@@ -25,6 +25,7 @@
     --grade-red-bg: #f8dede;
     --grade-purple: #7248a8;
     --grade-purple-bg: #ece3f6;
+    --link: #1d6fd6;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -46,6 +47,7 @@
       --grade-red-bg: #3a2323;
       --grade-purple: #c1a3ea;
       --grade-purple-bg: #2f2438;
+      --link: #6fb1f7;
     }
   }
   * { box-sizing: border-box; }
@@ -445,7 +447,7 @@
     line-height: 1.5;
   }
   .attribution strong { display: block; color: var(--text); font-size: 0.82rem; margin-bottom: 0.4rem; }
-  .attribution a { color: var(--accent); }
+  .attribution a, .modal-box p a { color: var(--link); font-weight: 600; }
   .overflow { overflow-x: auto; }
 
   .leaflet-tooltip.area-label {
@@ -470,11 +472,11 @@
         <button class="icon-btn" id="attribution-close" type="button" aria-label="Close">✕</button>
       </div>
       <p>Climbing information displayed on this site has been compiled from information publicly available on the web, including <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a>, and is provided for informational purposes only.</p>
-      <p>This is an independent project and is not affiliated with, endorsed by, or sponsored by theCrag or other referenced sources.</p>
+      <p>This is an independent project and is not affiliated with, endorsed by, or sponsored by <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> or other referenced sources.</p>
       <p>Climb information may be incomplete, inaccurate or out of date. Always check current access restrictions, conditions and risks before climbing.</p>
       <p>All third-party content and trademarks remain the property of their respective owners.</p>
-      <p>Support theCrag to help keep the platform going.</p>
-      <a class="support-cta" href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener">Become a theCrag supporter →</a>
+      <p>Support <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> to help keep the platform going.</p>
+      <a class="support-cta" href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener">Support theCrag →</a>
     </div>
   </div>
 
@@ -484,7 +486,7 @@
         <strong>About this map</strong>
         <button class="icon-btn" id="map-info-close" type="button" aria-label="Close">✕</button>
       </div>
-      <p>Pins mark approximate car-park/trailhead locations, not exact boulder positions (theCrag blocks direct scraping, so these were sourced from park track notes and hiking references).</p>
+      <p>Pins mark approximate car-park/trailhead locations, not exact boulder positions (<a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> blocks direct scraping, so these were sourced from park track notes and hiking references).</p>
       <p>Several small Victoria Range crags (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area) share one approximate regional pin.</p>
       <p>Tap a pin to filter the list to that area. Selecting an area below (or tapping a pin) drops a red marker on the selected pin.</p>
     </div>
@@ -561,11 +563,11 @@
   <div class="attribution">
     <strong>Data &amp; attribution</strong>
     <p>Climbing information displayed on this site has been compiled from information publicly available on the web, including <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a>, and is provided for informational purposes only.</p>
-      <p>This is an independent project and is not affiliated with, endorsed by, or sponsored by theCrag or other referenced sources.</p>
+      <p>This is an independent project and is not affiliated with, endorsed by, or sponsored by <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> or other referenced sources.</p>
       <p>Climb information may be incomplete, inaccurate or out of date. Always check current access restrictions, conditions and risks before climbing.</p>
       <p>All third-party content and trademarks remain the property of their respective owners.</p>
-      <p>Support theCrag to help keep the platform going.</p>
-      <a class="support-cta" href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener">Become a theCrag supporter →</a>
+      <p>Support <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> to help keep the platform going.</p>
+      <a class="support-cta" href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener">Support theCrag →</a>
   </div>
 
   <footer class="site-footer">
