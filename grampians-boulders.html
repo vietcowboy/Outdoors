@@ -86,10 +86,12 @@
     }
   }
   .results-panel { padding-left: 16px; }
-  @media (max-width: 640px) {
-    .results-panel { padding-right: 16px; }
-  }
   .results-panel th:first-child, .results-panel td:first-child { padding-left: 0; }
+  @media (max-width: 960px) {
+    .results-panel { padding-left: 0; padding-right: 0; }
+    .results-panel th:first-child, .results-panel td:first-child { padding-left: 16px; }
+    .results-panel th:last-child, .results-panel td:last-child { padding-right: 16px; }
+  }
   .page-header {
     display: flex;
     align-items: baseline;
@@ -465,7 +467,7 @@
     display: none;
     position: fixed;
     left: 50%;
-    bottom: 16px;
+    bottom: 28px;
     transform: translate(-50%, 10px);
     padding: 0.7rem 1.3rem;
     border-radius: 999px;
@@ -638,7 +640,7 @@
   </footer>
 </div>
 
-<button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑ Back to top</button>
+<button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top" title="Back to top">Back to top ↑</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
