@@ -420,6 +420,7 @@
   .map-toggle:hover { background: var(--accent-light); }
   .map-body { margin-top: 0.8rem; }
   .map-body[hidden] { display: none; }
+  .area-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
   .closed-tag {
     display: inline-block;
     background: var(--closed-bg);
@@ -428,7 +429,6 @@
     font-weight: 600;
     padding: 0.1rem 0.4rem;
     border-radius: 4px;
-    margin-left: 0.4rem;
   }
   .check-access-tag {
     border: none;
@@ -833,11 +833,11 @@ const BOULDERS = [
   {name:"To Hate To Love", grade:8, stars:3, area:"Mt Stapylton Amphitheatre", boulder:"Trackside", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/253539981"},
   {name:"Haters Gonna Hate", grade:11, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1998013266"},
   {name:"Mexican Delight", grade:9, stars:2, area:"Hollow Mountain / Andersens", boulder:"Shandy Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/436232604"},
-  {name:"Collision Course", grade:9, stars:2, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275410", closed:true},
-  {name:"Umbra", grade:10, stars:2, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275521", closed:true},
+  {name:"Collision Course", grade:9, stars:2, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275410"},
+  {name:"Umbra", grade:10, stars:2, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275521"},
   {name:"Blackbeard's Delight", grade:8, stars:3, area:"Sundial Peak", boulder:"The Bleachers", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1006786107"},
   {name:"London Gentleman", grade:10, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356805761"},
-  {name:"Iceberg", grade:10, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275182", closed:true},
+  {name:"Iceberg", grade:10, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275182"},
   {name:"Possum Overhang", grade:10, stars:1, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1228282923"},
   {name:"Butchered", grade:10, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/11499442869"},
   {name:"Butchers Choice", grade:10, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/214318986"},
@@ -852,11 +852,11 @@ const BOULDERS = [
   {name:"Cock Toe", grade:4, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/440904297"},
   {name:"The Spurt Traverse", grade:5, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437532570"},
   {name:"Lessons in Socialism", grade:5, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612869"},
-  {name:"Mary", grade:2, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/221213646", closed:true},
-  {name:"Happy Camper", grade:7, stars:3, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/128598888", closed:true},
-  {name:"Obelisk", grade:5, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/222994857", closed:true},
-  {name:"The Claw", grade:4, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/15061129", closed:true},
-  {name:"Happy Camper Traverse", grade:9, stars:2, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/15061369", closed:true},
+  {name:"Mary", grade:2, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/221213646"},
+  {name:"Happy Camper", grade:7, stars:3, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/128598888"},
+  {name:"Obelisk", grade:5, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/222994857"},
+  {name:"The Claw", grade:4, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/15061129"},
+  {name:"Happy Camper Traverse", grade:9, stars:2, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/15061369"},
   {name:"Emerald Arête", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327787224"},
   {name:"Assuming the Mantle", grade:7, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/1440482979"},
   {name:"Bubble Trouble", grade:3, stars:1, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025987"},
@@ -1226,7 +1226,13 @@ function render() {
           </div>
         </div>
       </td>
-      <td>${b.area}${CLOSED_AREAS.includes(b.area) ? `<button type="button" class="closed-tag check-access-tag" data-url="${b.url}">CHECK ACCESS</button>` : ""}${b.closed ? '<span class="closed-tag">CLOSED</span>' : ""}</td>
+      <td>
+        <div class="area-cell">
+          <span>${b.area}</span>
+          ${CLOSED_AREAS.includes(b.area) ? `<button type="button" class="closed-tag check-access-tag" data-url="${b.url}">CHECK ACCESS</button>` : ""}
+          ${b.closed ? '<span class="closed-tag">CLOSED</span>' : ""}
+        </div>
+      </td>
       <td class="boulder-cell">${b.boulder || "—"}</td>
     </tr>
   `).join("");
