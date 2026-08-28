@@ -211,23 +211,21 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    background: var(--accent-light);
-    border: 1px solid var(--accent);
+    background: transparent;
+    border: 1px solid var(--border);
     border-radius: 8px;
     padding: 0.7rem 1rem;
     text-decoration: none;
     font-size: 0.85rem;
     line-height: 1.3;
+    transition: background 0.15s ease;
   }
   .support-banner-icon { flex-shrink: 0; font-size: 1.1rem; }
   .support-banner-text { flex: 1; }
   .support-banner-arrow { flex-shrink: 0; color: var(--accent); font-weight: 700; }
   .attribution a.support-banner,
   .modal-box a.support-banner { color: var(--text); text-decoration: none; }
-  .support-banner:hover { background: var(--accent); }
-  .attribution a.support-banner:hover,
-  .modal-box a.support-banner:hover { color: var(--on-accent); }
-  .support-banner:hover .support-banner-arrow { color: var(--on-accent); }
+  .support-banner:hover { background: var(--accent-light); }
 
   .panel {
     background: var(--panel);
