@@ -36,7 +36,6 @@
     --link: #1d6fd6;
     --climb-link: #3f7a43;
     --on-accent: #fff;
-    --header-glow: rgba(0,0,0,0.16);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -61,7 +60,6 @@
       --link: #6fb1f7;
       --climb-link: #9ed6a2;
       --on-accent: #14231a;
-      --header-glow: rgba(0,0,0,0.45);
     }
   }
   :root[data-theme="dark"] {
@@ -86,7 +84,6 @@
     --link: #6fb1f7;
     --climb-link: #9ed6a2;
     --on-accent: #14231a;
-    --header-glow: rgba(0,0,0,0.45);
   }
   * { box-sizing: border-box; }
   body {
@@ -427,7 +424,6 @@
     padding-top: 16px;
     padding-bottom: 16px;
     background: var(--panel);
-    box-shadow: 0 4px 10px var(--header-glow);
     border-bottom: 2px solid var(--border);
     z-index: 2;
   }
