@@ -453,6 +453,32 @@
   .check-access-tag:hover { text-decoration: underline; }
   .empty { text-align: center; color: var(--muted); padding: 2rem 0; }
   .site-footer { text-align: center; color: var(--muted); font-size: 0.78rem; padding: 1rem 0 0.5rem; }
+  .back-to-top {
+    display: none;
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-size: 1.3rem;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 500;
+  }
+  .back-to-top.visible { display: flex; opacity: 1; transform: translateY(0); }
+  @media (min-width: 961px) {
+    .back-to-top { display: none !important; }
+  }
   .attribution {
     margin-top: 1.5rem;
     padding-top: 1rem;
@@ -601,6 +627,8 @@
     <img src="https://hits.sh/vietcowboy.github.io/Outdoors/grampians-boulders.svg?style=flat-square&label=visitors" alt="visitor count" height="20">
   </footer>
 </div>
+
+<button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -1257,6 +1285,14 @@ updateTrackFill();
 updateMapHighlight();
 render();
 
+// --- Back-to-top (mobile only) ---
+const backToTop = document.getElementById("back-to-top");
+window.addEventListener("scroll", () => {
+  backToTop.classList.toggle("visible", window.scrollY > 400);
+});
+backToTop.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 </script>
 </body>
 </html>
