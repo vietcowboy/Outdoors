@@ -293,18 +293,17 @@
     background: var(--accent-light);
     border-color: var(--accent);
   }
-  .star-filter-right {
+  .results-header {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 1rem;
+    margin-bottom: 0.8rem;
   }
-  .star-filter-right #result-count {
+  .results-header #result-count {
     color: var(--muted);
     font-size: 0.85rem;
     white-space: nowrap;
-  }
-  @media (max-width: 640px) {
-    .star-filter-right { width: 100%; justify-content: flex-end; }
   }
 
   select, input[type=text] {
@@ -372,6 +371,7 @@
     line-height: 1.4;
   }
   .explainer::before { content: "ⓘ"; color: var(--accent); font-size: 1rem; flex-shrink: 0; }
+  .explainer a { color: var(--link); font-weight: 600; }
   .icon-btn {
     background: none;
     border: 1px solid var(--border);
@@ -544,17 +544,17 @@
               <button type="button" class="star-toggle" data-value="3" aria-pressed="true"><span class="star-toggle-glyph">★★★</span></button>
             </div>
           </div>
-          <div class="star-filter-right">
-            <span id="result-count"></span>
-            <button class="reset-btn" id="reset-filters" type="button">Reset filters</button>
-          </div>
         </div>
       </div>
     </div>
   </div>
 
   <div class="panel overflow results-panel">
-    <div class="explainer">Tap a problem's name to open its theCrag page.</div>
+    <div class="results-header">
+      <span id="result-count"></span>
+      <button class="reset-btn" id="reset-filters" type="button">Reset filters</button>
+    </div>
+    <div class="explainer">Tap a problem's name to open its theCrag page. Information here may be incomplete or out of date — check <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> for the latest details.</div>
     <table id="results-table">
       <thead>
         <tr>
