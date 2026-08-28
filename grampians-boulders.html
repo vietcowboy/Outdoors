@@ -26,7 +26,7 @@
     --grade-purple: #7248a8;
     --grade-purple-bg: #ece3f6;
     --link: #1d6fd6;
-    --climb-link: #5c9c5f;
+    --climb-link: #3f7a43;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -464,26 +464,28 @@
   .back-to-top {
     display: none;
     position: fixed;
-    right: 16px;
+    left: 50%;
     bottom: 16px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
+    transform: translate(-50%, 10px);
+    padding: 0.7rem 1.3rem;
+    border-radius: 999px;
     background: var(--accent);
     color: #fff;
     border: none;
-    font-size: 1.3rem;
+    font-size: 0.9rem;
+    font-weight: 600;
     line-height: 1;
+    white-space: nowrap;
     align-items: center;
     justify-content: center;
+    gap: 0.4rem;
     box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     cursor: pointer;
     opacity: 0;
-    transform: translateY(10px);
     transition: opacity 0.2s ease, transform 0.2s ease;
     z-index: 500;
   }
-  .back-to-top.visible { display: flex; opacity: 1; transform: translateY(0); }
+  .back-to-top.visible { display: flex; opacity: 1; transform: translate(-50%, 0); }
   @media (min-width: 961px) {
     .back-to-top { display: none !important; }
   }
@@ -636,7 +638,7 @@
   </footer>
 </div>
 
-<button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
+<button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑ Back to top</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
