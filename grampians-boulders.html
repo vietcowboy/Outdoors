@@ -215,12 +215,16 @@
   .filters-header h2 { margin: 0; font-size: 1rem; }
   .filters-header-left { display: flex; align-items: center; gap: 0.4rem; }
   .reset-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
     background: transparent;
     border: 1px solid var(--border);
     color: var(--muted);
     font-size: 0.78rem;
-    padding: 0.35rem 0.7rem;
-    border-radius: 6px;
+    padding: 0 0.9rem;
+    border-radius: 8px;
     cursor: pointer;
   }
   .reset-btn:hover { color: var(--accent); border-color: var(--accent); }
@@ -359,7 +363,8 @@
   }
   .star-toggle {
     min-width: 3.2rem;
-    padding: 0.5rem 0.9rem;
+    height: 44px;
+    padding: 0 0.9rem;
     border-radius: 8px;
     border: 1px solid var(--border);
     background: var(--panel);
@@ -370,18 +375,6 @@
   .star-toggle[aria-pressed="true"] {
     background: var(--accent-light);
     border-color: var(--accent);
-  }
-  .results-header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  .results-header #result-count {
-    color: var(--muted);
-    font-size: 0.85rem;
-    white-space: nowrap;
   }
 
   select, input[type=text] {
@@ -671,12 +664,9 @@
               <button type="button" class="star-toggle" data-value="3" aria-pressed="true"><span class="star-toggle-glyph">★★★</span></button>
             </div>
           </div>
+          <button class="reset-btn" id="reset-filters" type="button">Reset filters</button>
         </div>
       </div>
-    </div>
-    <div class="results-header">
-      <span id="result-count"></span>
-      <button class="reset-btn" id="reset-filters" type="button">Reset filters</button>
     </div>
   </div>
 
@@ -684,7 +674,7 @@
     <table id="results-table">
       <thead>
         <tr>
-          <th data-key="grade">Problem<span class="sort-icon">⇅</span></th>
+          <th data-key="grade"><span id="result-count">Problem</span><span class="sort-icon">⇅</span></th>
           <th data-key="area">Area<span class="sort-icon">⇅</span></th>
           <th data-key="boulder">Boulder<span class="sort-icon">⇅</span></th>
         </tr>
