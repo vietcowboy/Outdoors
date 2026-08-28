@@ -162,6 +162,9 @@
     cursor: pointer;
     text-decoration: underline;
   }
+  @media (min-width: 961px) {
+    .attribution-cta { display: none; }
+  }
   .theme-toggle {
     position: relative;
     width: 52px;
@@ -432,9 +435,10 @@
     .panel.results-panel { padding-top: 0; }
   }
   @media (max-width: 960px) {
-    th { top: var(--sticky-header-height, 60px); border-top: 1px solid var(--border); }
-    th:first-child { border-top-left-radius: 10px; border-left: 1px solid var(--border); }
-    th:last-child { border-top-right-radius: 10px; border-right: 1px solid var(--border); }
+    th {
+      top: calc(var(--sticky-header-height, 60px) - 2px);
+      border-bottom-width: 3px;
+    }
   }
   th:hover { color: var(--text); }
   .sort-icon { display: inline-block; margin-left: 0.3rem; font-size: 0.85em; color: var(--muted); opacity: 0.5; }
@@ -720,7 +724,7 @@
     <div class="empty" id="empty-msg" style="display:none;">No problems match these filters.</div>
   </div>
 
-  <div class="panel attribution-panel">
+  <div class="attribution-panel">
     <div class="attribution">
       <strong>Data &amp; attribution</strong>
       <p>Climbing information displayed on this site has been compiled from information publicly available on the web, including <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a>, and is provided for informational purposes only.</p>
