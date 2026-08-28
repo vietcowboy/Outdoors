@@ -36,6 +36,7 @@
     --link: #1d6fd6;
     --climb-link: #3f7a43;
     --on-accent: #fff;
+    --header-glow: rgba(0,0,0,0.16);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -60,6 +61,7 @@
       --link: #6fb1f7;
       --climb-link: #9ed6a2;
       --on-accent: #14231a;
+      --header-glow: rgba(0,0,0,0.45);
     }
   }
   :root[data-theme="dark"] {
@@ -84,6 +86,7 @@
     --link: #6fb1f7;
     --climb-link: #9ed6a2;
     --on-accent: #14231a;
+    --header-glow: rgba(0,0,0,0.45);
   }
   * { box-sizing: border-box; }
   body {
@@ -410,6 +413,7 @@
     position: sticky;
     top: 0;
     background: var(--panel);
+    box-shadow: 0 4px 10px var(--header-glow);
     z-index: 2;
   }
   @media (max-width: 960px) {
@@ -571,6 +575,12 @@
   .attribution a, .modal-box p a { color: var(--link); font-weight: 600; }
   .attribution a.support-cta, .modal-box a.support-cta { color: var(--on-accent); }
   .overflow { overflow-x: auto; }
+  @media (max-width: 960px) {
+    /* overflow-x:auto implicitly sets overflow-y:auto too, which makes this
+       panel (not the page) the sticky containing block — breaking the sticky
+       table header on mobile, where the page itself is the scroller. */
+    .results-panel.overflow { overflow: visible; }
+  }
 
   .leaflet-tooltip.area-label {
     background: var(--panel);
