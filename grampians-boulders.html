@@ -249,6 +249,23 @@
   }
 
   #map { height: 340px; border-radius: 8px; width: 100%; position: relative; isolation: isolate; z-index: 0; }
+  .marker-popup { display: flex; flex-direction: column; gap: 6px; }
+  .marker-popup strong { display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text); }
+  .marker-popup-btn {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .marker-popup-btn:hover, .marker-popup-btn:active { background: var(--accent-light); border-color: var(--accent); }
   .map-caption { color: var(--muted); font-size: 0.78rem; margin-top: 0.6rem; line-height: 1.4; }
   .map-body { margin-bottom: 1.2rem; }
   .map-body[hidden] { margin-bottom: 0; }
@@ -1200,7 +1217,7 @@ function selectRegion(regionKey) {
     const html = `<div class="marker-popup"><strong>${REGIONS[regionKey].label}</strong>` +
       areasForRegion.map(a => `<button class="marker-popup-btn" data-area="${a}">${a}</button>`).join("") +
       `</div>`;
-    regionMarkers[regionKey].bindPopup(html).openPopup();
+    regionMarkers[regionKey].bindPopup(html, { minWidth: 200, maxWidth: 260 }).openPopup();
   }
 }
 
