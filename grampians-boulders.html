@@ -430,6 +430,12 @@
     border-radius: 4px;
     margin-left: 0.4rem;
   }
+  .check-access-tag {
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .check-access-tag:hover { text-decoration: underline; }
   .empty { text-align: center; color: var(--muted); padding: 2rem 0; }
   .site-footer { text-align: center; color: var(--muted); font-size: 0.78rem; padding: 1rem 0 0.5rem; }
   .attribution {
@@ -474,6 +480,17 @@
       <p>All third-party content and trademarks remain the property of their respective owners.</p>
       <p>Support <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> to help keep the platform going.</p>
       <a class="support-cta" href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener">Support theCrag →</a>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="access-modal" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <strong>Check access</strong>
+        <button class="icon-btn" id="access-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <p>Access is uncertain — please visit theCrag's page for this boulder to confirm whether access is OK.</p>
+      <a class="support-cta" id="access-link" href="#" target="_blank" rel="noopener">Open on theCrag →</a>
     </div>
   </div>
 
@@ -1084,10 +1101,24 @@ attributionBtn.addEventListener("click", () => { attributionModal.hidden = false
 attributionClose.addEventListener("click", () => { attributionModal.hidden = true; });
 attributionModal.addEventListener("click", (e) => { if (e.target === attributionModal) attributionModal.hidden = true; });
 
+// --- Check-access modal (opened from a "CHECK ACCESS" chip in the results table) ---
+const accessModal = document.getElementById("access-modal");
+const accessClose = document.getElementById("access-close");
+const accessLink = document.getElementById("access-link");
+resultsBody.addEventListener("click", (e) => {
+  const btn = e.target.closest(".check-access-tag");
+  if (!btn) return;
+  accessLink.href = btn.dataset.url;
+  accessModal.hidden = false;
+});
+accessClose.addEventListener("click", () => { accessModal.hidden = true; });
+accessModal.addEventListener("click", (e) => { if (e.target === accessModal) accessModal.hidden = true; });
+
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     mapInfoModal.hidden = true;
     attributionModal.hidden = true;
+    accessModal.hidden = true;
   }
 });
 
@@ -1195,7 +1226,7 @@ function render() {
           </div>
         </div>
       </td>
-      <td>${b.area}${CLOSED_AREAS.includes(b.area) ? '<span class="closed-tag">CHECK ACCESS</span>' : ""}${b.closed ? '<span class="closed-tag">CLOSED</span>' : ""}</td>
+      <td>${b.area}${CLOSED_AREAS.includes(b.area) ? `<button type="button" class="closed-tag check-access-tag" data-url="${b.url}">CHECK ACCESS</button>` : ""}${b.closed ? '<span class="closed-tag">CLOSED</span>' : ""}</td>
       <td class="boulder-cell">${b.boulder || "—"}</td>
     </tr>
   `).join("");
