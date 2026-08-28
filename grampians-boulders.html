@@ -399,6 +399,15 @@
     line-height: 1.5;
     margin: 0.5rem 0;
   }
+  .modal-list {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 0.5rem 0;
+    padding-left: 1.2rem;
+  }
+  .modal-list li { margin-bottom: 0.5rem; }
+  .modal-list li:last-child { margin-bottom: 0; }
   .map-toggle {
     background: none;
     border: 1px solid var(--border);
@@ -474,10 +483,12 @@
         <strong>Map and search</strong>
         <button class="icon-btn" id="map-info-close" type="button" aria-label="Close">✕</button>
       </div>
-      <p>Pins mark approximate car-park/trailhead locations, not exact boulder positions.</p>
-      <p>Several small Victoria Range crags (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area) share one approximate regional pin.</p>
-      <p>Tap a pin to filter the list to that area. Selecting an area below (or tapping a pin) drops a red marker on the selected pin.</p>
-      <p>Tap a problem's name to open its theCrag page. Information here may be incomplete or out of date — check <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> for the latest details.</p>
+      <ul class="modal-list">
+        <li>Tap a problem's name to open its theCrag page. Information here may be incomplete or out of date — check <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> for the latest details.</li>
+        <li>Pins mark approximate car-park/trailhead locations, not exact boulder positions.</li>
+        <li>Several small Victoria Range crags (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area) share one approximate regional pin.</li>
+        <li>Tap a pin to filter the list to that area. Selecting an area below (or tapping a pin) drops a red marker on the selected pin.</li>
+      </ul>
     </div>
   </div>
 
@@ -805,17 +816,39 @@ const BOULDERS = [
   {name:"To Hate To Love", grade:8, stars:3, area:"Mt Stapylton Amphitheatre", boulder:"Trackside", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/253539981"},
   {name:"Haters Gonna Hate", grade:11, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1998013266"},
   {name:"Mexican Delight", grade:9, stars:2, area:"Hollow Mountain / Andersens", boulder:"Shandy Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/436232604"},
-  {name:"Collision Course", grade:9, stars:2, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275410"},
-  {name:"Umbra", grade:10, stars:2, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275521"},
+  {name:"Collision Course", grade:9, stars:2, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275410", closed:true},
+  {name:"Umbra", grade:10, stars:2, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275521", closed:true},
   {name:"Blackbeard's Delight", grade:8, stars:3, area:"Sundial Peak", boulder:"The Bleachers", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1006786107"},
   {name:"London Gentleman", grade:10, stars:3, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356805761"},
-  {name:"Iceberg", grade:10, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275182"},
+  {name:"Iceberg", grade:10, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275182", closed:true},
   {name:"Possum Overhang", grade:10, stars:1, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1228282923"},
   {name:"Butchered", grade:10, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/11499442869"},
   {name:"Butchers Choice", grade:10, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/214318986"},
   {name:"First Blood", grade:11, stars:3, area:"Northern Wonderland Range", boulder:"Venus Baths", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946645689"},
   {name:"Lazy Monnelli", grade:10, stars:3, area:"Mt Stapylton Amphitheatre", boulder:"Wildsides", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612227"},
-  {name:"Sweet Sensation", grade:8, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"Wildsides", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612335"}
+  {name:"Sweet Sensation", grade:8, stars:2, area:"Mt Stapylton Amphitheatre", boulder:"Wildsides", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612335"},
+  {name:"Killer Dwarf", grade:11, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17615173"},
+  {name:"Rota-Loo", grade:8, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17615029"},
+  {name:"Ground Control to Major Tom", grade:8, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17615125"},
+  {name:"Weibeleid", grade:4, stars:1, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984065"},
+  {name:"Skidmark", grade:7, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/349819839"},
+  {name:"Cock Toe", grade:4, stars:3, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/440904297"},
+  {name:"The Spurt Traverse", grade:5, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437532570"},
+  {name:"Lessons in Socialism", grade:5, stars:2, area:"Mt Stapylton Amphitheatre", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612869"},
+  {name:"Mary", grade:2, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/221213646", closed:true},
+  {name:"Happy Camper", grade:7, stars:3, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/128598888", closed:true},
+  {name:"Obelisk", grade:5, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/222994857", closed:true},
+  {name:"The Claw", grade:4, stars:1, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/15061129", closed:true},
+  {name:"Happy Camper Traverse", grade:9, stars:2, area:"Mt Stapylton Campground", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/15061369", closed:true},
+  {name:"Emerald Arête", grade:6, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327787224"},
+  {name:"Assuming the Mantle", grade:7, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/1440482979"},
+  {name:"Bubble Trouble", grade:3, stars:1, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025987"},
+  {name:"Chk Chk Boom", grade:8, stars:2, area:"Hollow Mountain / Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/168185172"},
+  {name:"T.F.C.C", grade:3, stars:3, area:"Mountain Lion (Victoria Range)", url:"https://www.thecrag.com/en/climbing/australia/grampians/mountain-lion/route/522273069"},
+  {name:"Dwarf Power", grade:2, stars:1, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1016897346"},
+  {name:"Railup", grade:4, stars:1, area:"Sundial Peak", url:"https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/984750564"},
+  {name:"Death By Drowning", grade:4, stars:2, area:"Northern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946695651"},
+  {name:"Lost Negative", grade:5, stars:1, area:"Southern Wonderland Range", url:"https://www.thecrag.com/en/climbing/australia/grampians/southern-wonderland-range/route/1745041776"}
 ];
 
 // Regions for the map. Several table "area" values share one approximate regional pin
