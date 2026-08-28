@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <title>Cragify</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  try {
+    const savedTheme = localStorage.getItem("cragify-theme");
+    if (savedTheme === "light" || savedTheme === "dark") {
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    }
+  } catch (err) { /* localStorage unavailable — fall back to system preference */ }
+</script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
   :root {
@@ -29,7 +37,7 @@
     --climb-link: #3f7a43;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
       --bg: #1b1d1a;
       --panel: #24261f;
       --text: #eae7df;
@@ -51,6 +59,28 @@
       --link: #6fb1f7;
       --climb-link: #9ed6a2;
     }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1b1d1a;
+    --panel: #24261f;
+    --text: #eae7df;
+    --muted: #a3a79c;
+    --border: #3a3d34;
+    --accent: #8fbf95;
+    --accent-light: #2c3a2b;
+    --star: #e0b45a;
+    --closed: #e08579;
+    --closed-bg: #3a2723;
+    --grade-green: #7fd19c;
+    --grade-green-bg: #22362a;
+    --grade-orange: #e0a15c;
+    --grade-orange-bg: #3a2c1c;
+    --grade-red: #e08585;
+    --grade-red-bg: #3a2323;
+    --grade-purple: #c1a3ea;
+    --grade-purple-bg: #2f2438;
+    --link: #6fb1f7;
+    --climb-link: #9ed6a2;
   }
   * { box-sizing: border-box; }
   body {
@@ -95,6 +125,7 @@
     gap: 1rem;
     margin-bottom: 16px;
   }
+  .page-header-right { display: flex; align-items: center; gap: 0.9rem; }
   h1 { font-size: 1.4rem; margin: 0; }
   .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 0.6rem; }
   .attribution-cta {
@@ -107,6 +138,21 @@
     cursor: pointer;
     text-decoration: underline;
   }
+  .theme-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 1.8rem;
+    height: 1.8rem;
+    font-size: 0.95rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .theme-toggle:hover { border-color: var(--accent); }
   .support-cta {
     display: inline-block;
     background: var(--accent);
@@ -514,7 +560,10 @@
 <div class="wrap">
   <div class="page-header">
     <h1>Cragify</h1>
-    <button class="attribution-cta" id="attribution-btn" type="button">Data &amp; attribution</button>
+    <div class="page-header-right">
+      <button class="attribution-cta" id="attribution-btn" type="button">Data &amp; attribution</button>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">🌙</button>
+    </div>
   </div>
 
   <div class="modal-overlay" id="attribution-modal" hidden>
@@ -640,6 +689,24 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+// --- Light/dark theme toggle ---
+const themeToggle = document.getElementById("theme-toggle");
+function currentTheme() {
+  const saved = document.documentElement.getAttribute("data-theme");
+  if (saved) return saved;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function updateThemeIcon() {
+  themeToggle.textContent = currentTheme() === "dark" ? "☀️" : "🌙";
+}
+themeToggle.addEventListener("click", () => {
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  try { localStorage.setItem("cragify-theme", next); } catch (err) { /* ignore */ }
+  updateThemeIcon();
+});
+updateThemeIcon();
+
 const CLOSED_AREAS = ["Sundial Peak"];
 
 // grade: -1 means "no numeric star rating available" (world-class testpiece, too rarely repeated to have a theCrag star average)
