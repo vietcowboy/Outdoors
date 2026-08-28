@@ -103,8 +103,8 @@
   .main-layout { display: flex; flex-direction: column; gap: 1rem; }
   @media (min-width: 961px) {
     .main-layout { flex-direction: row; align-items: flex-start; }
-    .main-layout > .filters-panel { flex: 0 0 360px; position: sticky; top: 1rem; }
-    .main-layout > .results-panel { flex: 1; min-width: 0; max-height: calc(100vh - 2rem); overflow-y: auto; position: sticky; top: 1rem; }
+    .main-layout > .filters-panel { flex: 0 0 360px; position: sticky; top: calc(var(--sticky-header-height, 60px) + 1rem); }
+    .main-layout > .results-panel { flex: 1; min-width: 0; max-height: calc(100vh - var(--sticky-header-height, 60px) - 2rem); overflow-y: auto; position: sticky; top: calc(var(--sticky-header-height, 60px) + 1rem); }
   }
   @media (max-width: 960px) {
     .main-layout { gap: 0; }
@@ -130,6 +130,12 @@
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--bg);
+    padding: 0.9rem 0;
+    margin-top: -0.9rem;
   }
   .page-header-right { display: flex; align-items: center; gap: 0.9rem; }
   h1 { font-size: 1.4rem; margin: 0; }
@@ -406,6 +412,9 @@
     background: var(--panel);
     z-index: 2;
   }
+  @media (max-width: 960px) {
+    th { top: var(--sticky-header-height, 60px); }
+  }
   th:hover { color: var(--text); }
   .sort-icon { display: inline-block; margin-left: 0.3rem; font-size: 0.85em; color: var(--muted); opacity: 0.5; }
   th:hover .sort-icon { opacity: 0.85; }
@@ -575,7 +584,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="page-header">
+  <div class="page-header" id="site-header">
     <h1>Cragify</h1>
     <div class="page-header-right">
       <button class="attribution-cta" id="attribution-btn" type="button">Data &amp; attribution</button>
@@ -1377,6 +1386,14 @@ function render() {
 updateTrackFill();
 updateMapHighlight();
 render();
+
+// --- Sticky header height (used to offset the sticky table header / sidebar so they don't sit under the sticky site header) ---
+const siteHeader = document.getElementById("site-header");
+function updateHeaderHeightVar() {
+  document.documentElement.style.setProperty("--sticky-header-height", siteHeader.offsetHeight + "px");
+}
+updateHeaderHeightVar();
+window.addEventListener("resize", updateHeaderHeightVar);
 
 // --- Back-to-top (mobile only) ---
 const backToTop = document.getElementById("back-to-top");
