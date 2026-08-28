@@ -139,10 +139,7 @@
     align-items: flex-end;
   }
   .control { flex: 1; min-width: 220px; }
-  .grade-control { flex: 1; min-width: 220px; }
-  @media (min-width: 641px) {
-    .grade-control { max-width: 280px; }
-  }
+  .grade-control { flex: 1; min-width: 220px; width: 100%; }
   .control label {
     display: block;
     font-size: 0.78rem;
@@ -150,11 +147,6 @@
     letter-spacing: 0.04em;
     color: var(--muted);
     margin-bottom: 0.4rem;
-  }
-  .range-values {
-    font-variant-numeric: tabular-nums;
-    font-weight: 600;
-    color: var(--accent);
   }
   .dual-slider {
     position: relative;
@@ -267,13 +259,6 @@
     display: flex;
     align-items: center;
     gap: 0.8rem;
-  }
-  .stars-label {
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--muted);
-    margin: 0;
   }
   .star-filter {
     display: flex;
@@ -516,8 +501,7 @@
 
     <div class="controls-row">
       <div class="control grade-control">
-        <label>V grade range: <span class="range-values" id="grade-range-label"></span></label>
-        <div class="dual-slider">
+        <div class="dual-slider" role="group" aria-label="V grade range">
           <div class="track"></div>
           <div class="track-fill" id="track-fill"></div>
           <div class="slider-bubble" id="min-bubble">0</div>
@@ -531,14 +515,9 @@
         <select id="area-filter"></select>
       </div>
       <div class="control">
-        <label for="search">Search</label>
-        <input type="text" id="search" placeholder="Problem name...">
-      </div>
-      <div class="control">
         <div class="star-filter-row">
           <div class="star-filter-left">
-            <label class="stars-label">Stars</label>
-            <div class="star-filter" id="star-filter">
+            <div class="star-filter" id="star-filter" role="group" aria-label="Star rating filter">
               <button type="button" class="star-toggle" data-value="1" aria-pressed="false"><span class="star-toggle-glyph">★</span></button>
               <button type="button" class="star-toggle" data-value="2" aria-pressed="true"><span class="star-toggle-glyph">★★</span></button>
               <button type="button" class="star-toggle" data-value="3" aria-pressed="true"><span class="star-toggle-glyph">★★★</span></button>
@@ -886,9 +865,7 @@ let sortKey = "grade", sortDir = 1;
 const minSlider = document.getElementById("min-grade");
 const maxSlider = document.getElementById("max-grade");
 const trackFill = document.getElementById("track-fill");
-const rangeLabel = document.getElementById("grade-range-label");
 const areaFilter = document.getElementById("area-filter");
-const search = document.getElementById("search");
 const resultsBody = document.getElementById("results-body");
 const resultCount = document.getElementById("result-count");
 const emptyMsg = document.getElementById("empty-msg");
@@ -1017,7 +994,6 @@ function updateTrackFill() {
   const fracMax = (max - GRADE_MIN) / (GRADE_MAX - GRADE_MIN);
   trackFill.style.left = sliderPos(fracMin);
   trackFill.style.width = `calc((100% - ${SLIDER_PAD * 2}px) * ${fracMax - fracMin})`;
-  rangeLabel.textContent = `V${min} – V${max}`;
   minBubble.style.left = sliderPos(fracMin);
   maxBubble.style.left = sliderPos(fracMax);
   minBubble.textContent = "V" + min;
@@ -1089,7 +1065,6 @@ document.addEventListener("keydown", (e) => {
 minSlider.addEventListener("input", handleSliders);
 maxSlider.addEventListener("input", handleSliders);
 areaFilter.addEventListener("change", () => { updateMapHighlight(); render(); });
-search.addEventListener("input", render);
 
 const starToggles = document.querySelectorAll(".star-toggle");
 starToggles.forEach(btn => btn.addEventListener("click", () => {
@@ -1102,7 +1077,6 @@ document.getElementById("reset-filters").addEventListener("click", () => {
   maxSlider.value = GRADE_MAX;
   updateTrackFill();
   areaFilter.value = "";
-  search.value = "";
   starToggles.forEach(btn => btn.setAttribute("aria-pressed", btn.dataset.value !== "1" ? "true" : "false"));
   updateMapHighlight();
   render();
@@ -1162,13 +1136,11 @@ function starBadge(stars) {
 function render() {
   const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
   const areaVal = areaFilter.value;
-  const q = search.value.trim().toLowerCase();
   const checkedStars = getCheckedStars();
 
   let rows = BOULDERS.filter(b =>
     b.grade >= min && b.grade <= max &&
     (!areaVal || b.area === areaVal) &&
-    (!q || b.name.toLowerCase().includes(q)) &&
     (b.stars < 0 || checkedStars.has(b.stars))
   );
 
