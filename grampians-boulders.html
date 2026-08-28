@@ -98,7 +98,7 @@
   @media (min-width: 961px) {
     .main-layout { flex-direction: row; align-items: flex-start; }
     .main-layout > .filters-panel { flex: 0 0 360px; position: sticky; top: 1rem; }
-    .main-layout > .results-panel { flex: 1; min-width: 0; }
+    .main-layout > .results-panel { flex: 1; min-width: 0; max-height: calc(100vh - 2rem); overflow-y: auto; position: sticky; top: 1rem; }
   }
   @media (max-width: 960px) {
     .main-layout { gap: 0; }
@@ -405,6 +405,10 @@
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
+    position: sticky;
+    top: 0;
+    background: var(--panel);
+    z-index: 2;
   }
   th:hover { color: var(--text); }
   .sort-icon { display: inline-block; margin-left: 0.3rem; font-size: 0.85em; color: var(--muted); opacity: 0.5; }
