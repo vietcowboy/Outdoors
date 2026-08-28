@@ -351,20 +351,6 @@
   .climb-link:hover { color: var(--accent); text-decoration: underline; }
   .climb-link .go-arrow { color: var(--accent); font-size: 0.85em; text-decoration: none; }
   .boulder-cell { color: var(--muted); }
-  .explainer {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    color: var(--text);
-    background: var(--accent-light);
-    border-radius: 10px 10px 0 0;
-    padding: 0.7rem 1.2rem 0.7rem 16px;
-    margin: -1rem -1.2rem 0.9rem -16px;
-    line-height: 1.4;
-  }
-  .explainer::before { content: "ⓘ"; color: var(--accent); font-size: 1rem; flex-shrink: 0; }
-  .explainer a { color: var(--link); font-weight: 600; }
   .icon-btn {
     background: none;
     border: 1px solid var(--border);
@@ -485,12 +471,13 @@
   <div class="modal-overlay" id="map-info-modal" hidden>
     <div class="modal-box">
       <div class="modal-header">
-        <strong>About this map</strong>
+        <strong>Map and search</strong>
         <button class="icon-btn" id="map-info-close" type="button" aria-label="Close">✕</button>
       </div>
-      <p>Pins mark approximate car-park/trailhead locations, not exact boulder positions (<a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> blocks direct scraping, so these were sourced from park track notes and hiking references).</p>
+      <p>Pins mark approximate car-park/trailhead locations, not exact boulder positions.</p>
       <p>Several small Victoria Range crags (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area) share one approximate regional pin.</p>
       <p>Tap a pin to filter the list to that area. Selecting an area below (or tapping a pin) drops a red marker on the selected pin.</p>
+      <p>Tap a problem's name to open its theCrag page. Information here may be incomplete or out of date — check <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> for the latest details.</p>
     </div>
   </div>
 
@@ -499,7 +486,7 @@
     <div class="filters-header">
       <div class="filters-header-left">
         <h2>Filters</h2>
-        <button class="icon-btn" id="map-info-btn" type="button" aria-label="About this map" title="About this map">ⓘ</button>
+        <button class="icon-btn" id="map-info-btn" type="button" aria-label="Map and search" title="Map and search">ⓘ</button>
       </div>
       <button class="map-toggle" id="map-toggle" type="button" aria-expanded="true">Hide map ▾</button>
     </div>
@@ -543,7 +530,6 @@
   </div>
 
   <div class="panel overflow results-panel">
-    <div class="explainer"><span>Tap a problem's name to open its theCrag page. Information here may be incomplete or out of date — check <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> for the latest details.</span></div>
     <table id="results-table">
       <thead>
         <tr>
