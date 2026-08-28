@@ -1195,7 +1195,7 @@ function render() {
           </div>
         </div>
       </td>
-      <td>${b.area}${CLOSED_AREAS.includes(b.area) ? '<span class="closed-tag">TRACK CLOSED</span>' : ""}${b.closed ? '<span class="closed-tag">CLOSED</span>' : ""}</td>
+      <td>${b.area}${CLOSED_AREAS.includes(b.area) ? '<span class="closed-tag">CHECK ACCESS</span>' : ""}${b.closed ? '<span class="closed-tag">CLOSED</span>' : ""}</td>
       <td class="boulder-cell">${b.boulder || "—"}</td>
     </tr>
   `).join("");
