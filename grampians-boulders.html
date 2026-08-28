@@ -65,6 +65,21 @@
     .main-layout > .filters-panel { flex: 0 0 360px; position: sticky; top: 1rem; }
     .main-layout > .results-panel { flex: 1; min-width: 0; }
   }
+  @media (max-width: 960px) {
+    .main-layout { gap: 0; }
+    .main-layout > .filters-panel {
+      border-radius: 10px 10px 0 0;
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 1.2rem;
+    }
+    .main-layout > .results-panel {
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid var(--border);
+      margin-top: 0;
+      padding-top: 1.2rem;
+    }
+  }
   .results-panel { padding-left: 16px; }
   .results-panel th:first-child, .results-panel td:first-child { padding-left: 0; }
   .page-header {
