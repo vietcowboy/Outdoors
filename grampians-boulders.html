@@ -435,9 +435,10 @@
     th {
       top: calc(var(--sticky-header-height, 60px) - 2px);
       border-bottom-width: 3px;
+      border-top: 1px solid var(--border);
     }
-    th:first-child { border-top-left-radius: 10px; }
-    th:last-child { border-top-right-radius: 10px; }
+    th:first-child { border-top-left-radius: 10px; border-left: 1px solid var(--border); }
+    th:last-child { border-top-right-radius: 10px; border-right: 1px solid var(--border); }
   }
   th:hover { color: var(--text); }
   .sort-icon { display: inline-block; margin-left: 0.3rem; font-size: 0.85em; color: var(--muted); opacity: 0.5; }
