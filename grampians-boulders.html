@@ -35,6 +35,7 @@
     --grade-purple-bg: #ece3f6;
     --link: #1d6fd6;
     --climb-link: #3f7a43;
+    --on-accent: #fff;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -58,6 +59,7 @@
       --grade-purple-bg: #2f2438;
       --link: #6fb1f7;
       --climb-link: #9ed6a2;
+      --on-accent: #14231a;
     }
   }
   :root[data-theme="dark"] {
@@ -81,6 +83,7 @@
     --grade-purple-bg: #2f2438;
     --link: #6fb1f7;
     --climb-link: #9ed6a2;
+    --on-accent: #14231a;
   }
   * { box-sizing: border-box; }
   body {
@@ -90,8 +93,11 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     padding: 1.5rem;
   }
+  @media (max-width: 960px) {
+    body { padding-bottom: calc(1.5rem + 64px); }
+  }
   @media (max-width: 640px) {
-    body { padding: 0.75rem; }
+    body { padding: 0.75rem; padding-bottom: calc(0.75rem + 64px); }
   }
   .wrap { max-width: 1280px; margin: 0 auto; }
   .main-layout { display: flex; flex-direction: column; gap: 1rem; }
@@ -173,7 +179,7 @@
   .support-cta {
     display: inline-block;
     background: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
     font-weight: 700;
     font-size: 0.88rem;
     padding: 0.65rem 1.2rem;
@@ -331,7 +337,7 @@
     height: 34px;
     border-radius: 50%;
     background: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
     font-weight: 700;
     font-size: 0.68rem;
     display: flex;
@@ -340,9 +346,6 @@
     pointer-events: none;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     z-index: 2;
-  }
-  @media (max-width: 640px) and (prefers-color-scheme: dark) {
-    .slider-bubble { color: #1b1d1a; }
   }
 
   .star-filter-row {
@@ -528,7 +531,7 @@
     padding: 0.7rem 1.3rem;
     border-radius: 999px;
     background: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
     border: none;
     font-size: 0.9rem;
     font-weight: 600;
@@ -557,7 +560,7 @@
   }
   .attribution strong { display: block; color: var(--text); font-size: 0.82rem; margin-bottom: 0.4rem; }
   .attribution a, .modal-box p a { color: var(--link); font-weight: 600; }
-  .attribution a.support-cta, .modal-box a.support-cta { color: #fff; }
+  .attribution a.support-cta, .modal-box a.support-cta { color: var(--on-accent); }
   .overflow { overflow-x: auto; }
 
   .leaflet-tooltip.area-label {
