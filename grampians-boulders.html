@@ -296,6 +296,17 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.4);
     margin: 4px 0 0 4px;
   }
+  .boulder-pin {
+    width: 24px;
+    height: 24px;
+    background: #1d6fd6;
+    border: 2px solid #fff;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    margin: 4px 0 0 4px;
+    cursor: pointer;
+  }
 
   .filters-header {
     display: flex;
@@ -1234,6 +1245,25 @@ Object.entries(REGIONS).forEach(([key, r]) => {
   regionMarkers[key] = marker;
   allBounds.push([r.lat, r.lng]);
 });
+
+// Precise per-boulder pins (blue, distinct from the red area-selection pin) — added as
+// exact coordinates are confirmed for individual boulders, rather than just the region.
+const BOULDER_PINS = [
+  { name: "Bad Cliche Boulder", lat: -36.890862, lng: 142.380612, url: "https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/156084645" }
+];
+const boulderPinIcon = L.divIcon({
+  className: "boulder-pin-icon",
+  html: '<div class="boulder-pin"></div>',
+  iconSize: [26, 34],
+  iconAnchor: [13, 34]
+});
+BOULDER_PINS.forEach(b => {
+  const marker = L.marker([b.lat, b.lng], { icon: boulderPinIcon }).addTo(map);
+  marker.bindTooltip(b.name, { className: "area-label", direction: "top", offset: [0, -30] });
+  marker.on("click", () => window.open(b.url, "_blank", "noopener"));
+  allBounds.push([b.lat, b.lng]);
+});
+
 map.fitBounds(allBounds, { padding: [30, 30] });
 
 map.on("popupopen", (e) => {
