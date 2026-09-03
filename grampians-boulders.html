@@ -307,6 +307,21 @@
     margin: 4px 0 0 4px;
     cursor: pointer;
   }
+  .fullscreen-control a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    font-size: 1.1rem;
+    background: #fff;
+    color: #333;
+    text-decoration: none;
+  }
+  .boulder-popup { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
+  .boulder-popup strong { font-size: 0.9rem; }
+  .boulder-popup p { margin: 0; font-size: 0.8rem; color: #555; }
+  .boulder-popup a { font-weight: 600; }
 
   .filters-header {
     display: flex;
@@ -1223,11 +1238,36 @@ const areas = [...new Set(BOULDERS.map(b => b.area))].sort();
 areaFilter.innerHTML = '<option value="">All areas</option>' + areas.map(a => `<option value="${a}">${a}</option>`).join("");
 
 // --- Map setup ---
-const map = L.map("map", { scrollWheelZoom: false }).setView([-37.05, 142.42], 10);
+const map = L.map("map", { scrollWheelZoom: true }).setView([-37.05, 142.42], 10);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors",
   maxZoom: 15
 }).addTo(map);
+
+// --- Fullscreen control ---
+const FullscreenControl = L.Control.extend({
+  options: { position: "topright" },
+  onAdd: function () {
+    const container = L.DomUtil.create("div", "leaflet-bar leaflet-control fullscreen-control");
+    const link = L.DomUtil.create("a", "", container);
+    link.href = "#";
+    link.title = "Toggle fullscreen";
+    link.innerHTML = "⛶";
+    L.DomEvent.on(link, "click", (e) => {
+      L.DomEvent.stopPropagation(e);
+      L.DomEvent.preventDefault(e);
+      const mapEl = document.getElementById("map");
+      if (!document.fullscreenElement) {
+        (mapEl.requestFullscreen || mapEl.webkitRequestFullscreen)?.call(mapEl);
+      } else {
+        (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+      }
+    });
+    return container;
+  }
+});
+map.addControl(new FullscreenControl());
+document.addEventListener("fullscreenchange", () => setTimeout(() => map.invalidateSize(), 50));
 
 const regionMarkers = {};
 const allBounds = [];
@@ -1260,8 +1300,24 @@ const boulderPinIcon = L.divIcon({
 BOULDER_PINS.forEach(b => {
   const marker = L.marker([b.lat, b.lng], { icon: boulderPinIcon }).addTo(map);
   marker.bindTooltip(b.name, { className: "area-label", direction: "top", offset: [0, -30] });
-  marker.on("click", () => window.open(b.url, "_blank", "noopener"));
+  marker.bindPopup(`
+    <div class="boulder-popup">
+      <strong>${b.name}</strong>
+      <p>Tap through for the full problem list, photos and topos on theCrag.</p>
+      <a href="${b.url}" target="_blank" rel="noopener">Open on theCrag →</a>
+    </div>
+  `);
   allBounds.push([b.lat, b.lng]);
+
+  // Long-press (mobile) previews the name via the tooltip, matching desktop hover;
+  // a normal tap/click still opens the popup as usual.
+  let pressTimer = null;
+  marker.on("mousedown touchstart", () => {
+    pressTimer = setTimeout(() => marker.openTooltip(), 450);
+  });
+  marker.on("mouseup touchend touchcancel dragstart", () => {
+    clearTimeout(pressTimer);
+  });
 });
 
 map.fitBounds(allBounds, { padding: [30, 30] });
