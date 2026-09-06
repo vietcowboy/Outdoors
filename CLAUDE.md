@@ -9,4 +9,4 @@ This folder is for finding V0-17 boulder problems outdoors (primarily Grampians,
 
 ## Git
 
-Commit changes as you make them, with a clear message describing what changed. Don't batch unrelated changes into one commit.
+Commit changes as you make them, with a clear message describing what changed. Don't batch unrelated changes into one commit. Push to GitHub after each commit.
