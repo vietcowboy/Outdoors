@@ -1512,7 +1512,12 @@ function jumpToBoulderPin(name) {
     map.flyTo([pin.lat, pin.lng], 15, { duration: 0.6 });
     boulderPinMarkers[pin.name]?.openPopup();
   }, 60);
-  mapBody.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Plain scrollIntoView lands the map's top edge at the viewport's top edge,
+  // which is exactly where the sticky site header sits — it then covers the
+  // top of the map. Offset the target by the header's height so the whole
+  // map body ends up below it instead of partly hidden underneath.
+  const targetTop = window.scrollY + mapBody.getBoundingClientRect().top - siteHeader.offsetHeight - 8;
+  window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
 }
 
 // --- Map info modal ---
