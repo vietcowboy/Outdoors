@@ -559,7 +559,8 @@
   .climb-link { display: inline-flex; align-items: baseline; gap: 0.3rem; font-weight: 600; color: var(--climb-link); }
   .climb-link:hover { text-decoration: underline; }
   .climb-link .go-arrow { color: var(--climb-link); font-size: 0.85em; text-decoration: none; }
-  .boulder-cell { color: var(--muted); display: flex; align-items: center; gap: 0.35rem; }
+  .boulder-cell { color: var(--muted); }
+  .boulder-cell-inner { display: flex; align-items: center; gap: 0.35rem; }
   .boulder-pin-btn {
     display: inline-flex;
     align-items: center;
@@ -1669,8 +1670,10 @@ function render() {
         </div>
       </td>
       <td class="boulder-cell">
-        <span>${b.boulder || "—"}</span>
-        ${boulderPinMarkers[b.boulder] ? `<button type="button" class="boulder-pin-btn" data-pin-name="${b.boulder}" title="Show ${b.boulder} on map" aria-label="Show ${b.boulder} on map"><span class="mini-pin"></span></button>` : ""}
+        <div class="boulder-cell-inner">
+          <span>${b.boulder || "—"}</span>
+          ${boulderPinMarkers[b.boulder] ? `<button type="button" class="boulder-pin-btn" data-pin-name="${b.boulder}" title="Show ${b.boulder} on map" aria-label="Show ${b.boulder} on map"><span class="mini-pin"></span></button>` : ""}
+        </div>
       </td>
     </tr>
   `).join("");
