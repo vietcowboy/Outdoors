@@ -1301,7 +1301,16 @@ Object.entries(REGIONS).forEach(([key, r]) => {
 // exact coordinates are confirmed for individual boulders, rather than just the region.
 const BOULDER_PINS = [
   { name: "Bad Cliche Boulder", lat: -36.890862, lng: 142.380612, url: "https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/156084645" },
-  { name: "The Citadel", lat: -36.898590, lng: 142.388504, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974821" }
+  { name: "The Citadel", lat: -36.898590, lng: 142.388504, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974821" },
+  { name: "Epsilon Wall", lat: -36.893956, lng: 142.381170, url: "https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/area/12974845" },
+  { name: "Gobsmacker Corner", lat: -36.89078, lng: 142.38183, url: "https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/andersens/area/433796535" },
+  { name: "Lemonade Wall", lat: -36.88791, lng: 142.38908, url: "https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/area/12975205" },
+  { name: "Mt Abrupt", lat: -37.59729, lng: 142.35463, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-abrupt" },
+  { name: "Titanic Boulder", lat: -36.91084, lng: 142.39111, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/area/260339949" },
+  { name: "The Mental Block", lat: -37.20535, lng: 142.27062, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/area/1009278000" },
+  { name: "Venus Baths", lat: -37.139016, lng: 142.509188, url: "https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/584816196" },
+  { name: "White Shadow Boulder", lat: -37.18457, lng: 142.52109, url: "https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9285995439" },
+  { name: "Cave of Man Hands", lat: -37.27021, lng: 142.27645, url: "https://www.thecrag.com/climbing/australia/grampians/buandik-area/area/430590156", note: "Access closed — climbing not permitted here." }
 ];
 const boulderPinIcon = L.divIcon({
   className: "boulder-pin-icon",
@@ -1315,6 +1324,7 @@ BOULDER_PINS.forEach(b => {
   marker.bindPopup(`
     <div class="boulder-popup">
       <strong>${b.name}</strong>
+      ${b.note ? `<p style="color:#b5493c;font-weight:600;">${b.note}</p>` : ""}
       <p>Tap through for the full problem list, photos and topos on theCrag.</p>
       <a href="${b.url}" target="_blank" rel="noopener">Open on theCrag →</a>
     </div>
