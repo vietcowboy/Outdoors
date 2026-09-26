@@ -37,7 +37,10 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 | Slopes (Love Boulder) | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/11344264125) |
 | Galaxy Vivisection (Darjeeling Express Boulders) | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1445032899) |
 | Warm up Right (Mt Stapylton Campground) | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/1213737861) |
-| D'Artagnan | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1406370627) |
+| D'Artagnan (Darjeeling Express Boulders) | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1406370627) |
+| Highway to Avdell (Bolt Boulder) | V2 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17613649) |
+| Child of Love (Love Boulder, sector page only — exact route link not found) | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/14983825) |
+| Some Days You Bore (Simon Says Boulder, sector page only — exact route link not found) | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/14983753) |
 | Uppercut | V3 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614273) |
 | Hard Right | V3 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17613745) |
 | Peregrinator | V3 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437529534) |
@@ -89,6 +92,12 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Wrecking Ball | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/294051264) |
 | Neo (Mandatory Choices Boulder) | V1 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/918671571) |
 | Golden Beauty | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/238924176) |
+| Bonsai Right (Bonsai Rooflet) | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/183835197) |
+| Drop of the Hat (Bad Cliche Boulder) | V2 | ★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/andersens/route/340592193) |
+| Urban Climb Initiation (Bad Cliche Boulder, sector page only — exact route link not found) | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/156084645) |
+| Some Other Slogan (Andersens Consulting Boulder, sector page only — exact route link not found) | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/156304815) |
+| Captain Pugwash (Rocks on Blocks Boulder, sector page only — exact route link not found) | V2 | ★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/andersens/area/327784518) |
+| One Sleep (Loopeys, sector page only — exact route link not found) | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976309) |
 | Faith | V3 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/183824733) |
 | Ethanol | V3 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/154370916) |
 | 4:45 | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143311143) |
@@ -142,6 +151,7 @@ Confirm West vs. East (closed) status per route before relying on these.
 |---|---|---|---|
 | Pony | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1006762767) |
 | Face Off | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/6010109769) |
+| Bleached Balls (Identity Crisis Buttress, sector page only — exact route link not found) | V2 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/area/2119798443) |
 | Red Saturn | V3 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1766199810) |
 | White Shadow | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9285995439) |
 | Sex Panther | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/2172285696) |
@@ -160,6 +170,7 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Problem | Grade | Stars | Link |
 |---|---|---|---|
 | Red Bellied Black | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/698766621) |
+| Helluva Miller (Rick & Morty Boulder, sector page only — exact route link not found) | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/946594476) |
 | Diversion | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946695393) |
 | And Then There Was Red | V4 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584823996) |
 | The Beanstalk | V5 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946613037) |
