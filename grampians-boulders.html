@@ -266,23 +266,6 @@
   }
 
   #map { height: 340px; border-radius: 8px; width: 100%; position: relative; isolation: isolate; z-index: 0; }
-  .marker-popup { display: flex; flex-direction: column; gap: 6px; }
-  .marker-popup strong { display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text); }
-  .marker-popup-btn {
-    display: block;
-    width: 100%;
-    min-height: 44px;
-    padding: 10px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--text);
-    font-size: 0.85rem;
-    text-align: left;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .marker-popup-btn:hover, .marker-popup-btn:active { background: var(--accent-light); border-color: var(--accent); }
   .map-caption { color: var(--muted); font-size: 0.78rem; margin-top: 0.6rem; line-height: 1.4; }
   .map-body { margin-bottom: 1.2rem; }
   .map-body[hidden] { margin-bottom: 0; }
@@ -299,7 +282,7 @@
   .boulder-pin {
     width: 24px;
     height: 24px;
-    background: #1d6fd6;
+    background: #e05c4a;
     border: 2px solid #fff;
     border-radius: 50% 50% 50% 0;
     transform: rotate(-45deg);
@@ -592,13 +575,13 @@
   .boulder-pin-btn .mini-pin {
     width: 11px;
     height: 11px;
-    background: #1d6fd6;
+    background: #e05c4a;
     border: 1.5px solid #fff;
     border-radius: 50% 50% 50% 0;
     transform: rotate(-45deg);
     box-shadow: 0 1px 3px rgba(0,0,0,0.4);
   }
-  .boulder-pin-btn:hover .mini-pin { background: #0d5bc0; }
+  .boulder-pin-btn:hover .mini-pin { background: #c94433; }
   .icon-btn {
     background: none;
     border: 1px solid var(--border);
@@ -819,9 +802,8 @@
       </div>
       <ul class="modal-list">
         <li>Tap a problem's name to open its theCrag page. Information here may be incomplete or out of date — check <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> for the latest details.</li>
-        <li>Pins mark approximate car-park/trailhead locations, not exact boulder positions.</li>
-        <li>Several small Victoria Range crags (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area) share one approximate regional pin.</li>
-        <li>Tap a pin to filter the list to that area. Selecting an area below (or tapping a pin) drops a red marker on the selected pin.</li>
+        <li>Red pins mark confirmed boulder/sector locations, not exact individual problem positions. Blue square "P" pins mark parking.</li>
+        <li>Selecting an area below drops a red marker at that area's location, if one is known.</li>
       </ul>
     </div>
   </div>
@@ -1290,14 +1272,14 @@ const BOULDERS = [
 // Regions for the map. Several table "area" values share one approximate regional pin
 // (Victoria Range sub-crags are small and close together; precise coords weren't findable for all of them).
 const REGIONS = {
-  stapylton:     { label: "Mt Stapylton Amphitheatre",   lat: -36.891,  lng: 142.376,  confidence: "medium" },
-  hollow:        { label: "Hollow Mountain / Andersens", lat: -36.8875, lng: 142.383,  confidence: "medium" },
-  sundial:       { label: "Sundial Peak",                lat: -37.1725, lng: 142.5146, confidence: "high" },
-  nwonderland:   { label: "Northern Wonderland Range",   lat: -37.1500, lng: 142.5020, confidence: "medium" },
-  swonderland:   { label: "Southern Wonderland Range",   lat: -37.1791, lng: 142.5024, confidence: "medium" },
-  northgrampians:{ label: "North Grampians",             lat: -36.90,   lng: 142.38,   confidence: "low" },
-  iskra:         { label: "Iskra Crag",                  lat: -36.8835, lng: 142.3976, confidence: "medium" },
-  victoria:      { label: "Victoria Range",              lat: -37.204,  lng: 142.283,  confidence: "low" }
+  stapylton:     { lat: -36.891,  lng: 142.376 },
+  hollow:        { lat: -36.8875, lng: 142.383 },
+  sundial:       { lat: -37.1725, lng: 142.5146 },
+  nwonderland:   { lat: -37.1500, lng: 142.5020 },
+  swonderland:   { lat: -37.1791, lng: 142.5024 },
+  northgrampians:{ lat: -36.90,   lng: 142.38 },
+  iskra:         { lat: -36.8835, lng: 142.3976 },
+  victoria:      { lat: -37.204,  lng: 142.283 }
 };
 
 const AREA_TO_REGION = {
@@ -1318,11 +1300,6 @@ const AREA_TO_REGION = {
   // "South-Eastern Grampians" and "Mackeys Peak" have no verified coordinates — deliberately left unmapped
   // rather than guessed. Selecting them dims every pin (see updateMapHighlight).
 };
-
-const REGION_TO_AREAS = {};
-Object.entries(AREA_TO_REGION).forEach(([area, region]) => {
-  (REGION_TO_AREAS[region] ||= []).push(area);
-});
 
 const GRADE_MIN = 0, GRADE_MAX = 17;
 let sortKey = "grade", sortDir = 1;
@@ -1370,25 +1347,12 @@ const FullscreenControl = L.Control.extend({
 map.addControl(new FullscreenControl());
 document.addEventListener("fullscreenchange", () => setTimeout(() => map.invalidateSize(), 50));
 
-const regionMarkers = {};
 const allBounds = [];
-Object.entries(REGIONS).forEach(([key, r]) => {
-  const marker = L.circleMarker([r.lat, r.lng], {
-    radius: 10,
-    color: "#4a6b4f",
-    weight: 2,
-    fillColor: "#4a6b4f",
-    fillOpacity: 0.55
-  }).addTo(map);
-  const confNote = r.confidence !== "high" ? ` (${r.confidence} confidence location)` : "";
-  marker.bindTooltip(r.label + confNote, { className: "area-label", direction: "top", offset: [0, -8] });
-  marker.on("click", () => selectRegion(key));
-  regionMarkers[key] = marker;
-  allBounds.push([r.lat, r.lng]);
-});
+Object.values(REGIONS).forEach(r => allBounds.push([r.lat, r.lng]));
 
-// Precise per-boulder pins (blue, distinct from the red area-selection pin) — added as
-// exact coordinates are confirmed for individual boulders, rather than just the region.
+// Precise per-boulder pins (red, distinct from the blue parking pins and the darker
+// red area-selection pin) — added as exact coordinates are confirmed for individual
+// boulders, rather than just the region.
 const BOULDER_PINS = [
   { name: "Bad Cliche Boulder", lat: -36.890862, lng: 142.380612, url: "https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/156084645" },
   { name: "The Citadel", lat: -36.898590, lng: 142.388504, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974821" },
@@ -1463,33 +1427,6 @@ PARKING_SPOTS.forEach(p => {
 
 map.fitBounds(allBounds, { padding: [30, 30] });
 
-map.on("popupopen", (e) => {
-  const node = e.popup._contentNode;
-  if (!node) return;
-  node.querySelectorAll(".marker-popup-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      areaFilter.value = btn.dataset.area;
-      updateMapHighlight();
-      render();
-      map.closePopup();
-    });
-  });
-});
-
-function selectRegion(regionKey) {
-  const areasForRegion = REGION_TO_AREAS[regionKey] || [];
-  if (areasForRegion.length === 1) {
-    areaFilter.value = areasForRegion[0];
-    updateMapHighlight();
-    render();
-  } else if (areasForRegion.length > 1) {
-    const html = `<div class="marker-popup"><strong>${REGIONS[regionKey].label}</strong>` +
-      areasForRegion.map(a => `<button class="marker-popup-btn" data-area="${a}">${a}</button>`).join("") +
-      `</div>`;
-    regionMarkers[regionKey].bindPopup(html, { minWidth: 200, maxWidth: 260 }).openPopup();
-  }
-}
-
 const noPinNote = document.getElementById("no-pin-note");
 
 const selectionPinIcon = L.divIcon({
@@ -1504,10 +1441,6 @@ function updateMapHighlight() {
   const selectedArea = areaFilter.value;
   const hasKnownRegion = selectedArea ? Object.prototype.hasOwnProperty.call(AREA_TO_REGION, selectedArea) : true;
   const selectedRegion = selectedArea && hasKnownRegion ? AREA_TO_REGION[selectedArea] : null;
-
-  Object.values(regionMarkers).forEach(marker => {
-    marker.setStyle({ fillOpacity: 0.7, opacity: 1, radius: 11, color: "#2e7d32", fillColor: "#2e7d32", weight: 2 });
-  });
 
   if (selectionMarker) {
     map.removeLayer(selectionMarker);
