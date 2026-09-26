@@ -321,6 +321,20 @@
   .boulder-popup strong { font-size: 0.9rem; }
   .boulder-popup p { margin: 0; font-size: 0.8rem; color: #555; }
   .boulder-popup a { font-weight: 600; }
+  .boulder-popup .popup-actions { display: flex; flex-direction: column; gap: 4px; }
+  .pin-coords-row { display: flex; align-items: center; gap: 0.5rem; }
+  .pin-coords { font-size: 0.78rem; font-family: monospace; color: #555; }
+  .copy-coords-btn {
+    background: none;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.72rem;
+    cursor: pointer;
+    color: #333;
+    flex-shrink: 0;
+  }
+  .copy-coords-btn:hover { background: #f0f0f0; }
 
   .filters-header {
     display: flex;
@@ -791,6 +805,11 @@
         <button class="icon-btn" id="parking-modal-close" type="button" aria-label="Close">✕</button>
       </div>
       <p id="parking-modal-desc"></p>
+      <div class="pin-coords-row">
+        <span class="pin-coords" id="parking-modal-coords"></span>
+        <button type="button" class="copy-coords-btn" id="parking-modal-copy">Copy</button>
+      </div>
+      <a class="support-cta" id="parking-modal-maps-link" href="#" target="_blank" rel="noopener">Open in Google Maps →</a>
     </div>
   </div>
 
@@ -1350,6 +1369,18 @@ document.addEventListener("fullscreenchange", () => setTimeout(() => map.invalid
 const allBounds = [];
 Object.values(REGIONS).forEach(r => allBounds.push([r.lat, r.lng]));
 
+// Shared by boulder-pin popups and the parking modal — copies "lat, lng" to the
+// clipboard and briefly flashes the clicked button to confirm it worked.
+function copyCoords(lat, lng, btnEl) {
+  const text = `${lat}, ${lng}`;
+  if (!navigator.clipboard || !navigator.clipboard.writeText) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const original = btnEl.textContent;
+    btnEl.textContent = "Copied!";
+    setTimeout(() => { btnEl.textContent = original; }, 1500);
+  }).catch(() => { /* clipboard permission denied or unavailable — leave button as-is */ });
+}
+
 // Precise per-boulder pins (red, distinct from the blue parking pins and the darker
 // red area-selection pin) — added as exact coordinates are confirmed for individual
 // boulders, rather than just the region.
@@ -1388,7 +1419,14 @@ BOULDER_PINS.forEach(b => {
       <strong>${b.name}</strong>
       ${b.note ? `<p style="color:#b5493c;font-weight:600;">${b.note}</p>` : ""}
       <p>Tap through for the full problem list, photos and topos on theCrag.</p>
-      <a href="${b.url}" target="_blank" rel="noopener">Open on theCrag →</a>
+      <div class="pin-coords-row">
+        <span class="pin-coords">${b.lat.toFixed(6)}, ${b.lng.toFixed(6)}</span>
+        <button type="button" class="copy-coords-btn" onclick="copyCoords(${b.lat}, ${b.lng}, this)">Copy</button>
+      </div>
+      <div class="popup-actions">
+        <a href="${b.url}" target="_blank" rel="noopener">Open on theCrag →</a>
+        <a href="https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}" target="_blank" rel="noopener">Open in Google Maps →</a>
+      </div>
     </div>
   `);
   allBounds.push([b.lat, b.lng]);
@@ -1572,9 +1610,15 @@ const parkingModal = document.getElementById("parking-modal");
 const parkingModalTitle = document.getElementById("parking-modal-title");
 const parkingModalDesc = document.getElementById("parking-modal-desc");
 const parkingModalClose = document.getElementById("parking-modal-close");
+const parkingModalCoords = document.getElementById("parking-modal-coords");
+const parkingModalCopy = document.getElementById("parking-modal-copy");
+const parkingModalMapsLink = document.getElementById("parking-modal-maps-link");
 function openParkingModal(spot) {
   parkingModalTitle.textContent = spot.name;
   parkingModalDesc.textContent = spot.description;
+  parkingModalCoords.textContent = `${spot.lat.toFixed(6)}, ${spot.lng.toFixed(6)}`;
+  parkingModalMapsLink.href = `https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lng}`;
+  parkingModalCopy.onclick = () => copyCoords(spot.lat, spot.lng, parkingModalCopy);
   parkingModal.hidden = false;
 }
 parkingModalClose.addEventListener("click", () => { parkingModal.hidden = true; });
