@@ -920,7 +920,9 @@ themeToggle.addEventListener("click", () => {
 });
 updateThemeIcon();
 
-const CLOSED_AREAS = ["Sundial Peak"];
+// Sub-areas (not whole regions) needing a "check access" flag — The Bleachers is
+// confirmed accessible, so it's deliberately excluded even though it's in Sundial Peak.
+const CLOSED_AREAS = ["Royal Box", "White Shadow Boulder"];
 
 // grade: -1 means "no numeric star rating available" (world-class testpiece, too rarely repeated to have a theCrag star average)
 const BOULDERS = [
@@ -1761,7 +1763,7 @@ function render() {
             <span>${b.area}</span>
             ${areaHasPin ? pinButton(b.area) : ""}
           </div>
-          ${CLOSED_AREAS.includes(b.region) ? `<button type="button" class="closed-tag check-access-tag" data-url="${b.url}">CHECK ACCESS</button>` : ""}
+          ${CLOSED_AREAS.includes(b.area) ? `<button type="button" class="closed-tag check-access-tag" data-url="${b.url}">CHECK ACCESS</button>` : ""}
           ${b.closed ? '<span class="closed-tag">CLOSED</span>' : ""}
         </div>
       </td>
