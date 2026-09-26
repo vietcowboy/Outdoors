@@ -33,6 +33,10 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 | Problem | Grade | Stars | Link |
 |---|---|---|---|
 | One Flash and You're Ash | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614177) |
+| Definitely (Probably Dave Boulder) | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/5233908204) |
+| Slopes (Love Boulder) | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/11344264125) |
+| Galaxy Vivisection (Darjeeling Express Boulders) | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1445032899) |
+| Warm up Right (Mt Stapylton Campground) | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/1213737861) |
 | D'Artagnan | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1406370627) |
 | Uppercut | V3 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614273) |
 | Hard Right | V3 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17613745) |
@@ -81,8 +85,10 @@ Confirm West vs. East (closed) status per route before relying on these.
 |---|---|---|---|
 | Sydney Highrise | V0 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/16090413) |
 | Van Diemen's Traverse | V0 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15019441) |
-| The Ramp | V0 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/435313590) |
+| The Ramp (Andersens Slabs — **closed**, "climbing in this area is not permitted" per theCrag) | V0 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/435313590) |
 | Wrecking Ball | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/294051264) |
+| Neo (Mandatory Choices Boulder) | V1 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/918671571) |
+| Golden Beauty | V1 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/238924176) |
 | Faith | V3 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/183824733) |
 | Ethanol | V3 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/154370916) |
 | 4:45 | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143311143) |
