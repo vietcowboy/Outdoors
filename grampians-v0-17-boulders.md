@@ -49,7 +49,9 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 | Wiggly Boy | V3 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612533) |
 | Volume 1000 | V4 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17610991) |
 | Nested (Mt Stapylton Campground) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/1213829298) |
-| Voltaren | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614129) |
+| Celebrex Traverse (Anti-Inflammatory Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/14983849) |
+| Voltaren (Anti-Inflammatory Boulder) | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614129) |
+| Naprosyn (Anti-Inflammatory Boulder) | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614081) |
 | Nice Max | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984401) |
 | Scary Monster | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984545) |
 | The Beginning of a Great Adventure | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612281) |
@@ -70,6 +72,7 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 | The Pearl | V9 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/7165735287) |
 | Pingu's Last Stand (The Citadel) | V9 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/2183274519) |
 | The Viking | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/440887803) |
+| Voltaren Rapid (Anti-Inflammatory Boulder) | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/14983849) |
 | Mad Max | V11 | ★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984353) |
 | Athena | V11 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/4625155041) |
 | Lost For Life | V12 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984305) |
