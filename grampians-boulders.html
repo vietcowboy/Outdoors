@@ -799,23 +799,6 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="parking-modal" hidden>
-    <div class="modal-box">
-      <div class="modal-header">
-        <strong id="parking-modal-title">Parking</strong>
-        <button class="icon-btn" id="parking-modal-close" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-detail-stack">
-        <p id="parking-modal-desc"></p>
-        <div class="pin-coords-row">
-          <span class="pin-coords" id="parking-modal-coords"></span>
-          <button type="button" class="copy-coords-btn" id="parking-modal-copy">Copy</button>
-        </div>
-        <a class="support-cta" id="parking-modal-maps-link" href="#" target="_blank" rel="noopener">Open in Google Maps →</a>
-      </div>
-    </div>
-  </div>
-
   <div class="modal-overlay" id="map-info-modal" hidden>
     <div class="modal-box">
       <div class="modal-header">
@@ -1467,7 +1450,21 @@ const parkingPinIcon = L.divIcon({
 PARKING_SPOTS.forEach(p => {
   const marker = L.marker([p.lat, p.lng], { icon: parkingPinIcon }).addTo(map);
   marker.bindTooltip(p.name, { className: "area-label", direction: "top", offset: [0, -14] });
-  marker.on("click", () => openParkingModal(p));
+  marker.bindPopup(`
+    <div class="boulder-popup">
+      <strong>${p.name}</strong>
+      <div class="modal-detail-stack">
+        <p>${p.description}</p>
+        <div class="pin-coords-row">
+          <span class="pin-coords">${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}</span>
+          <button type="button" class="copy-coords-btn" onclick="copyCoords(${p.lat}, ${p.lng}, this)">Copy</button>
+        </div>
+        <div class="popup-actions">
+          <a class="support-cta" href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">Open in Google Maps →</a>
+        </div>
+      </div>
+    </div>
+  `);
   allBounds.push([p.lat, p.lng]);
 });
 
@@ -1609,25 +1606,6 @@ const mapInfoClose = document.getElementById("map-info-close");
 mapInfoBtn.addEventListener("click", (e) => { e.stopPropagation(); mapInfoModal.hidden = false; });
 mapInfoClose.addEventListener("click", () => { mapInfoModal.hidden = true; });
 mapInfoModal.addEventListener("click", (e) => { if (e.target === mapInfoModal) mapInfoModal.hidden = true; });
-
-// --- Parking modal (opened from a blue "P" parking pin on the map) ---
-const parkingModal = document.getElementById("parking-modal");
-const parkingModalTitle = document.getElementById("parking-modal-title");
-const parkingModalDesc = document.getElementById("parking-modal-desc");
-const parkingModalClose = document.getElementById("parking-modal-close");
-const parkingModalCoords = document.getElementById("parking-modal-coords");
-const parkingModalCopy = document.getElementById("parking-modal-copy");
-const parkingModalMapsLink = document.getElementById("parking-modal-maps-link");
-function openParkingModal(spot) {
-  parkingModalTitle.textContent = spot.name;
-  parkingModalDesc.textContent = spot.description;
-  parkingModalCoords.textContent = `${spot.lat.toFixed(6)}, ${spot.lng.toFixed(6)}`;
-  parkingModalMapsLink.href = `https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lng}`;
-  parkingModalCopy.onclick = () => copyCoords(spot.lat, spot.lng, parkingModalCopy);
-  parkingModal.hidden = false;
-}
-parkingModalClose.addEventListener("click", () => { parkingModal.hidden = true; });
-parkingModal.addEventListener("click", (e) => { if (e.target === parkingModal) parkingModal.hidden = true; });
 
 // --- Attribution modal ---
 const attributionModal = document.getElementById("attribution-modal");
