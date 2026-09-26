@@ -307,6 +307,22 @@
     margin: 4px 0 0 4px;
     cursor: pointer;
   }
+  .parking-pin {
+    width: 22px;
+    height: 22px;
+    background: #1d6fd6;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.8rem;
+    line-height: 1;
+  }
   .fullscreen-control a {
     display: flex;
     align-items: center;
@@ -781,6 +797,16 @@
       </div>
       <p>Access is uncertain — please visit theCrag's page for this boulder to confirm whether access is OK.</p>
       <a class="support-cta" id="access-link" href="#" target="_blank" rel="noopener">Open on theCrag →</a>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="parking-modal" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <strong id="parking-modal-title">Parking</strong>
+        <button class="icon-btn" id="parking-modal-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <p id="parking-modal-desc"></p>
     </div>
   </div>
 
@@ -1407,6 +1433,30 @@ BOULDER_PINS.forEach(b => {
   });
 });
 
+// Parking spots (blue square "P" pins) — car-park locations for common approaches,
+// distinct from the boulder-area pins above. Clicking one opens a small modal
+// explaining what it's best used for, rather than a map popup.
+const PARKING_SPOTS = [
+  { name: "Park here for Venus Baths", lat: -37.139333, lng: 142.518444, description: "Halls Gap parking. As always, check posted parking limits before you leave the car." },
+  { name: "Park here for Trackside and Citadel", lat: -36.898250, lng: 142.375111, description: "AKA Camp Sandy — shows as \"Abandoned quarry\" on Google Maps. As always, check posted parking limits before you leave the car." },
+  { name: "Park here for Trackside and Citadel", lat: -36.891361, lng: 142.375444, description: "AKA Mt Zero (Mura Mura) Carpark. As always, check posted parking limits before you leave the car." },
+  { name: "Park here for Titanic Boulders", lat: -36.915528, lng: 142.393278, description: "Intersection of Pohlners Road and Stapylton Loop — ensure you're not blocking the road or path when you're parked. As always, check posted parking limits before you leave the car." },
+  { name: "Park here for Andersens", lat: -36.886028, lng: 142.383167, description: "This is Hollow Mountain carpark. As always, check posted parking limits before you leave the car." },
+  { name: "Park here for Bleachers", lat: -37.172361, lng: 142.514361, description: "This is Sundial carpark. As always, check posted parking limits before you leave the car." }
+];
+const parkingPinIcon = L.divIcon({
+  className: "parking-pin-icon",
+  html: '<div class="parking-pin">P</div>',
+  iconSize: [22, 22],
+  iconAnchor: [11, 11]
+});
+PARKING_SPOTS.forEach(p => {
+  const marker = L.marker([p.lat, p.lng], { icon: parkingPinIcon }).addTo(map);
+  marker.bindTooltip(p.name, { className: "area-label", direction: "top", offset: [0, -14] });
+  marker.on("click", () => openParkingModal(p));
+  allBounds.push([p.lat, p.lng]);
+});
+
 map.fitBounds(allBounds, { padding: [30, 30] });
 
 map.on("popupopen", (e) => {
@@ -1576,6 +1626,19 @@ const mapInfoClose = document.getElementById("map-info-close");
 mapInfoBtn.addEventListener("click", (e) => { e.stopPropagation(); mapInfoModal.hidden = false; });
 mapInfoClose.addEventListener("click", () => { mapInfoModal.hidden = true; });
 mapInfoModal.addEventListener("click", (e) => { if (e.target === mapInfoModal) mapInfoModal.hidden = true; });
+
+// --- Parking modal (opened from a blue "P" parking pin on the map) ---
+const parkingModal = document.getElementById("parking-modal");
+const parkingModalTitle = document.getElementById("parking-modal-title");
+const parkingModalDesc = document.getElementById("parking-modal-desc");
+const parkingModalClose = document.getElementById("parking-modal-close");
+function openParkingModal(spot) {
+  parkingModalTitle.textContent = spot.name;
+  parkingModalDesc.textContent = spot.description;
+  parkingModal.hidden = false;
+}
+parkingModalClose.addEventListener("click", () => { parkingModal.hidden = true; });
+parkingModal.addEventListener("click", (e) => { if (e.target === parkingModal) parkingModal.hidden = true; });
 
 // --- Attribution modal ---
 const attributionModal = document.getElementById("attribution-modal");
