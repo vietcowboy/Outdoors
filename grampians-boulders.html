@@ -669,6 +669,7 @@
   .map-body { margin-top: 0.8rem; }
   .map-body[hidden] { display: none; }
   .area-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+  .area-value-row { display: flex; align-items: center; gap: 0.35rem; }
   .closed-tag {
     display: inline-block;
     background: var(--closed-bg);
@@ -1399,7 +1400,10 @@ const BOULDER_PINS = [
   { name: "The Mental Block", lat: -37.20535, lng: 142.27062, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/area/1009278000" },
   { name: "Venus Baths", lat: -37.139016, lng: 142.509188, url: "https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/584816196" },
   { name: "White Shadow Boulder", lat: -37.18457, lng: 142.52109, url: "https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9285995439" },
-  { name: "Cave of Man Hands", lat: -37.27021, lng: 142.27645, url: "https://www.thecrag.com/climbing/australia/grampians/buandik-area/area/430590156", note: "Access closed — climbing not permitted here." }
+  { name: "Cave of Man Hands", lat: -37.27021, lng: 142.27645, url: "https://www.thecrag.com/climbing/australia/grampians/buandik-area/area/430590156", note: "Access closed — climbing not permitted here." },
+  { name: "Trackside Boulders", lat: -36.898590, lng: 142.388504, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974797" },
+  { name: "Cave Club", lat: -36.898832, lng: 142.387282, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974893" },
+  { name: "Andersens", lat: -36.891042, lng: 142.381115, url: "https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens" }
 ];
 const boulderPinIcon = L.divIcon({
   className: "boulder-pin-icon",
@@ -1768,7 +1772,14 @@ function render() {
   resultCount.textContent = `${rows.length} problem${rows.length === 1 ? "" : "s"}`;
   emptyMsg.style.display = rows.length ? "none" : "block";
 
-  resultsBody.innerHTML = rows.map(b => `
+  const pinButton = (name) => `<button type="button" class="boulder-pin-btn" data-pin-name="${name}" title="Show ${name} on map" aria-label="Show ${name} on map"><span class="mini-pin"></span></button>`;
+
+  resultsBody.innerHTML = rows.map(b => {
+    // A row gets exactly one pin-jump button, never two — Area takes priority over
+    // Sub-area, and Sub-area only shows one when Area itself has no matching pin.
+    const areaHasPin = !!boulderPinMarkers[b.area];
+    const boulderHasPin = !areaHasPin && !!boulderPinMarkers[b.boulder];
+    return `
     <tr>
       <td>
         <div class="problem-cell">
@@ -1781,7 +1792,10 @@ function render() {
       </td>
       <td>
         <div class="area-cell">
-          <span>${b.area}</span>
+          <div class="area-value-row">
+            <span>${b.area}</span>
+            ${areaHasPin ? pinButton(b.area) : ""}
+          </div>
           ${CLOSED_AREAS.includes(b.region) ? `<button type="button" class="closed-tag check-access-tag" data-url="${b.url}">CHECK ACCESS</button>` : ""}
           ${b.closed ? '<span class="closed-tag">CLOSED</span>' : ""}
         </div>
@@ -1789,16 +1803,12 @@ function render() {
       <td class="boulder-cell">
         <div class="boulder-cell-inner">
           <span>${b.boulder || "—"}</span>
-          ${(() => {
-            // The pin marker is keyed by whichever exact place name it was added under (sometimes
-            // the sector shown in Area, sometimes the specific boulder shown here) — check both.
-            const pinName = boulderPinMarkers[b.boulder] ? b.boulder : (boulderPinMarkers[b.area] ? b.area : null);
-            return pinName ? `<button type="button" class="boulder-pin-btn" data-pin-name="${pinName}" title="Show ${pinName} on map" aria-label="Show ${pinName} on map"><span class="mini-pin"></span></button>` : "";
-          })()}
+          ${boulderHasPin ? pinButton(b.boulder) : ""}
         </div>
       </td>
     </tr>
-  `).join("");
+  `;
+  }).join("");
 }
 
 updateTrackFill();
