@@ -411,7 +411,7 @@ Confirm West vs. East (closed) status per route before relying on these.
 |---|---|---|---|
 | Parallel Lines | V11 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769408) |
 | Last Action Hiro | V12 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769651) |
-| Mana (Lemonade Wall) | V13 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769816) |
+| Mana (Project Wall, aka Lemonade Wall) | V13 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769816) |
 | Compression Session (36 Chambers) | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag) |
 
 ## Victoria Range (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area — a fair drive, spread across several small crags)
