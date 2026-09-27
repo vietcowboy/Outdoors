@@ -15,6 +15,8 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 - **Amnesty and Left Main** (sub-areas within Andersens): **not permitted** — theCrag cites discovery of artifact scatters in the soil. Separate from, and in addition to, the general Andersens East/West split above.
 - **Campground Boulders** (a sub-boulder within Mt Stapylton Campground, distinct from Titanic Boulder): **closed** since the landowner retracted permission in April 2019, citing rubbish and climbers not respecting the boundary.
 - **Spurt Wall** (Mt Stapylton Amphitheatre): **closed** per theCrag — this includes The Spurt Traverse below.
+- **The Snake Pit** (Mt Stapylton Amphitheatre): **closed** per theCrag.
+- **The Kindergarten** (Hollow Mountain sub-area): **closed** per theCrag (marked with a red "Ø Closed" tag on the listing).
 - **Cave of Man Hands** (Buandik Area, Victoria Range): **closed** by Parks Victoria since February 2019 for Aboriginal cultural heritage reasons.
 - **Mountain Lion** (Victoria Range): reportedly **closed** since December 2023 due to rediscovered Aboriginal cultural heritage (a separate closure from Cave of Man Hands) — verify current status on theCrag before relying on Cats Can Climb Too below.
 - **Juju Rock / Rabbit Rock** (near Mackeys Peak): **private property, invite-only** — not climbable without landowner consent. This includes **Overdose**, the one problem listed under Mackeys Peak below — it's actually on Juju Rock.
@@ -93,7 +95,23 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 | Miss Muppet (Spurt Wall — **closed**) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437532570) |
 | Ministry LHV (Love Boulder) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/14983825) |
 | The Bolt Torque Project (Bolt Boulder) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/14983801) |
-| Waiting in the Air | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17611261) |
+| Waiting in the Air (The Snake Pit — **closed**) | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17611261) |
+| Ministry of Love (Love Boulder) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17613985) |
+| Lust (Love Boulder) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/253539858) |
+| Something for Kate (Probably Dave Boulder) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/5233917894) |
+| Skidmark (The Citadel) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/349819839) |
+| Whipped Cream (Cave Club) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974893) |
+| Tucked In (The Citadel) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974821) |
+| Irish Goodbye (Ivory Boulder) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974797) |
+| Captain Tonnelli (Ground Control Caves, Middle Cave) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974869) |
+| Lonely Heart Club (Ground Control Caves, Middle Cave) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974869) |
+| I Feel So Holy (Ground Control Caves, Top Cave) | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974869) |
+| The Seven Daves (Daves' Cave) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/1228280349) |
+| Happy Camper (Campground Boulders — **closed**) | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/128598888) |
+| Plus (Campground Boulders — **closed**) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/area/12978061) |
+| Hip Flexor (Campground Boulders — **closed**) | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/143375493) |
+| Inspector Gadget Left (Campground Boulders — **closed**) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/area/12978061) |
+| Inspector Gadget (Campground Boulders — **closed**) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/area/12978061) |
 | The Oyster | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1998020319) |
 | Ammagamma Standing Start | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/143471631) |
 | Brama Sutra | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17613157) |
@@ -186,6 +204,25 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Solid State | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/323128686) |
 | Lightening Arete | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143313816) |
 | Rise of the Machines | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/116508945) |
+| Palm Beach (Hollow Mountain Cave) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025507) |
+| Aphrodite (Hollow Mountain Cave) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15024307) |
+| Devil's Councillor (Loopeys) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976309) |
+| Bitch Slap (Loopeys) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15023635) |
+| German Motivation (The Kindergarten — **closed**) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976357) |
+| Querulaut (The Kindergarten — **closed**) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976357) |
+| Swan Arete (The Ark) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/436225242) |
+| Glycerine (Vapid Boulder) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/433777941) |
+| Grand Discovery (Discovery Boulder) | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/433763112) |
+| French Toast Direct (Sydney Highrise Boulder) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143311938) |
+| French Toast (Sydney Highrise Boulder) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15022489) |
+| Mandatory Choices | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/156303054) |
+| Assuming the Mantle (Gobsmacker Corner) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/1440482979) |
+| Mr Fox (Rocks on Blocks Boulder) | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327786669) |
+| Angry Robots (Shandy Boulder) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/1997609196) |
+| Rodeo Girl (Rodeo Wall) | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15022879) |
+| Tim Tam Traverse (Tim Tam Boulder) | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143311503) |
+| Silent Observer (Upper Gun Buttress — **Amnesty, not permitted**) | V7 | ★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/andersens/route/435289653) |
+| Artillery (Gun Buttress Boulder — **Amnesty, not permitted**) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/835482321) |
 | American Dream | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/435614397) |
 | Critical Mass | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/129688557) |
 | Giddy Up | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/129683028) |
@@ -228,6 +265,8 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Evac | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356093456) |
 | Magic Daddy | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356800988) |
 | Bermuda | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9340387380) |
+| The Dog-House (Slappers Boulder) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1022821575) |
+| Slapper's Arete (sit-start) (Slappers Boulder) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/5591647488) |
 | Beige is All The Rage | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/2582276799) |
 | Rick Steel | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1767256773) |
 | CMD | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356795633) |
@@ -257,6 +296,7 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Free Willy Low (Pinnacle Track Boulder) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/775689522) |
 | Copperhead | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/586875555) |
 | Baloo | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/9136039452) |
+| Jumping Jack (The Beanstalk Boulder) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/946594164) |
 | Submersion | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/9237991191) |
 | Rick & Morty | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946655790) |
 | Bath Shark (Venus Baths) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946663596) |
@@ -284,6 +324,7 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Grand Opening | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/6121247490) |
 | Pussy Power | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/967672857) |
 | The Show Must Go On | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984593) |
+| Out House (Epsilon Wall Bouldering) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/area/12974845) |
 | Leave it all behind | V9 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/642380586) |
 | 100 Pound Club | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984695) |
 | Lullaby | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984839) |
@@ -297,6 +338,7 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Parallel Lines | V11 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769408) |
 | Last Action Hiro | V12 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769651) |
 | Mana (Lemonade Wall) | V13 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag/route/440769816) |
+| Compression Session (36 Chambers) | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/iskra-crag) |
 
 ## Victoria Range (Mt Fox, Possum Rocks, Buandik, Crag X, Mountain Lion, Eureka Area — a fair drive, spread across several small crags)
 
