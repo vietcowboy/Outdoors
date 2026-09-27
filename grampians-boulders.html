@@ -870,7 +870,6 @@
       <ul class="modal-list">
         <li>Tap a problem's name to open its theCrag page. Information here may be incomplete or out of date — check <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> for the latest details.</li>
         <li>Red pins mark confirmed boulder/sector locations, not exact individual problem positions. Blue square "P" pins mark parking.</li>
-        <li>Selecting an area below drops a red marker at that area's location, if one is known.</li>
       </ul>
     </div>
   </div>
@@ -901,10 +900,7 @@
           <input type="range" id="max-grade" min="0" max="17" value="17" step="1">
         </div>
       </div>
-      <div class="control">
-        <label for="area-filter">Area</label>
-        <select id="area-filter"></select>
-      </div>
+      <select id="area-filter" hidden></select>
       <div class="control">
         <div class="star-filter-row">
           <div class="star-filter-left">
