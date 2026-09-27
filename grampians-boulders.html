@@ -751,39 +751,25 @@
     .results-panel.overflow { overflow: visible; }
   }
 
-  .labels-layer {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none;
-    z-index: 620;
-    overflow: hidden;
-  }
-  .labels-connector-svg {
-    position: absolute;
-    top: 0; left: 0;
-    pointer-events: none;
-    overflow: visible;
-  }
-  .label-connector-line {
-    stroke: var(--muted);
-    stroke-width: 1.5;
-    stroke-dasharray: 3,3;
-  }
-  .area-label.area-label-floating {
-    position: absolute;
-    top: 0;
-    left: 0;
-    background: var(--panel);
-    color: var(--text);
-    border: 1px solid var(--border);
-    font-size: 0.78rem;
-    font-weight: 600;
-    padding: 0.2rem 0.5rem;
-    border-radius: 999px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  .leaflet-tooltip.area-label {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
     white-space: nowrap;
-    will-change: transform;
+    pointer-events: none;
+    text-shadow:
+      -1px -1px 1px #000,
+       1px -1px 1px #000,
+      -1px  1px 1px #000,
+       1px  1px 1px #000,
+       0    0   3px #000;
   }
+  .leaflet-tooltip.area-label::before { display: none; }
+  .leaflet-popup-pane { z-index: 750; }
 </style>
 </head>
 <body>
@@ -1688,107 +1674,43 @@ const boulderPinIcon = L.divIcon({
 const boulderPinMarkers = {};
 let labelsEnabled = true;
 
-// --- Floating labels layer ---
-// Each red pin gets a permanent name label positioned in screen space (not tied
-// to Leaflet's tooltip system), so we can freely detect collisions between
-// labels and pins and resolve them: nudge the colliding label further away and
-// draw a thin dashed connector line back to its pin, so nothing ever overlaps.
-const labelsLayer = document.createElement("div");
-labelsLayer.className = "labels-layer";
-map.getContainer().appendChild(labelsLayer);
-const labelsSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-labelsSvg.setAttribute("class", "labels-connector-svg");
-labelsLayer.appendChild(labelsSvg);
-
-const labelEntries = []; // { name, marker, el, line }
-
-function rectsOverlap(a, b) {
-  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-}
-
-let layoutPending = false;
-function layoutLabels() {
-  if (layoutPending) return;
-  layoutPending = true;
-  requestAnimationFrame(() => {
-    layoutPending = false;
-    runLabelLayout();
-  });
-}
-function runLabelLayout() {
+// Floating name label to the right of a pin, shifted up slightly (per the mockup).
+// If that would push the label off the edge of the map, flip it to the left side
+// and/or shift it down, so it stays fully visible as long as the pin itself is.
+function labelPlacementFor(marker) {
+  const point = map.latLngToContainerPoint(marker.getLatLng());
   const size = map.getSize();
-  labelsSvg.setAttribute("width", size.x);
-  labelsSvg.setAttribute("height", size.y);
-
-  if (!labelsEnabled) {
-    labelEntries.forEach(entry => { entry.el.style.display = "none"; entry.line.style.display = "none"; });
+  const direction = point.x > size.x - 150 ? "left" : "right";
+  const offsetY = point.y < 40 ? -2 : -14;
+  const offsetX = direction === "left" ? -14 : 14;
+  return { direction, offset: [offsetX, offsetY] };
+}
+function refreshLabelPlacement(marker, name) {
+  const { direction, offset } = labelPlacementFor(marker);
+  const existing = marker.getTooltip();
+  if (existing && existing.options.direction === direction &&
+      existing.options.offset[0] === offset[0] && existing.options.offset[1] === offset[1]) {
     return;
   }
-
-  // Pins act as fixed "keep-out" rectangles that labels must avoid too.
-  const placed = [];
-  labelEntries.forEach(entry => {
-    entry._pt = map.latLngToContainerPoint(entry.marker.getLatLng());
-    placed.push({ x: entry._pt.x - 13, y: entry._pt.y - 34, w: 26, h: 34 });
-  });
-
-  labelEntries.forEach(entry => {
-    entry.el.style.display = "block";
-    const pt = entry._pt;
-    const labelW = entry.el.offsetWidth || 60;
-    const labelH = entry.el.offsetHeight || 20;
-    const direction = pt.x > size.x - 150 ? "left" : "right";
-    const baseOffsetY = pt.y < 40 ? -2 : -14;
-    const x = direction === "left" ? pt.x - 14 - labelW : pt.x + 14;
-    const baseY = pt.y + baseOffsetY - labelH;
-
-    let y = baseY;
-    let rect = { x, y, w: labelW, h: labelH };
-    let displaced = false;
-    let tries = 0;
-    const step = labelH + 4;
-    while (placed.some(r => rectsOverlap(r, rect)) && tries < 30) {
-      displaced = true;
-      const dir = tries % 2 === 0 ? 1 : -1;
-      const magnitude = Math.ceil((tries + 1) / 2) * step;
-      y = baseY + dir * magnitude;
-      rect = { x, y, w: labelW, h: labelH };
-      tries++;
-    }
-
-    entry.el.style.transform = `translate(${Math.round(rect.x)}px, ${Math.round(rect.y)}px)`;
-    placed.push(rect);
-
-    if (displaced) {
-      const anchorX = direction === "left" ? rect.x + rect.w : rect.x;
-      const anchorY = rect.y + rect.h / 2;
-      entry.line.setAttribute("x1", pt.x);
-      entry.line.setAttribute("y1", pt.y - 30);
-      entry.line.setAttribute("x2", anchorX);
-      entry.line.setAttribute("y2", anchorY);
-      entry.line.style.display = "block";
-    } else {
-      entry.line.style.display = "none";
-    }
+  const wasOpen = labelsEnabled;
+  marker.unbindTooltip();
+  marker.bindTooltip(name, { className: "area-label area-label-floating", permanent: labelsEnabled, direction, offset, interactive: false });
+  if (wasOpen) marker.openTooltip();
+}
+function refreshAllLabelPlacements() {
+  BOULDER_PINS.forEach(b => {
+    const marker = boulderPinMarkers[b.name];
+    if (marker) refreshLabelPlacement(marker, b.name);
   });
 }
-map.on("move zoomend", layoutLabels);
+map.on("moveend zoomend", refreshAllLabelPlacements);
 
 BOULDER_PINS.forEach(b => {
   if (b.hidden) return; // off-limits area — kept in the data but not shown on the map
   const marker = L.marker([b.lat, b.lng], { icon: boulderPinIcon }).addTo(map);
   boulderPinMarkers[b.name] = marker;
-
-  const el = document.createElement("div");
-  el.className = "area-label area-label-floating";
-  el.textContent = b.name;
-  labelsLayer.appendChild(el);
-  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  line.setAttribute("class", "label-connector-line");
-  line.style.display = "none";
-  labelsSvg.appendChild(line);
-  labelEntries.push({ name: b.name, marker, el, line });
-
+  const initialPlacement = labelPlacementFor(marker);
+  marker.bindTooltip(b.name, { className: "area-label area-label-floating", permanent: true, direction: initialPlacement.direction, offset: initialPlacement.offset, interactive: false });
   marker.bindPopup(`
     <div class="boulder-popup">
       <strong>${b.name}</strong>
@@ -1807,8 +1729,18 @@ BOULDER_PINS.forEach(b => {
     </div>
   `);
   allBounds.push([b.lat, b.lng]);
+
+  // Long-press (mobile) previews the name via the tooltip, matching desktop hover;
+  // a normal tap/click still opens the popup as usual.
+  let pressTimer = null;
+  marker.on("mousedown touchstart", () => {
+    pressTimer = setTimeout(() => marker.openTooltip(), 450);
+  });
+  marker.on("mouseup touchend touchcancel dragstart", () => {
+    clearTimeout(pressTimer);
+  });
 });
-layoutLabels();
+refreshAllLabelPlacements();
 
 // --- Labels on/off toggle ---
 const LabelsToggleControl = L.Control.extend({
@@ -1821,7 +1753,13 @@ const LabelsToggleControl = L.Control.extend({
     const checkbox = container.querySelector("input");
     L.DomEvent.on(checkbox, "change", () => {
       labelsEnabled = checkbox.checked;
-      layoutLabels();
+      Object.entries(boulderPinMarkers).forEach(([name, marker]) => {
+        if (labelsEnabled) {
+          marker.openTooltip();
+        } else {
+          marker.closeTooltip();
+        }
+      });
     });
     return container;
   }
