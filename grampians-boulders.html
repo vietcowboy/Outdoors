@@ -1608,10 +1608,10 @@ const areas = [...new Set(BOULDERS.filter(b => !b.hidden).map(b => b.region))].s
 areaFilter.innerHTML = '<option value="">All areas</option>' + areas.map(a => `<option value="${a}">${a}</option>`).join("");
 
 // --- Map setup ---
-const map = L.map("map", { scrollWheelZoom: true }).setView([-37.05, 142.42], 10);
+const map = L.map("map", { scrollWheelZoom: true, maxZoom: 19 }).setView([-37.05, 142.42], 10);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors",
-  maxZoom: 15
+  maxZoom: 19
 }).addTo(map);
 
 // --- Fullscreen control ---
