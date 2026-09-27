@@ -86,6 +86,13 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 | Between the Sheeps | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps/route/14985787) |
 | Drowning Dicaprio (Mt Stapylton Campground) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/263275293) |
 | Remains of Sheep (Between the Sheeps) | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps/route/14985733) |
+| Full Cream (Cave Club) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974893) |
+| Attack of the Killer Drop Bears (The Snake Pit) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17611357) |
+| Wing Entrance (Between the Sheeps) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps) |
+| Stage Fright (Between the Sheeps) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps) |
+| Miss Muppet (Spurt Wall — **closed**) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437532570) |
+| Ministry LHV (Love Boulder) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/14983825) |
+| The Bolt Torque Project (Bolt Boulder) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/14983801) |
 | Waiting in the Air | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17611261) |
 | The Oyster | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1998020319) |
 | Ammagamma Standing Start | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/143471631) |
@@ -155,7 +162,7 @@ Confirm West vs. East (closed) status per route before relying on these.
 | White Destiny (Font Boulder) | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15020221) |
 | Bleausard (Font Boulder) | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15020317) |
 | Dos Cuchachas (B4 Boulder) | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/238907535) |
-| Transcience | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/166771842) |
+| Transcience (B1 Boulder — **Amnesty, not permitted**) | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/166771842) |
 | Running Man | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/212845047) |
 | Riding Shotgun | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15022771) |
 | Discovery | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/116513043) |
@@ -166,6 +173,15 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Ridunculous | V6 | ★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/andersens/route/212841252) |
 | This Way Up | V6 | ★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/andersens/route/143315448) |
 | The Shield | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/435352035) |
+| Fatigue (Legoland) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/129686196) |
+| Wet With Excitement (Legoland) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/129686196) |
+| Platinum Flow (3 Star Buttress) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/212836254) |
+| Phantom Cart (Dali Boulder) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/436220565) |
+| All Bets Are Off (Bad Cliche Boulder) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/156084645) |
+| Surrender Monkey (Sydney Highrise Boulder) | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327804552) |
+| Russian Bull (The Russian Bull Boulder) | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15022063) |
+| Emerald Arête (Rocks on Blocks Boulder) | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327787224) |
+| Puppet Master (B1 Boulder — **Amnesty, not permitted**) | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/166770984) |
 | Mr Knox | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327786447) |
 | Solid State | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/323128686) |
 | Lightening Arete | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143313816) |
@@ -234,6 +250,11 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Venus In Fur (First Blood) | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/946594398) |
 | Stoplight Arete Left Variant | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584821590) |
 | Plastic Facts | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946670598) |
+| Hiroshi Tanahashi (Humping An Orca) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/946595010) |
+| Man Cub (Bear Necessities Boulder) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/584816196) |
+| Mowgli (Bear Necessities Boulder) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/584816196) |
+| Twin Fin (Bath Shark) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/946594572) |
+| Free Willy Low (Pinnacle Track Boulder) | V6 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/775689522) |
 | Copperhead | V7 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/586875555) |
 | Baloo | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/9136039452) |
 | Submersion | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/9237991191) |
