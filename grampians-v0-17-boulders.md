@@ -155,12 +155,19 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 | Little Dark Age (Ground Control Caves, Top Cave) | V11 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974869) |
 | Sasquatch (Daves' Cave) | V11 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/10930615554) |
 | Lost For Life | V12 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984305) |
+| Tanathos (The Citadel) | V12 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974821) |
+| Kings Cross (Between the Sheeps) | V12 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps) |
+| Côte d'Ivoire (Ivory Boulder) | V12 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974797) |
+| Nutts to Butts (Ground Control Caves, Top Cave) | V12 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974869) |
 | On the Beach | V13 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437526465) |
 | Ammagamma | V13 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14983969) |
-| Zeus (Boulder) | V13 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/4625145690) |
+| Zeus (Boulder, Lower Taipan Wall) | V13 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/4625145690) |
 | Pigeon Superstition | V13 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/440857419) |
 | Sultan of Swing (Cave Club) | V13 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/6010782465) |
 | The Bear and the Piano | V13 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/6248845164) |
+| Edge Of Tomorrow (The Citadel) | V13 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974821) |
+| Lost For Life Low Start (The Citadel, V13/14) | V13 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984305) |
+| Dead by Dawn (Ground Control Caves, Top Cave) | V14 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974869) |
 
 ## Hollow Mountain / Andersens
 
@@ -306,6 +313,8 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Manticore | V12 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327798999) |
 | Giada | V12 | ★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/836031057) |
 | CaveRave | V13 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15024931) |
+| Pretty Hate Machine (Hollow Mountain Cave) | V13 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976333) |
+| UnderSiege (Hollow Mountain Cave) | V13 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976333) |
 | SleepyMan | V13 | ★★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024643) |
 | The Wheel of Life | V15 | testpiece, ★ unrated | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025795) |
 | The Wheel of Life Direct | V15 | testpiece, ★ unrated | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/1038996927) |
@@ -433,6 +442,7 @@ Confirm West vs. East (closed) status per route before relying on these.
 | The Sound of One Man Hand Clapping | V11 | ★★ | Buandik Area (Cave of Man Hands — closed) | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/430630479) |
 | Roobiks Cube | V12 | ★★★ | Buandik Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/route/768927588) |
 | Dick Snot | V13 | ★★ | Eureka Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/eureka-area/route/660018906) |
+| The World is not Flat | V14 | ★★★ | Buandik Area (Got Lost Valley) | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/buandik-area/area/946765476) |
 | Wave Swoop | V14 | ★★★ | Mt Fox Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009282842) |
 | Owning the Weather | V14 | ★★★ | Mt Fox Area | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-fox-area/route/1009257726) |
 | The Stepping Stone | V15 | testpiece, ★ unrated | Victoria Range (general) | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/route/3343458645) |
