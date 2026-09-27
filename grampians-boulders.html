@@ -336,13 +336,16 @@
   .boulder-popup strong { font-size: 0.9rem; }
   .boulder-popup p { margin: 0; font-size: 0.8rem; color: #555; }
   .boulder-popup .popup-actions { display: flex; flex-direction: column; gap: 6px; }
-  .popup-link {
-    display: inline-block;
-    color: var(--accent);
+  .leaflet-container a.popup-link {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    color: var(--climb-link);
     font-weight: 700;
     text-decoration: none;
   }
   .popup-link:hover { text-decoration: underline; }
+  .popup-link .go-arrow { color: var(--climb-link); font-weight: 700; font-size: 0.95em; text-decoration: none; }
   .modal-detail-stack { display: flex; flex-direction: column; gap: 16px; }
   .modal-detail-stack p { margin: 0; }
   .pin-coords-row { display: flex; align-items: center; gap: 0.5rem; }
@@ -1783,8 +1786,8 @@ BOULDER_PINS.forEach(b => {
       <div class="modal-detail-stack">
         <p>Tap through for the full problem list, photos and topos on theCrag.</p>
         <div class="popup-actions">
-          <a class="popup-link" href="${b.url}" target="_blank" rel="noopener">Open on theCrag ↗</a>
-          <a class="popup-link" href="https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}" target="_blank" rel="noopener">Open in Google Maps ↗</a>
+          <a class="popup-link" href="${b.url}" target="_blank" rel="noopener">Open on theCrag<span class="go-arrow">↗</span></a>
+          <a class="popup-link" href="https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}" target="_blank" rel="noopener">Open in Google Maps<span class="go-arrow">↗</span></a>
         </div>
         <div class="pin-coords-row">
           <span class="pin-coords">${b.lat.toFixed(6)}, ${b.lng.toFixed(6)}</span>
@@ -1857,7 +1860,7 @@ PARKING_SPOTS.forEach(p => {
       <div class="modal-detail-stack">
         <p>${p.description}</p>
         <div class="popup-actions">
-          <a class="popup-link" href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">Open in Google Maps ↗</a>
+          <a class="popup-link" href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">Open in Google Maps<span class="go-arrow">↗</span></a>
         </div>
         <div class="pin-coords-row">
           <span class="pin-coords">${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}</span>
