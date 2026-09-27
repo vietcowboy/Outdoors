@@ -335,12 +335,16 @@
   .boulder-popup { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
   .boulder-popup strong { font-size: 0.9rem; }
   .boulder-popup p { margin: 0; font-size: 0.8rem; color: #555; }
-  .boulder-popup .popup-actions { display: flex; flex-direction: column; gap: 16px; }
+  .boulder-popup .popup-actions { display: flex; flex-direction: column; gap: 8px; }
+  .popup-actions .support-cta, .modal-detail-stack .support-cta { color: #fff; }
   .modal-detail-stack { display: flex; flex-direction: column; gap: 16px; }
   .modal-detail-stack p { margin: 0; }
   .pin-coords-row { display: flex; align-items: center; gap: 0.5rem; }
   .pin-coords { font-size: 0.78rem; font-family: monospace; color: #555; }
   .copy-coords-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     background: none;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -351,6 +355,7 @@
     flex-shrink: 0;
   }
   .copy-coords-btn:hover { background: #f0f0f0; }
+  .copy-coords-btn svg { flex-shrink: 0; }
 
   .filters-header {
     display: flex;
@@ -1634,10 +1639,11 @@ Object.values(REGIONS).forEach(r => allBounds.push([r.lat, r.lng]));
 function copyCoords(lat, lng, btnEl) {
   const text = `${lat}, ${lng}`;
   if (!navigator.clipboard || !navigator.clipboard.writeText) return;
+  const label = btnEl.querySelector(".copy-label") || btnEl;
   navigator.clipboard.writeText(text).then(() => {
-    const original = btnEl.textContent;
-    btnEl.textContent = "Copied!";
-    setTimeout(() => { btnEl.textContent = original; }, 1500);
+    const original = label.textContent;
+    label.textContent = "Copied!";
+    setTimeout(() => { label.textContent = original; }, 1500);
   }).catch(() => { /* clipboard permission denied or unavailable — leave button as-is */ });
 }
 
@@ -1719,7 +1725,7 @@ BOULDER_PINS.forEach(b => {
         <p>Tap through for the full problem list, photos and topos on theCrag.</p>
         <div class="pin-coords-row">
           <span class="pin-coords">${b.lat.toFixed(6)}, ${b.lng.toFixed(6)}</span>
-          <button type="button" class="copy-coords-btn" onclick="copyCoords(${b.lat}, ${b.lng}, this)">Copy</button>
+          <button type="button" class="copy-coords-btn" onclick="copyCoords(${b.lat}, ${b.lng}, this)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M3.5 10.5H2.5C1.94772 10.5 1.5 10.0523 1.5 9.5V2.5C1.5 1.94772 1.94772 1.5 2.5 1.5H9.5C10.0523 1.5 10.5 1.94772 10.5 2.5V3.5" stroke="currentColor" stroke-width="1.3"/></svg><span class="copy-label">Copy</span></button>
         </div>
         <div class="popup-actions">
           <a class="support-cta" href="${b.url}" target="_blank" rel="noopener">Open on theCrag →</a>
@@ -1793,7 +1799,7 @@ PARKING_SPOTS.forEach(p => {
         <p>${p.description}</p>
         <div class="pin-coords-row">
           <span class="pin-coords">${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}</span>
-          <button type="button" class="copy-coords-btn" onclick="copyCoords(${p.lat}, ${p.lng}, this)">Copy</button>
+          <button type="button" class="copy-coords-btn" onclick="copyCoords(${p.lat}, ${p.lng}, this)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M3.5 10.5H2.5C1.94772 10.5 1.5 10.0523 1.5 9.5V2.5C1.5 1.94772 1.94772 1.5 2.5 1.5H9.5C10.0523 1.5 10.5 1.94772 10.5 2.5V3.5" stroke="currentColor" stroke-width="1.3"/></svg><span class="copy-label">Copy</span></button>
         </div>
         <div class="popup-actions">
           <a class="support-cta" href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">Open in Google Maps →</a>
