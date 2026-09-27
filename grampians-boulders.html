@@ -317,6 +317,21 @@
     color: #333;
     text-decoration: none;
   }
+  .labels-toggle-control {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #333;
+  }
+  .labels-toggle-control input { margin: 0; cursor: pointer; }
   .boulder-popup { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
   .boulder-popup strong { font-size: 0.9rem; }
   .boulder-popup p { margin: 0; font-size: 0.8rem; color: #555; }
@@ -743,7 +758,11 @@
     font-size: 0.78rem;
     font-weight: 600;
     padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    pointer-events: none;
   }
+  .leaflet-tooltip.area-label.area-label-floating::before { display: none; }
 </style>
 </head>
 <body>
@@ -1635,11 +1654,45 @@ const boulderPinIcon = L.divIcon({
   iconAnchor: [13, 34]
 });
 const boulderPinMarkers = {};
+let labelsEnabled = true;
+
+// Floating name label to the right of a pin, shifted up slightly (per the mockup).
+// If that would push the label off the edge of the map, flip it to the left side
+// and/or shift it down, so it stays fully visible as long as the pin itself is.
+function labelPlacementFor(marker) {
+  const point = map.latLngToContainerPoint(marker.getLatLng());
+  const size = map.getSize();
+  const direction = point.x > size.x - 150 ? "left" : "right";
+  const offsetY = point.y < 40 ? -2 : -14;
+  const offsetX = direction === "left" ? -14 : 14;
+  return { direction, offset: [offsetX, offsetY] };
+}
+function refreshLabelPlacement(marker, name) {
+  const { direction, offset } = labelPlacementFor(marker);
+  const existing = marker.getTooltip();
+  if (existing && existing.options.direction === direction &&
+      existing.options.offset[0] === offset[0] && existing.options.offset[1] === offset[1]) {
+    return;
+  }
+  const wasOpen = labelsEnabled;
+  marker.unbindTooltip();
+  marker.bindTooltip(name, { className: "area-label area-label-floating", permanent: labelsEnabled, direction, offset, interactive: false });
+  if (wasOpen) marker.openTooltip();
+}
+function refreshAllLabelPlacements() {
+  BOULDER_PINS.forEach(b => {
+    const marker = boulderPinMarkers[b.name];
+    if (marker) refreshLabelPlacement(marker, b.name);
+  });
+}
+map.on("moveend zoomend", refreshAllLabelPlacements);
+
 BOULDER_PINS.forEach(b => {
   if (b.hidden) return; // off-limits area — kept in the data but not shown on the map
   const marker = L.marker([b.lat, b.lng], { icon: boulderPinIcon }).addTo(map);
   boulderPinMarkers[b.name] = marker;
-  marker.bindTooltip(b.name, { className: "area-label", direction: "top", offset: [0, -30] });
+  const initialPlacement = labelPlacementFor(marker);
+  marker.bindTooltip(b.name, { className: "area-label area-label-floating", permanent: true, direction: initialPlacement.direction, offset: initialPlacement.offset, interactive: false });
   marker.bindPopup(`
     <div class="boulder-popup">
       <strong>${b.name}</strong>
@@ -1669,6 +1722,31 @@ BOULDER_PINS.forEach(b => {
     clearTimeout(pressTimer);
   });
 });
+refreshAllLabelPlacements();
+
+// --- Labels on/off toggle ---
+const LabelsToggleControl = L.Control.extend({
+  options: { position: "bottomleft" },
+  onAdd: function () {
+    const container = L.DomUtil.create("div", "labels-toggle-control");
+    L.DomEvent.disableClickPropagation(container);
+    const id = "labels-toggle-checkbox";
+    container.innerHTML = `<input type="checkbox" id="${id}" checked><label for="${id}" style="cursor:pointer;">Labels</label>`;
+    const checkbox = container.querySelector("input");
+    L.DomEvent.on(checkbox, "change", () => {
+      labelsEnabled = checkbox.checked;
+      Object.entries(boulderPinMarkers).forEach(([name, marker]) => {
+        if (labelsEnabled) {
+          marker.openTooltip();
+        } else {
+          marker.closeTooltip();
+        }
+      });
+    });
+    return container;
+  }
+});
+map.addControl(new LabelsToggleControl());
 
 // Parking spots (blue square "P" pins) — car-park locations for common approaches,
 // distinct from the boulder-area pins above. Clicking one opens a small modal
