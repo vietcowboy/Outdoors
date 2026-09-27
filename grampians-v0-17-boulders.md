@@ -116,6 +116,19 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 | Ammagamma Standing Start | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/143471631) |
 | Brama Sutra | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17613157) |
 | Conga Fury | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/184112103) |
+| Tricky AF (Cave Club) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974893) |
+| Penguin Biceps (The Citadel) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/2183274408) |
+| Sweet Sensation (Wildsides) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612335) |
+| Rat Salad (Between the Sheeps) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps) |
+| Crisco Love Party (Afterglow Boulders) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437537574) |
+| Left El Westwood (Paul's Boulder) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614561) |
+| To Hate To Love (Love Boulder) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/253539981) |
+| Shattered Arete (Wiggly Boulder) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612485) |
+| Ground Control to Major Tom (Ground Control Caves, Middle Cave) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17615125) |
+| Rota-Loo (Ground Control Caves, Middle Cave) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17615029) |
+| Da-Lai-Lahmung (Campground Boulders — **closed**) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/15061915) |
+| Gourmet Cat (Campground Boulders — **closed**) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/15061819) |
+| Worm Saloon (Campground Boulders — **closed**) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/area/12978061) |
 | Raging Bull | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/5736069321) |
 | Inca Steppa | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/1998019008) |
 | The Pearl | V9 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/7165735287) |
@@ -227,6 +240,25 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Critical Mass | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/129688557) |
 | Giddy Up | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/129683028) |
 | Gasoline | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/155889138) |
+| Chk Chk Boom (Legoland) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/168185172) |
+| Rave Heart (Hollow Mountain Cave) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976333) |
+| Eagle's Nest (Loopeys) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/1997942691) |
+| Winterkirsch (Loopeys) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976309) |
+| Schwiesspatrick (Red Wall Area) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/1997620989) |
+| One Way in, No Way Out (Red Wall Area) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/1997620989) |
+| Spanking the Monkeybars direct (The Kindergarten — **closed**) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976357) |
+| Spanking the Monkeybars (The Kindergarten — **closed**) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976357) |
+| Seam Grip (Bridesmaid Walls) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/212841129) |
+| Midnight Cowboy (Rodeo Wall) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/1839823647) |
+| Zinc (Zinc Boulder) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens) |
+| Micro Machine (Trust Boulder) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/435332277) |
+| Pass Without Trace (Pass Without Trace Boulder) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens) |
+| Exposed (Lillyput Wall) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143312064) |
+| Testostrogen (Gobsmacker Corner) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/433799676) |
+| Green Destiny (Font Boulder) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens) |
+| Thoughts Of A Dying Athiest (Upper Gun Buttress — **Amnesty, not permitted**) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens) |
+| Prescribed Happiness (Upper Gun Buttress — **Amnesty, not permitted**) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens) |
+| Bismarck (Gun Buttress Boulder — **Amnesty, not permitted**) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/435255540) |
 | Happy Daze | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/433783131) |
 | CaveMan | V9 | ★★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024691) |
 | Etch-a-Sketch | V10 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327786558) |
@@ -270,6 +302,7 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Beige is All The Rage | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/2582276799) |
 | Rick Steel | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1767256773) |
 | CMD | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356795633) |
+| Blackbeard's Delight (Blackbeard's Boulder) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1006786107) |
 | The Walker | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356794418) |
 | The Quickening | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1006774092) |
 | The Gathering (V9/10) | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9247623537) |
@@ -300,6 +333,8 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Submersion | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/9237991191) |
 | Rick & Morty | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946655790) |
 | Bath Shark (Venus Baths) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946663596) |
+| Immersion Stand (Immersion Boulder) | V8 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/946594899) |
+| Mars Attacks (Mars Attacks Boulder) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946637955) |
 | Immersion | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946695522) |
 | Stoplight Arete | V10 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584820759) |
 | Blockhead | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946626558) |
@@ -325,6 +360,7 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Pussy Power | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/967672857) |
 | The Show Must Go On | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984593) |
 | Out House (Epsilon Wall Bouldering) | V7 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/area/12974845) |
+| Bone Tomahawk (Flat Rock, West Flank Boulders) | V8 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/area/11653495851) |
 | Leave it all behind | V9 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/642380586) |
 | 100 Pound Club | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984695) |
 | Lullaby | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/north-grampians/route/14984839) |
