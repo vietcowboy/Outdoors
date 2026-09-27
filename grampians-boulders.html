@@ -337,12 +337,13 @@
     line-height: 1.3;
     padding: 2px 4px;
     max-width: 155px;
+    width: fit-content;
     white-space: normal;
     text-align: right;
   }
-  .boulder-popup { display: flex; flex-direction: column; gap: 6px; min-width: 180px; max-width: 100%; }
-  .boulder-popup strong { font-size: 0.9rem; }
-  .boulder-popup p { margin: 0; font-size: 0.8rem; color: #555; }
+  .boulder-popup { display: flex; flex-direction: column; gap: 6px; min-width: 180px; max-width: 100%; color: var(--text); }
+  .boulder-popup strong { font-size: 0.9rem; color: var(--text); }
+  .boulder-popup p { margin: 0; font-size: 0.8rem; color: var(--muted); }
   .boulder-popup .popup-actions { display: flex; flex-direction: column; gap: 6px; }
   .leaflet-container a.popup-link {
     display: inline-flex;
@@ -358,22 +359,24 @@
   .modal-detail-stack p { margin: 0; }
   .pin-coords-row { display: flex; align-items: center; gap: 0.5rem; }
   .leaflet-popup-content { max-height: 60vh; overflow-y: auto; }
-  .leaflet-popup-content-wrapper { max-width: calc(100vw - 40px); }
-  .pin-coords { font-size: 0.78rem; font-family: monospace; color: #555; }
+  .leaflet-popup-content-wrapper { max-width: calc(100vw - 40px); background: var(--panel); color: var(--text); }
+  .leaflet-popup-tip { background: var(--panel); }
+  .leaflet-popup-close-button { color: var(--muted) !important; }
+  .pin-coords { font-size: 0.78rem; font-family: monospace; color: var(--muted); }
   .copy-coords-btn {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     background: none;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 5px;
     padding: 0.1rem 0.5rem;
     font-size: 0.72rem;
     cursor: pointer;
-    color: #333;
+    color: var(--text);
     flex-shrink: 0;
   }
-  .copy-coords-btn:hover { background: #f0f0f0; }
+  .copy-coords-btn:hover { background: var(--accent-light); }
   .copy-coords-btn svg { flex-shrink: 0; }
 
   .filters-header {
@@ -1790,7 +1793,7 @@ BOULDER_PINS.forEach(b => {
   marker.bindPopup(`
     <div class="boulder-popup">
       <strong>${b.name}</strong>
-      ${b.note ? `<p style="color:#b5493c;font-weight:600;">${b.note}</p>` : ""}
+      ${b.note ? `<p style="color:var(--closed);font-weight:600;">${b.note}</p>` : ""}
       <div class="modal-detail-stack">
         <p>Tap through for the full problem list, photos and topos on theCrag.</p>
         <div class="popup-actions">
