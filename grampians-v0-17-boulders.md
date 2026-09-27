@@ -12,6 +12,8 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 
 - **Sundial Peak**: the walking track is currently **closed** due to fire damage to the boardwalk (as of mid-2025, expected into 2026). Silverband/Sundial Road access is open but the peak-area boulders may not be reachable. Check Parks Victoria "change of conditions" before planning around this area.
 - **Andersens (Hollow Mountain)**: climbing is **banned in Andersens East** under the Greater Gariwerd Landscape Management Plan. Only **West Andersens** (Clicke/Lower Clicke area) remains open. Verify each problem's zone on theCrag before relying on it.
+- **Amnesty and Left Main** (sub-areas within Andersens): **not permitted** — theCrag cites discovery of artifact scatters in the soil. Separate from, and in addition to, the general Andersens East/West split above.
+- **Campground Boulders** (a sub-boulder within Mt Stapylton Campground, distinct from Titanic Boulder): **closed** since the landowner retracted permission in April 2019, citing rubbish and climbers not respecting the boundary.
 - **Cave of Man Hands** (Buandik Area, Victoria Range): **closed** by Parks Victoria since February 2019 for Aboriginal cultural heritage reasons.
 - **Mountain Lion** (Victoria Range): reportedly **closed** since December 2023 due to rediscovered Aboriginal cultural heritage (a separate closure from Cave of Man Hands) — verify current status on theCrag before relying on Cats Can Climb Too below.
 - **Juju Rock / Rabbit Rock** (near Mackeys Peak): **private property, invite-only** — not climbable without landowner consent. This includes **Overdose**, the one problem listed under Mackeys Peak below — it's actually on Juju Rock.
@@ -49,7 +51,19 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 | Wiggly Boy | V3 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17612533) |
 | Volume 1000 | V4 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17610991) |
 | Nested (Mt Stapylton Campground) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/1213829298) |
+| Maybe (Probably Dave Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/5233914963) |
 | Celebrex Traverse (Anti-Inflammatory Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/14983849) |
+| Rat Poison (Between the Sheeps) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps) |
+| Chas Remains (Between the Sheeps) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps) |
+| To Catch a Thief (Between the Sheeps) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps) |
+| Railway Machine (Between the Sheeps) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps) |
+| Carpet Crawler (Between the Sheeps) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps) |
+| Where trad dad's go to die (Peregrinator Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974797) |
+| Right El Westwood (Paul's Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614609) |
+| Future Wolf And The Gay Parisian Milk Incident (Tiger Boulder) | V4 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/437397318) |
+| Minus (Campground Boulders — **closed**, landowner retracted permission in 2019) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/area/12978061) |
+| Ross's Problem (Campground Boulders — **closed**, landowner retracted permission in 2019) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/area/12978061) |
+| Ultra Deluxe (Campground Boulders — **closed**, landowner retracted permission in 2019) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/area/12978061) |
 | Voltaren (Anti-Inflammatory Boulder) | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614129) |
 | Naprosyn (Anti-Inflammatory Boulder) | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/17614081) |
 | Nice Max | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984401) |
@@ -105,6 +119,16 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Ethanol | V3 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/154370916) |
 | 4:45 | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143311143) |
 | Iliad | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15021301) |
+| Formula One (Coppertone Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens) |
+| Coppertone (Coppertone Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens) |
+| Unreal (Dali Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/156084717) |
+| Golden Oldie (Bad Cliche Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/156084645) |
+| Arm and a Leg (Bad Cliche Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/183829287) |
+| Plastic Ninja (Sydney Highrise Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens) |
+| The Seduction Line (Seduction Wall) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/435327942) |
+| Riding Shotgun RHV (Shotgun Boulder — **Left Main, not permitted**) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/155890668) |
+| Pinche and the Brain (Font Boulder — **Left Main, not permitted**) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/96136050) |
+| A minutes observation (Upper Gun Buttress — **Amnesty, not permitted**) | V4 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/835482321) |
 | Hike the Moon | V4 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/1247142495) |
 | Wimmelfriedhof | V5 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025171) |
 | Epinephrine | V5 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/294028473) |
@@ -156,6 +180,10 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Face Off | V2 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/6010109769) |
 | Bleached Balls (Identity Crisis Buttress) | V2 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/area/2119798443) |
 | Red Saturn | V3 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1766199810) |
+| The Quiet Hatred | V4 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/area/946720095) |
+| Slappers Arete (Slappers Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/999172176) |
+| Art Of Elsewhere (Car 43 Buttress) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/2119800597) |
+| Reclaim (Heart Boulder) | V4 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/area/946720095) |
 | White Shadow | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9285995439) |
 | Sex Panther | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/2172285696) |
 | Evac | V6 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356093456) |
