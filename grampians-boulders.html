@@ -1619,10 +1619,10 @@ const areas = [...new Set(BOULDERS.filter(b => !b.hidden).map(b => b.region))].s
 areaFilter.innerHTML = '<option value="">All areas</option>' + areas.map(a => `<option value="${a}">${a}</option>`).join("");
 
 // --- Map setup ---
-const map = L.map("map", { scrollWheelZoom: true, maxZoom: 17 }).setView([-37.05, 142.42], 10);
-L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
-  attribution: "Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; <a href=\"https://opentopomap.org\">OpenTopoMap</a> (CC-BY-SA)",
-  maxZoom: 17
+const map = L.map("map", { scrollWheelZoom: true, maxZoom: 18 }).setView([-37.05, 142.42], 10);
+L.tileLayer("https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=f11e787170b84a26967330c158cfb5f8", {
+  attribution: "&copy; <a href=\"https://www.thunderforest.com/\">Thunderforest</a>, &copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>",
+  maxZoom: 18
 }).addTo(map);
 
 // --- Fullscreen control ---
