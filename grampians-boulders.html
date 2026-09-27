@@ -1043,7 +1043,7 @@ const BOULDERS = [
   {name:"Etch-a-Sketch", grade:10, stars:3, region:"Hollow Mountain / Andersens", area:"Andersens", boulder:"Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327786558"},
   {name:"Daddy Chill", grade:10, stars:3, region:"Hollow Mountain / Andersens", area:"Andersens", boulder:"Andersens", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/6117850374"},
   {name:"Annagramma", grade:10, stars:3, region:"Hollow Mountain / Andersens", area:"Hollow Mountain Cave", boulder:"Hollow Mountain Cave", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024739"},
-  {name:"Gripmaster", grade:10, stars:3, region:"Hollow Mountain / Andersens", area:"The Kindergarten", boulder:"The Kindergarten", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15026131"},
+  {name:"Gripmaster", grade:10, stars:3, region:"Hollow Mountain / Andersens", area:"The Kindergarten", boulder:"The Kindergarten", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15026131", closed:true},
   {name:"Stoplight Arete", grade:10, stars:3, region:"Northern Wonderland Range", area:"Venus Baths", boulder:"Stoplight Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584820759"},
   {name:"Blockhead", grade:10, stars:2, region:"Northern Wonderland Range", area:"Venus Baths", boulder:"Blockhead Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946626558"},
   {name:"The Departed", grade:10, stars:3, region:"Southern Wonderland Range", area:"Valley of the Giants", boulder:"Valley of the Giants", url:"https://www.thecrag.com/en/climbing/australia/grampians/southern-wonderland-range/route/1501909128"},
@@ -1066,7 +1066,7 @@ const BOULDERS = [
   {name:"Lost For Life", grade:12, stars:2, region:"Mt Stapylton Amphitheatre", area:"The Citadel", boulder:"The Citadel", url:"https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984305"},
   {name:"Sleepy Hollow", grade:12, stars:3, region:"Hollow Mountain / Andersens", area:"Hollow Mountain Cave", boulder:"Hollow Mountain Cave", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15024451"},
   {name:"Manticore", grade:12, stars:3, region:"Hollow Mountain / Andersens", area:"Andersens", boulder:"B4 Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327798999"},
-  {name:"Giada", grade:12, stars:2, region:"Hollow Mountain / Andersens", area:"The Kindergarten", boulder:"The Kindergarten", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/836031057"},
+  {name:"Giada", grade:12, stars:2, region:"Hollow Mountain / Andersens", area:"The Kindergarten", boulder:"The Kindergarten", url:"https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/836031057", closed:true},
   {name:"Silver Platter", grade:12, stars:3, region:"Northern Wonderland Range", area:"Venus Baths", boulder:"Venus Baths", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946645818"},
   {name:"Problem Banana", grade:1, stars:1, region:"Northern Wonderland Range", area:"Venus Baths", boulder:"Stoplight Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584822241"},
   {name:"Silver Linings", grade:2, stars:1, region:"Northern Wonderland Range", area:"Venus Baths", boulder:"Venus Baths", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/589952565"},
@@ -1200,7 +1200,7 @@ const BOULDERS = [
   {name:"Death By Drowning", grade:4, stars:2, region:"Northern Wonderland Range", area:"Venus Baths", boulder:"Immersion Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946695651"},
   {name:"Lost Negative", grade:5, stars:1, region:"Southern Wonderland Range", area:"Valley of the Giants", boulder:"Hand of Fatima", url:"https://www.thecrag.com/en/climbing/australia/grampians/southern-wonderland-range/route/1745041776"},
   {name:"The Nevin Rule", grade:7, stars:3, region:"Hollow Mountain / Andersens", area:"The Kindergarten", boulder:"The Kindergarten", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15026467", closed:true},
-  {name:"So You Think You Can Dance", grade:11, stars:2, region:"Hollow Mountain / Andersens", area:"The Kindergarten", boulder:"The Kindergarten", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/836035746"},
+  {name:"So You Think You Can Dance", grade:11, stars:2, region:"Hollow Mountain / Andersens", area:"The Kindergarten", boulder:"The Kindergarten", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/836035746", closed:true},
   {name:"Peter Parker", grade:5, stars:3, region:"Hollow Mountain / Andersens", area:"Andersens", boulder:"Mandatory Choices Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/116514345"},
   {name:"Jacobs Ladder", grade:4, stars:2, region:"Hollow Mountain / Andersens", area:"Andersens", boulder:"3 Star Buttress", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/120225066"},
   {name:"Hand Shandy", grade:4, stars:1, region:"Hollow Mountain / Andersens", area:"Andersens", boulder:"Shandy Boulder", url:"https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/223365780"},
@@ -1568,7 +1568,8 @@ const BOULDER_PINS = [
   { name: "Wildsides", lat: -36.899558, lng: 142.383588, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/14983213" },
   { name: "Between the Sheeps", lat: -36.899509, lng: 142.387000, url: "https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps" },
   { name: "The Bleachers", lat: -37.184571, lng: 142.521091, url: "https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/area/946720095" },
-  { name: "Legoland", lat: -36.893511, lng: 142.386915, url: "https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/129686196" }
+  { name: "Legoland", lat: -36.893511, lng: 142.386915, url: "https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/129686196" },
+  { name: "The Kindergarten", lat: -36.892484, lng: 142.380889, url: "https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976357", note: "CLOSED — access restricted, not currently permitted." }
 ];
 const boulderPinIcon = L.divIcon({
   className: "boulder-pin-icon",
