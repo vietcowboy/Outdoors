@@ -774,7 +774,15 @@
        0    0   3px #000;
   }
   .leaflet-tooltip.area-label::before { display: none; }
-  .leaflet-popup-pane { z-index: 750; }
+  .leaflet-popup-pane { z-index: 1100; }
+  #map.pseudo-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    height: 100vh;
+    width: 100vw;
+    border-radius: 0;
+  }
 </style>
 </head>
 <body>
@@ -1607,6 +1615,18 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 
 // --- Fullscreen control ---
+// iOS Safari doesn't support the Fullscreen API on arbitrary elements (only <video>),
+// so we fall back to a CSS "pseudo-fullscreen" (fixed, covers the viewport) there —
+// this also covers any other browser where requestFullscreen is unavailable/fails.
+function isPseudoFullscreen() {
+  return document.getElementById("map").classList.contains("pseudo-fullscreen");
+}
+function exitPseudoFullscreen() {
+  const mapEl = document.getElementById("map");
+  mapEl.classList.remove("pseudo-fullscreen");
+  document.body.style.overflow = "";
+  map.invalidateSize();
+}
 const FullscreenControl = L.Control.extend({
   options: { position: "topright" },
   onAdd: function () {
@@ -1619,10 +1639,28 @@ const FullscreenControl = L.Control.extend({
       L.DomEvent.stopPropagation(e);
       L.DomEvent.preventDefault(e);
       const mapEl = document.getElementById("map");
-      if (!document.fullscreenElement) {
-        (mapEl.requestFullscreen || mapEl.webkitRequestFullscreen)?.call(mapEl);
-      } else {
+      if (isPseudoFullscreen()) {
+        exitPseudoFullscreen();
+        return;
+      }
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
         (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+        return;
+      }
+      const request = mapEl.requestFullscreen || mapEl.webkitRequestFullscreen;
+      if (request) {
+        const result = request.call(mapEl);
+        if (result && typeof result.catch === "function") {
+          result.catch(() => {
+            mapEl.classList.add("pseudo-fullscreen");
+            document.body.style.overflow = "hidden";
+            map.invalidateSize();
+          });
+        }
+      } else {
+        mapEl.classList.add("pseudo-fullscreen");
+        document.body.style.overflow = "hidden";
+        map.invalidateSize();
       }
     });
     return container;
