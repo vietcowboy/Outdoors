@@ -145,8 +145,15 @@ Two problems (The Wheel of Life and its Direct variant) were originally proposed
 | Race Eater (Campground Boulders — **closed**) | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-campground/route/15061417) |
 | The Viking | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/440887803) |
 | Voltaren Rapid (Anti-Inflammatory Boulder) | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/14983849) |
+| Snow mike (Daves' Cave) | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/2025592791) |
 | Mad Max | V11 | ★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984353) |
 | Athena | V11 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/4625155041) |
+| Lord Farquaad (The Citadel) | V11 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974821) |
+| When We Were Kings (Between the Sheeps) | V11 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/between-the-sheeps/route/14985835) |
+| Butcherbird (Butchers Boulder) | V11 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/10933415181) |
+| Borrowed Time (Tiger Boulder) | V11 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/437397318) |
+| Little Dark Age (Ground Control Caves, Top Cave) | V11 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974869) |
+| Sasquatch (Daves' Cave) | V11 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/10930615554) |
 | Lost For Life | V12 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14984305) |
 | On the Beach | V13 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/437526465) |
 | Ammagamma | V13 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/route/14983969) |
@@ -285,11 +292,16 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Etch-a-Sketch | V10 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327786558) |
 | Daddy Chill | V10 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/6117850374) |
 | Annagramma | V10 | ★★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/15024739) |
-| Gripmaster | V10 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15026131) |
+| Gripmaster (The Kindergarten — **closed**) | V10 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15026131) |
+| Keelhaul (The Meatlocker) | V10 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens) |
+| Extended World (Hollow Mountain Cave) | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976333) |
+| Bury The Hatchet (Bad Cliche Boulder) | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/156084645) |
 | Tantrum | V11 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/1997620989) |
 | Dead Can't Dance | V11 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15025075) |
 | Forced Entry | V11 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/15022213) |
 | Gobsmacker | V11 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/143314677) |
+| Point and Shoot (The Kindergarten — **closed**) | V11 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/area/12976357) |
+| Buandik Dreaming (The Ark) | V11 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/area/436225242) |
 | Sleepy Hollow | V12 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/route/15024451) |
 | Manticore | V12 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens/route/327798999) |
 | Giada | V12 | ★★ | [theCrag](https://www.thecrag.com/climbing/australia/grampians/hollow-mountain/route/836031057) |
@@ -327,6 +339,8 @@ Confirm West vs. East (closed) status per route before relying on these.
 | The Walker | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1356794418) |
 | The Quickening | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/1006774092) |
 | The Gathering (V9/10) | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9247623537) |
+| The Thiccening (Quickening Boulder, V10/11) | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/area/946720095) |
+| Gladiator (Gladiator Boulder) | V11 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/area/10424299143) |
 
 ## Northern Wonderland Range
 
@@ -361,6 +375,7 @@ Confirm West vs. East (closed) status per route before relying on these.
 | Vital Signs (Vital Signs Boulder) | V9 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range) |
 | Stoplight Arete | V10 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/584820759) |
 | Blockhead | V10 | ★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946626558) |
+| Alchemy (Alchemy Boulder) | V10 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/9241328043) |
 | The Bakelite Concept | V11 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946670469) |
 | Silver Platter | V12 | ★★★ | [theCrag](https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/route/946645818) |
 
