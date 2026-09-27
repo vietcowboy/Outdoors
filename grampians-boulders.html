@@ -332,6 +332,11 @@
     color: #333;
   }
   .labels-toggle-control input { margin: 0; cursor: pointer; }
+  .leaflet-control-attribution {
+    font-size: 0.6rem;
+    line-height: 1.2;
+    padding: 0 4px;
+  }
   .boulder-popup { display: flex; flex-direction: column; gap: 6px; min-width: 180px; max-width: 100%; }
   .boulder-popup strong { font-size: 0.9rem; }
   .boulder-popup p { margin: 0; font-size: 0.8rem; color: #555; }
@@ -1812,7 +1817,7 @@ refreshAllLabelPlacements();
 
 // --- Labels on/off toggle ---
 const LabelsToggleControl = L.Control.extend({
-  options: { position: "bottomleft" },
+  options: { position: "topleft" },
   onAdd: function () {
     const container = L.DomUtil.create("div", "labels-toggle-control");
     L.DomEvent.disableClickPropagation(container);
