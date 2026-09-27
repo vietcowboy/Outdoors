@@ -523,6 +523,12 @@
     flex-wrap: wrap;
     gap: 0.8rem;
   }
+  .area-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .area-filter-row select { flex: 1; }
   .star-filter-left {
     display: flex;
     align-items: center;
@@ -900,7 +906,6 @@
           <input type="range" id="max-grade" min="0" max="17" value="17" step="1">
         </div>
       </div>
-      <select id="area-filter" hidden></select>
       <div class="control">
         <div class="star-filter-row">
           <div class="star-filter-left">
@@ -910,6 +915,11 @@
               <button type="button" class="star-toggle" data-value="3" aria-pressed="true"><span class="star-toggle-glyph">★★★</span></button>
             </div>
           </div>
+        </div>
+      </div>
+      <div class="control">
+        <div class="area-filter-row">
+          <select id="area-filter"></select>
           <button class="reset-btn" id="reset-filters" type="button">Reset</button>
         </div>
       </div>
@@ -1623,7 +1633,7 @@ const resultsBody = document.getElementById("results-body");
 const resultCount = document.getElementById("result-count");
 const emptyMsg = document.getElementById("empty-msg");
 
-const areas = [...new Set(BOULDERS.filter(b => !b.hidden).map(b => b.region))].sort();
+const areas = [...new Set(BOULDERS.filter(b => !b.hidden).map(b => b.area))].sort();
 areaFilter.innerHTML = '<option value="">All areas</option>' + areas.map(a => `<option value="${a}">${a}</option>`).join("");
 
 // --- Map setup ---
@@ -2132,7 +2142,7 @@ function render() {
   let rows = BOULDERS.filter(b =>
     !b.hidden &&
     b.grade >= min && b.grade <= max &&
-    (!areaVal || b.region === areaVal) &&
+    (!areaVal || b.area === areaVal) &&
     (b.stars < 0 || checkedStars.has(b.stars))
   );
 
