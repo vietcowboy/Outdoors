@@ -543,15 +543,22 @@
     transform: translateY(-50%);
     height: 4px;
     left: 16px; right: 16px;
-    background: var(--border);
     border-radius: 2px;
+    background: linear-gradient(to right,
+      var(--grade-green) 0%, var(--grade-green) 2.94%,
+      var(--grade-orange) 2.94%, var(--grade-orange) 26.47%,
+      var(--grade-red) 26.47%, var(--grade-red) 61.76%,
+      var(--grade-purple) 61.76%, var(--grade-purple) 100%);
   }
   .dual-slider .track-fill {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    height: 4px;
-    background: var(--accent);
+    height: 8px;
+    background: transparent;
+    border-top: 2px solid var(--text);
+    border-bottom: 2px solid var(--text);
+    box-sizing: border-box;
     border-radius: 2px;
   }
   .grade-ticks {
