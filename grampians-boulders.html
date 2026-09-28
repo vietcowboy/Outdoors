@@ -33,10 +33,10 @@
     --grade-red-bg: #f8dede;
     --grade-purple: #7248a8;
     --grade-purple-bg: #ece3f6;
-    --grade-vivid-green: #6fa382;
-    --grade-vivid-yellow: #c9a866;
-    --grade-vivid-red: #bd6f6f;
-    --grade-vivid-purple: #9683b0;
+    --grade-vivid-green: #7fbb92;
+    --grade-vivid-yellow: #dcbc76;
+    --grade-vivid-red: #d18888;
+    --grade-vivid-purple: #ac93c9;
     --on-vivid: #1a1a1a;
     --link: #1d6fd6;
     --climb-link: #3f7a43;
@@ -582,9 +582,7 @@
     position: absolute;
     top: 0;
     transform: translate(-50%, -50%);
-    width: 4px;
-    height: 16px;
-    border-radius: 2px;
+    border-radius: 0;
     background: var(--border);
     transition: background 0.15s ease;
   }
@@ -598,7 +596,7 @@
     transform: translate(-50%, -50%);
     width: 34px;
     height: 34px;
-    border-radius: 50%;
+    border-radius: 8px;
     background: var(--accent);
     color: var(--on-vivid);
     font-weight: 700;
@@ -2005,12 +2003,16 @@ function gradeBandKey(grade) {
 // One vertical ruler-tick per selectable V-grade, positioned to match the
 // thumbs' own math — coloured by grade band while inside the currently
 // selected range, gray otherwise.
+const TICK_MIN_W = 3, TICK_MAX_W = 6, TICK_MIN_H = 8, TICK_MAX_H = 24;
 const gradeTicksEl = document.getElementById("grade-ticks");
 for (let g = GRADE_MIN; g <= GRADE_MAX; g++) {
   const tick = document.createElement("div");
   tick.className = `grade-tick grade-tick-${gradeBandKey(g)}`;
   tick.dataset.grade = g;
   tick.style.left = sliderPos((g - GRADE_MIN) / (GRADE_MAX - GRADE_MIN));
+  const growth = (g - GRADE_MIN) / (GRADE_MAX - GRADE_MIN);
+  tick.style.width = `${TICK_MIN_W + (TICK_MAX_W - TICK_MIN_W) * growth}px`;
+  tick.style.height = `${TICK_MIN_H + (TICK_MAX_H - TICK_MIN_H) * growth}px`;
   gradeTicksEl.appendChild(tick);
 }
 const gradeTicks = [...gradeTicksEl.children];
