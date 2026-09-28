@@ -346,13 +346,21 @@
   .boulder-popup strong { font-size: 0.9rem; color: var(--text); }
   .boulder-popup p { margin: 0; font-size: 0.8rem; color: var(--muted); }
   .boulder-popup .popup-actions { display: flex; flex-direction: column; gap: 6px; }
-  .leaflet-container a.popup-link {
+  .leaflet-container a.popup-link,
+  .leaflet-container button.popup-link {
     display: inline-flex;
     align-items: baseline;
     gap: 0.3rem;
     color: var(--climb-link);
     font-weight: 700;
     text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
   }
   .popup-link:hover { text-decoration: underline; }
   .popup-link .go-arrow { color: var(--climb-link); font-weight: 700; font-size: 0.95em; text-decoration: none; }
@@ -930,14 +938,14 @@
     <table id="results-table">
       <thead>
         <tr>
-          <th data-key="grade"><span id="result-count">Problem</span><span class="sort-icon">⇅</span></th>
+          <th data-key="grade"><span id="result-count">Climb</span><span class="sort-icon">⇅</span></th>
           <th data-key="area">Area<span class="sort-icon">⇅</span></th>
           <th data-key="boulder">Sub-area<span class="sort-icon">⇅</span></th>
         </tr>
       </thead>
       <tbody id="results-body"></tbody>
     </table>
-    <div class="empty" id="empty-msg" style="display:none;">No problems match these filters.</div>
+    <div class="empty" id="empty-msg" style="display:none;">No climbs match these filters.</div>
   </div>
 
   <div class="attribution-panel">
@@ -1742,7 +1750,7 @@ const BOULDER_PINS = [
   { name: "Venus Baths", lat: -37.139016, lng: 142.509188, url: "https://www.thecrag.com/en/climbing/australia/grampians/northern-wonderland-range/area/584816196" },
   { name: "White Shadow Boulder", lat: -37.18457, lng: 142.52109, url: "https://www.thecrag.com/en/climbing/australia/grampians/sundial-peak/route/9285995439", hidden: true },
   { name: "Cave of Man Hands", lat: -37.27021, lng: 142.27645, url: "https://www.thecrag.com/climbing/australia/grampians/buandik-area/area/430590156", note: "Access closed — climbing not permitted here.", hidden: true },
-  { name: "Trackside Boulders", lat: -36.895354, lng: 142.384050, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974797" },
+  { name: "Trackside", lat: -36.895354, lng: 142.384050, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974797" },
   { name: "Cave Club", lat: -36.898832, lng: 142.387282, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/12974893" },
   { name: "Andersens", lat: -36.891042, lng: 142.381115, url: "https://www.thecrag.com/en/climbing/australia/grampians/hollow-mountain/andersens" },
   { name: "Wildsides", lat: -36.899558, lng: 142.383588, url: "https://www.thecrag.com/en/climbing/australia/grampians/mt-stapylton-amphitheatre/area/14983213" },
@@ -1805,6 +1813,7 @@ BOULDER_PINS.forEach(b => {
         <div class="popup-actions">
           <a class="popup-link" href="${b.url}" target="_blank" rel="noopener">Open on theCrag<span class="go-arrow">↗</span></a>
           <a class="popup-link" href="https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}" target="_blank" rel="noopener">Open in Google Maps<span class="go-arrow">↗</span></a>
+          <button type="button" class="popup-link show-climbs-btn" onclick="showClimbsForArea('${b.name.replace(/'/g, "\\'")}')">Show climbs<span class="go-arrow">↗</span></button>
         </div>
         <div class="pin-coords-row">
           <span class="pin-coords">${b.lat.toFixed(6)}, ${b.lng.toFixed(6)}</span>
@@ -1922,19 +1931,16 @@ function updateMapHighlight() {
     noPinNote.style.display = "none";
   }
 
-  // Map animations can throw if the map panel is minimised (zero-size container).
-  // Never let that block the rest of the filter pipeline (this was the "area filter
-  // silently stops working while map is hidden" bug) — swallow errors here.
-  if (mapOpen) {
-    try {
-      if (selectedRegion) {
-        const r = REGIONS[selectedRegion];
-        map.flyTo([r.lat, r.lng], 12, { duration: 0.6 });
-      } else {
-        map.flyToBounds(allBounds, { padding: [30, 30], duration: 0.6 });
-      }
-    } catch (err) { /* ignore map animation errors */ }
-  }
+}
+
+// Sets the area filter from a "Show climbs" button in a map popup and scrolls
+// the results table into view — deliberately does not move/zoom the map, since
+// the marker the user just clicked is already visible.
+function showClimbsForArea(name) {
+  areaFilter.value = name;
+  updateMapHighlight();
+  render();
+  document.getElementById("results-table")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // --- Slider setup ---
@@ -2154,7 +2160,7 @@ function render() {
     return a.grade - b.grade;
   });
 
-  resultCount.textContent = `${rows.length} problem${rows.length === 1 ? "" : "s"}`;
+  resultCount.textContent = `${rows.length} climb${rows.length === 1 ? "" : "s"}`;
   emptyMsg.style.display = rows.length ? "none" : "block";
 
   const pinButton = (name) => `<button type="button" class="boulder-pin-btn" data-pin-name="${name}" title="Show ${name} on map" aria-label="Show ${name} on map"><span class="mini-pin"></span></button>`;
