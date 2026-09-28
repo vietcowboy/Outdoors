@@ -231,7 +231,6 @@
   .attribution a.support-banner,
   .modal-box a.support-banner { color: var(--text); text-decoration: none; }
   .modal-box a.support-banner { margin: 24px 0; }
-  .support-block { margin: 16px 0; }
   .support-banner:hover { background: var(--accent-light); }
   .made-by {
     display: flex;
@@ -771,7 +770,6 @@
   @media (min-width: 961px) {
     .attribution-panel { display: flex; flex-direction: column; gap: 16px; }
     .attribution { display: contents; }
-    .support-block { margin: 0; }
     .site-footer { padding-top: 0; }
     .attribution-bottom-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   }
@@ -946,11 +944,6 @@
         <p>Climb information may be incomplete, inaccurate or out of date. Always check current access restrictions, conditions and risks before climbing.</p>
         <p>All third-party content and trademarks remain the property of their respective owners.</p>
       </div>
-      <a class="support-banner support-block" href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener">
-        <span class="support-banner-icon">❤️</span>
-        <span class="support-banner-text">Support theCrag to help keep the platform going.</span>
-        <span class="support-banner-arrow">→</span>
-      </a>
     </div>
 
     <div class="attribution-bottom-row">
@@ -1611,8 +1604,6 @@ const resultsBody = document.getElementById("results-body");
 const resultCount = document.getElementById("result-count");
 const emptyMsg = document.getElementById("empty-msg");
 
-const areas = [...new Set(BOULDERS.filter(b => !b.hidden).map(b => b.area))].sort();
-areaFilter.innerHTML = '<option value="">All areas</option>' + areas.map(a => `<option value="${a}">${a}</option>`).join("");
 
 // --- Map setup ---
 const map = L.map("map", { scrollWheelZoom: true, maxZoom: 18 }).setView([-37.05, 142.42], 10);
@@ -2075,7 +2066,27 @@ function starBadge(stars) {
   return `<span class="star-row" title="${stars} star${stars === 1 ? '' : 's'} on theCrag">${"★".repeat(stars)}</span>`;
 }
 
+// Rebuilds the area dropdown's options to only include areas that have at least
+// one climb matching the current grade range and star filters (area itself is
+// ignored here, so this never filters out the area currently selected because
+// of its own selection) — an option that would return zero rows simply isn't
+// offered, e.g. "Citadel" (1-star only entries) drops out at the default star
+// filter while "The Citadel" (which has 2/3-star entries) stays.
+function updateAreaOptions() {
+  const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
+  const checkedStars = getCheckedStars();
+  const availableAreas = [...new Set(BOULDERS.filter(b =>
+    !b.hidden &&
+    b.grade >= min && b.grade <= max &&
+    (b.stars < 0 || checkedStars.has(b.stars))
+  ).map(b => b.area))].sort();
+  const currentVal = areaFilter.value;
+  areaFilter.innerHTML = '<option value="">All areas</option>' + availableAreas.map(a => `<option value="${a}">${a}</option>`).join("");
+  areaFilter.value = availableAreas.includes(currentVal) ? currentVal : "";
+}
+
 function render() {
+  updateAreaOptions();
   const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
   const areaVal = areaFilter.value;
   const checkedStars = getCheckedStars();
