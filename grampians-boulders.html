@@ -200,6 +200,35 @@
     transition: transform 0.25s ease;
   }
   .theme-toggle[aria-checked="true"] .theme-toggle-knob { transform: translateX(24px); }
+  .map-switch {
+    position: relative;
+    width: 52px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--border);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+  }
+  .map-switch[aria-checked="true"] { background: var(--accent); }
+  .map-switch-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+    transition: transform 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+  }
+  .map-switch[aria-checked="true"] .map-switch-knob { transform: translateX(24px); color: var(--accent); }
   .support-cta {
     display: inline-block;
     background: var(--accent);
@@ -414,14 +443,6 @@
     padding: 0.15rem 0.5rem;
   }
 
-  .filters-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.8rem;
-  }
-  .filters-header h4 { margin: 0; font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
-  .filters-header-left { display: flex; align-items: center; gap: 0.4rem; }
   .reset-btn {
     display: inline-flex;
     align-items: center;
@@ -737,16 +758,6 @@
   }
   .modal-list li { margin-bottom: 0.5rem; }
   .modal-list li:last-child { margin-bottom: 0; }
-  .map-toggle {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-size: 0.78rem;
-    padding: 0.25rem 0.6rem;
-    cursor: pointer;
-  }
-  .map-toggle:hover { background: var(--accent-light); }
   .map-body { margin-top: 0.8rem; }
   .map-body[hidden] { display: none; }
   .area-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
@@ -852,6 +863,14 @@
   <div class="page-header" id="site-header">
     <h1>Cragify</h1>
     <div class="page-header-right">
+      <button class="map-switch" id="map-toggle" type="button" role="switch" aria-checked="true" aria-label="Show/hide map" title="Show/hide map">
+        <span class="map-switch-knob">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M1.5 3.5L5.5 2L10.5 3.5L14.5 2V12.5L10.5 14L5.5 12.5L1.5 14V3.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+            <path d="M5.5 2V12.5M10.5 3.5V14" stroke="currentColor" stroke-width="1.3"/>
+          </svg>
+        </span>
+      </button>
       <button class="attribution-cta" id="attribution-btn" type="button">Data &amp; attribution</button>
       <button class="theme-toggle" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
         <span class="theme-toggle-icon theme-toggle-icon-sun">☀️</span>
@@ -900,19 +919,6 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="map-info-modal" hidden>
-    <div class="modal-box">
-      <div class="modal-header">
-        <strong>Map and search</strong>
-        <button class="icon-btn" id="map-info-close" type="button" aria-label="Close">✕</button>
-      </div>
-      <ul class="modal-list">
-        <li>Tap a problem's name to open its theCrag page. Information here may be incomplete or out of date — check <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> for the latest details.</li>
-        <li>Red pins mark confirmed boulder/sector locations, not exact individual problem positions. Blue square "P" pins mark parking.</li>
-      </ul>
-    </div>
-  </div>
-
   <div class="modal-overlay" id="location-modal" hidden>
     <div class="modal-box">
       <div class="modal-header">
@@ -941,14 +947,6 @@
         </svg>
       </button>
     </div>
-    <div class="filters-header">
-      <div class="filters-header-left">
-        <h4>Filters</h4>
-        <button class="icon-btn" id="map-info-btn" type="button" aria-label="Map and search" title="Map and search">ⓘ</button>
-      </div>
-      <button class="map-toggle" id="map-toggle" type="button" aria-expanded="true">Hide map ▾</button>
-    </div>
-
     <div class="map-body" id="map-body">
       <div id="map"></div>
     </div>
@@ -1991,8 +1989,7 @@ let mapOpen = true;
 function setMapOpen(open) {
   mapOpen = open;
   mapBody.hidden = !open;
-  mapToggle.textContent = open ? "Hide map ▾" : "Show map ▸";
-  mapToggle.setAttribute("aria-expanded", String(open));
+  mapToggle.setAttribute("aria-checked", String(open));
   if (open) setTimeout(() => map.invalidateSize(), 0);
 }
 mapToggle.addEventListener("click", () => setMapOpen(!mapOpen));
@@ -2024,13 +2021,6 @@ locationSwapBtn.addEventListener("click", (e) => { e.stopPropagation(); location
 locationClose.addEventListener("click", () => { locationModal.hidden = true; });
 locationModal.addEventListener("click", (e) => { if (e.target === locationModal) locationModal.hidden = true; });
 
-const mapInfoModal = document.getElementById("map-info-modal");
-const mapInfoBtn = document.getElementById("map-info-btn");
-const mapInfoClose = document.getElementById("map-info-close");
-mapInfoBtn.addEventListener("click", (e) => { e.stopPropagation(); mapInfoModal.hidden = false; });
-mapInfoClose.addEventListener("click", () => { mapInfoModal.hidden = true; });
-mapInfoModal.addEventListener("click", (e) => { if (e.target === mapInfoModal) mapInfoModal.hidden = true; });
-
 // --- Attribution modal ---
 const attributionModal = document.getElementById("attribution-modal");
 const attributionClose = document.getElementById("attribution-close");
@@ -2060,7 +2050,6 @@ accessModal.addEventListener("click", (e) => { if (e.target === accessModal) acc
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
-    mapInfoModal.hidden = true;
     attributionModal.hidden = true;
     accessModal.hidden = true;
     locationModal.hidden = true;
