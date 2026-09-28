@@ -1835,7 +1835,7 @@ BOULDER_PINS.forEach(b => {
       ${b.note ? `<p style="color:var(--closed);font-weight:600;">${b.note}</p>` : ""}
       <div class="modal-detail-stack">
         <div class="popup-actions">
-          <button type="button" class="popup-link show-climbs-btn" onclick="showClimbsForArea('${b.name.replace(/'/g, "\\'")}')"><svg class="mag-glass-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6"/><line x1="10.8" y1="10.8" x2="14" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Show climbs</button>
+          <button type="button" class="popup-link show-climbs-btn" onclick="showClimbsForArea('${b.name.replace(/'/g, "\\'")}')">Show climbs<svg class="mag-glass-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6"/><line x1="10.8" y1="10.8" x2="14" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
           <a class="popup-link" href="${b.url}" target="_blank" rel="noopener">Open on theCrag<span class="go-arrow">↗</span></a>
           <a class="popup-link" href="https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}" target="_blank" rel="noopener">Open in Google Maps<span class="go-arrow">↗</span></a>
         </div>
