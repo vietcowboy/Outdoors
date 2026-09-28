@@ -2166,6 +2166,9 @@ document.getElementById("reset-filters").addEventListener("click", () => {
   updateTrackFill();
   areaFilter.value = "";
   starToggles.forEach(btn => btn.setAttribute("aria-pressed", btn.dataset.value !== "1" ? "true" : "false"));
+  sortKey = "grade";
+  sortDir = 1;
+  updateSortIndicators();
   render();
 });
 function getCheckedStars() {
