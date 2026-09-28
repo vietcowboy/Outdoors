@@ -33,6 +33,11 @@
     --grade-red-bg: #f8dede;
     --grade-purple: #7248a8;
     --grade-purple-bg: #ece3f6;
+    --grade-vivid-green: #22c55e;
+    --grade-vivid-yellow: #eab308;
+    --grade-vivid-red: #ef4444;
+    --grade-vivid-purple: #a855f7;
+    --on-vivid: #1a1a1a;
     --link: #1d6fd6;
     --climb-link: #3f7a43;
     --on-accent: #fff;
@@ -541,25 +546,18 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    height: 4px;
+    height: 3px;
     left: 16px; right: 16px;
     border-radius: 2px;
-    background: linear-gradient(to right,
-      var(--grade-green) 0%, var(--grade-green) 2.94%,
-      var(--grade-orange) 2.94%, var(--grade-orange) 26.47%,
-      var(--grade-red) 26.47%, var(--grade-red) 61.76%,
-      var(--grade-purple) 61.76%, var(--grade-purple) 100%);
+    background: var(--border);
   }
   .dual-slider .track-fill {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    height: 8px;
-    background: transparent;
-    border-top: 2px solid var(--text);
-    border-bottom: 2px solid var(--text);
-    box-sizing: border-box;
-    border-radius: 2px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 3px;
   }
   .grade-ticks {
     position: absolute;
@@ -568,18 +566,22 @@
     right: 0;
     height: 0;
     z-index: 1;
+    pointer-events: none;
   }
   .grade-tick {
     position: absolute;
     top: 0;
     transform: translate(-50%, -50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
+    width: 4px;
+    height: 16px;
+    border-radius: 2px;
     background: var(--border);
     transition: background 0.15s ease;
   }
-  .grade-tick.in-range { background: var(--accent); }
+  .grade-tick.in-range.grade-tick-green  { background: var(--grade-vivid-green); }
+  .grade-tick.in-range.grade-tick-yellow { background: var(--grade-vivid-yellow); }
+  .grade-tick.in-range.grade-tick-red    { background: var(--grade-vivid-red); }
+  .grade-tick.in-range.grade-tick-purple { background: var(--grade-vivid-purple); }
   .slider-bubble {
     position: absolute;
     top: 50%;
@@ -588,7 +590,7 @@
     height: 34px;
     border-radius: 50%;
     background: var(--accent);
-    color: var(--on-accent);
+    color: var(--on-vivid);
     font-weight: 700;
     font-size: 0.68rem;
     display: flex;
@@ -1981,12 +1983,22 @@ function sliderPos(fraction) {
   return `calc(${SLIDER_PAD}px + (100% - ${SLIDER_PAD * 2}px) * ${fraction})`;
 }
 
-// One dot per selectable V-grade, positioned to match the thumbs' own math —
-// green while inside the currently selected range, gray otherwise.
+// Shared by the grade ticks and the slider bubbles — same bands as the
+// table's grade pills, just named for the slider's vivid tick/bubble colors.
+function gradeBandKey(grade) {
+  if (grade <= 0) return "green";
+  if (grade <= 4) return "yellow";
+  if (grade <= 10) return "red";
+  return "purple";
+}
+
+// One vertical ruler-tick per selectable V-grade, positioned to match the
+// thumbs' own math — coloured by grade band while inside the currently
+// selected range, gray otherwise.
 const gradeTicksEl = document.getElementById("grade-ticks");
 for (let g = GRADE_MIN; g <= GRADE_MAX; g++) {
   const tick = document.createElement("div");
-  tick.className = "grade-tick";
+  tick.className = `grade-tick grade-tick-${gradeBandKey(g)}`;
   tick.dataset.grade = g;
   tick.style.left = sliderPos((g - GRADE_MIN) / (GRADE_MAX - GRADE_MIN));
   gradeTicksEl.appendChild(tick);
@@ -2003,6 +2015,8 @@ function updateTrackFill() {
   maxBubble.style.left = sliderPos(fracMax);
   minBubble.textContent = "V" + min;
   maxBubble.textContent = "V" + max;
+  minBubble.style.background = `var(--grade-vivid-${gradeBandKey(min)})`;
+  maxBubble.style.background = `var(--grade-vivid-${gradeBandKey(max)})`;
   gradeTicks.forEach(tick => {
     const g = parseInt(tick.dataset.grade);
     tick.classList.toggle("in-range", g >= min && g <= max);
