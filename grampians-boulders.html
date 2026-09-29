@@ -22,7 +22,8 @@
     --border: #e2ddd5;
     --accent: #4a6b4f;
     --accent-light: #dce8dd;
-    --star: #c9932e;
+    --star-toggle-active-bg: #c3e8c6;
+    --star: #f2b705;
     --closed: #b5493c;
     --closed-bg: #fbe9e6;
     --grade-green: #2f7a4d;
@@ -37,6 +38,7 @@
     --grade-vivid-yellow: #dcbc76;
     --grade-vivid-red: #d18888;
     --grade-vivid-purple: #ac93c9;
+    --grade-vivid-purple-dark: #5b3f7a;
     --on-vivid: #1a1a1a;
     --link: #1d6fd6;
     --climb-link: #3f7a43;
@@ -45,6 +47,11 @@
     --warning-border: #f0d894;
     --warning-text: #7a5c00;
     --warning-link: #5c4400;
+    --bg-grad-1: #ffffff;
+    --bg-grad-2: #f4f8f0;
+    --bg-texture: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22320%22%20height%3D%22320%22%3E%20%3Cfilter%20id%3D%22s%22%20x%3D%220%25%22%20y%3D%220%25%22%20width%3D%22100%25%22%20height%3D%22100%25%22%3E%20%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.014%22%20numOctaves%3D%224%22%20seed%3D%227%22%20stitchTiles%3D%22stitch%22%20x%3D%220%25%22%20y%3D%220%25%22%20width%3D%22100%25%22%20height%3D%22100%25%22%20result%3D%22n%22/%3E%20%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%22%20%20%200.33%200.33%200.33%200%200%20%20%200.33%200.33%200.33%200%200%20%20%200.33%200.33%200.33%200%200%20%20%200%200%200%200%201%22%20result%3D%22gray%22/%3E%20%3CfeComponentTransfer%20in%3D%22gray%22%20result%3D%22contrast%22%3E%20%20%20%3CfeFuncR%20type%3D%22gamma%22%20amplitude%3D%221%22%20exponent%3D%221.6%22%20offset%3D%220%22/%3E%20%20%20%3CfeFuncG%20type%3D%22gamma%22%20amplitude%3D%221%22%20exponent%3D%221.6%22%20offset%3D%220%22/%3E%20%20%20%3CfeFuncB%20type%3D%22gamma%22%20amplitude%3D%221%22%20exponent%3D%221.6%22%20offset%3D%220%22/%3E%20%3C/feComponentTransfer%3E%20%3CfeColorMatrix%20in%3D%22contrast%22%20type%3D%22matrix%22%20values%3D%22%20%20%200%200%200%200%200.01%20%20%200%200%200%200%200.10%20%20%200%200%200%200%200.03%20%20%200.95%200%200%200%200%22/%3E%20%3C/filter%3E%20%3Crect%20width%3D%22320%22%20height%3D%22320%22%20filter%3D%22url%28%23s%29%22/%3E%20%3C/svg%3E");
+    --bg-grain-rgb: 0,0,0;
+    --bg-grain-alpha: 0.09;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -55,6 +62,7 @@
       --border: #3a3d34;
       --accent: #8fbf95;
       --accent-light: #2c3a2b;
+      --star-toggle-active-bg: #3e5a3c;
       --star: #e0b45a;
       --closed: #e08579;
       --closed-bg: #3a2723;
@@ -73,6 +81,11 @@
       --warning-border: #6b5a2a;
       --warning-text: #e0c477;
       --warning-link: #f0d894;
+      --bg-grad-1: #16281c;
+      --bg-grad-2: #0b1710;
+      --bg-texture: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22320%22%20height%3D%22320%22%3E%20%3Cfilter%20id%3D%22s%22%20x%3D%220%25%22%20y%3D%220%25%22%20width%3D%22100%25%22%20height%3D%22100%25%22%3E%20%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.015%22%20numOctaves%3D%224%22%20seed%3D%227%22%20stitchTiles%3D%22stitch%22%20x%3D%220%25%22%20y%3D%220%25%22%20width%3D%22100%25%22%20height%3D%22100%25%22%20result%3D%22n%22/%3E%20%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%22%20%20%200.20%200%200%200%200.10%20%20%200.40%200%200%200%200.26%20%20%200.24%200%200%200%200.16%20%20%200%20%20%20%200%200%200.55%200%22/%3E%20%3C/filter%3E%20%3Crect%20width%3D%22320%22%20height%3D%22320%22%20filter%3D%22url%28%23s%29%22/%3E%20%3C/svg%3E");
+      --bg-grain-rgb: 255,255,255;
+      --bg-grain-alpha: 0.11;
     }
   }
   :root[data-theme="dark"] {
@@ -83,6 +96,7 @@
     --border: #3a3d34;
     --accent: #8fbf95;
     --accent-light: #2c3a2b;
+    --star-toggle-active-bg: #3e5a3c;
     --star: #e0b45a;
     --closed: #e08579;
     --closed-bg: #3a2723;
@@ -101,14 +115,62 @@
     --warning-border: #6b5a2a;
     --warning-text: #e0c477;
     --warning-link: #f0d894;
+    --bg-grad-1: #16281c;
+    --bg-grad-2: #0b1710;
+    --bg-texture: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22320%22%20height%3D%22320%22%3E%20%3Cfilter%20id%3D%22s%22%20x%3D%220%25%22%20y%3D%220%25%22%20width%3D%22100%25%22%20height%3D%22100%25%22%3E%20%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.015%22%20numOctaves%3D%224%22%20seed%3D%227%22%20stitchTiles%3D%22stitch%22%20x%3D%220%25%22%20y%3D%220%25%22%20width%3D%22100%25%22%20height%3D%22100%25%22%20result%3D%22n%22/%3E%20%3CfeColorMatrix%20in%3D%22n%22%20type%3D%22matrix%22%20values%3D%22%20%20%200.20%200%200%200%200.10%20%20%200.40%200%200%200%200.26%20%20%200.24%200%200%200%200.16%20%20%200%20%20%20%200%200%200.55%200%22/%3E%20%3C/filter%3E%20%3Crect%20width%3D%22320%22%20height%3D%22320%22%20filter%3D%22url%28%23s%29%22/%3E%20%3C/svg%3E");
+    --bg-grain-rgb: 255,255,255;
+    --bg-grain-alpha: 0.11;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--bg);
+    background: var(--bg-grad-2);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     padding: 0 1.5rem 1.5rem;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 300vmax;
+    height: 300vmax;
+    margin-top: -150vmax;
+    margin-left: -150vmax;
+    z-index: -1;
+    pointer-events: none;
+    transform-origin: center center;
+    background:
+      var(--bg-texture) repeat,
+      linear-gradient(165deg, var(--bg-grad-1), var(--bg-grad-2));
+    background-size: 320px 320px, 400% 400%;
+    animation: bg-flow 40.3s ease-in-out infinite, bg-spin 168s linear infinite;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(circle 1.6px at 0 0, rgba(var(--bg-grain-rgb), var(--bg-grain-alpha)) 1.6px, transparent 1.6px) 0 0 / 3px 3px;
+  }
+  @keyframes bg-flow {
+    0%   { background-position: 0px 0px,     0% 0%; }
+    14%  { background-position: 70px -35px,  30% 65%; }
+    28%  { background-position: 15px 80px,   75% 15%; }
+    42%  { background-position: -60px 45px,  40% 90%; }
+    56%  { background-position: -35px -70px, 90% 45%; }
+    70%  { background-position: 45px -15px,  15% 5%; }
+    84%  { background-position: 10px 55px,   60% 75%; }
+    100% { background-position: 0px 0px,     0% 0%; }
+  }
+  @keyframes bg-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body::before { animation: none; }
   }
   @media (max-width: 640px) {
     body { padding: 0 0.75rem 32px; }
@@ -148,6 +210,7 @@
       margin-bottom: 0;
       padding-top: 0;
     }
+    .main-layout > .attribution-panel { margin-top: 16px; }
   }
   .panel.results-panel { padding-left: 0; padding-right: 0; }
   .results-panel th:first-child, .results-panel td:first-child { padding-left: 16px; }
@@ -158,33 +221,46 @@
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 16px;
-    position: sticky;
-    top: 0;
+    position: static;
     z-index: 20;
-    background: var(--bg);
-    padding: 1.5rem 0 0.9rem;
+    background: transparent;
+    padding: 1.5rem 0 0;
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
   }
+  @media (min-width: 961px) {
+    .page-header { position: sticky; top: 0; }
+  }
   .page-header-right { display: flex; align-items: center; gap: 0.9rem; }
-  h1 { font-size: 1.4rem; margin: 0; }
+  h1 { font-size: 1.4rem; margin: 0; font-family: Papyrus, "Herculanum", fantasy; }
   .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 0.6rem; }
   .attribution-cta {
-    background: none;
-    border: none;
-    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    box-sizing: border-box;
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    color: var(--warning-text);
     font-size: 0.82rem;
-    padding: 0;
+    font-weight: 600;
+    padding: 0 0.8rem;
+    border-radius: 999px;
     white-space: nowrap;
     cursor: pointer;
-    text-decoration: underline;
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
   }
+  .attribution-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    background: var(--warning-border);
+  }
+  .attribution-cta:hover .attribution-cta-label { text-decoration: underline; }
   .attribution-full-text { display: none; }
-  @media (min-width: 961px) {
-    .attribution-cta { display: none; }
-    .attribution-cta.attribution-cta-panel { display: inline-block; align-self: flex-start; text-align: left; margin-bottom: 0; }
+  @media (max-width: 960px) {
+    .page-header-right { gap: 16px; }
   }
-  .attribution-cta-panel { display: none; }
   .theme-toggle {
     position: relative;
     width: 52px;
@@ -203,8 +279,8 @@
     font-size: 12px;
     line-height: 1;
   }
-  .theme-toggle-icon-sun { left: 6px; }
-  .theme-toggle-icon-moon { right: 6px; }
+  .theme-toggle-icon-sun { left: 6px; color: #1f3d24; display: flex; }
+  .theme-toggle-icon-moon { right: 6px; color: #a9dcae; display: flex; }
   .theme-toggle-knob {
     position: absolute;
     top: 3px;
@@ -243,9 +319,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--muted);
+    color: #1f3d24;
   }
-  .map-switch[aria-checked="true"] .map-switch-knob { transform: translateX(24px); color: var(--accent); }
+  .map-switch[aria-checked="true"] .map-switch-knob { transform: translateX(24px); color: #1f3d24; }
   .support-cta {
     display: inline-block;
     background: var(--accent);
@@ -487,6 +563,29 @@
   .filter-stack { display: flex; flex-direction: column; gap: 16px; width: 100%; }
   .filter-stack .access-banner { margin-top: 0; }
   .grade-control { flex: 1; min-width: 220px; width: 100%; }
+  @media (min-width: 529px) and (max-width: 959px) {
+    .controls-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "slider slider"
+        "stars  area"
+        "banner banner";
+      column-gap: 1.5rem;
+      row-gap: 16px;
+      align-items: stretch;
+    }
+    .grade-control { grid-area: slider; }
+    .filter-stack { display: contents; }
+    .star-filter-row { grid-area: stars; align-self: stretch; height: 100%; }
+    .star-filter-row .star-filter-left { height: 100%; }
+    .star-filter-row .star-filter { height: 100%; }
+    .star-filter-row .star-toggle { height: 100%; }
+    .area-filter-row { grid-area: area; align-self: stretch; height: 100%; }
+    .area-filter-row select { height: 100%; }
+    .access-banner { grid-area: banner; margin-top: 0; }
+    .main-layout > .filters-panel { padding-bottom: 0; }
+  }
   .control label {
     display: block;
     font-size: 0.78rem;
@@ -560,18 +659,22 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    height: 3px;
+    height: 8px;
     left: 16px; right: 16px;
-    border-radius: 2px;
     background: var(--border);
+    clip-path: polygon(0% 37.5%, 100% 0%, 100% 100%, 0% 62.5%);
+    box-shadow:
+      inset 1px 1px 2px rgba(0,0,0,0.3),
+      inset -1px -1px 1px rgba(255,255,255,0.15);
   }
   .dual-slider .track-fill {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    height: 6px;
+    height: 8px;
     left: 0; right: 0;
     pointer-events: none;
+    clip-path: polygon(0% 37.5%, 100% 0%, 100% 100%, 0% 62.5%);
   }
   .track-fill-gradient {
     position: absolute;
@@ -582,9 +685,12 @@
     background: linear-gradient(to right,
       var(--grade-vivid-green) 0%,
       var(--grade-vivid-yellow) 5.882%,
+      var(--grade-vivid-yellow) 23.529%,
       var(--grade-vivid-red) 29.412%,
+      var(--grade-vivid-red) 58.824%,
       var(--grade-vivid-purple) 64.706%,
-      var(--grade-vivid-purple) 100%);
+      var(--grade-vivid-purple) 70.588%,
+      var(--grade-vivid-purple-dark) 100%);
   }
   .track-mask {
     position: absolute;
@@ -633,7 +739,10 @@
     align-items: center;
     justify-content: center;
     pointer-events: none;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    box-shadow:
+      3px 3px 7px rgba(0,0,0,0.4),
+      inset 0 1px 1px rgba(255,255,255,0.25),
+      inset 0 -1px 2px rgba(0,0,0,0.2);
     z-index: 5;
   }
 
@@ -686,10 +795,11 @@
     background: var(--panel);
     cursor: pointer;
   }
-  .star-toggle-glyph { color: var(--star); font-size: 1rem; letter-spacing: 1px; }
+  .star-toggle-glyph { color: var(--muted); opacity: 0.6; font-size: 1rem; letter-spacing: 1px; transition: color 0.15s ease, opacity 0.15s ease; }
+  .star-toggle[aria-pressed="true"] .star-toggle-glyph { color: var(--star); opacity: 1; }
   .star-toggle:hover { border-color: var(--accent); }
   .star-toggle[aria-pressed="true"] {
-    background: var(--accent-light);
+    background: var(--star-toggle-active-bg);
     border-color: var(--accent);
   }
 
@@ -702,6 +812,7 @@
     color: var(--text);
     font-size: 0.9rem;
   }
+  select { padding-right: 1.6rem; }
 
 
   table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
@@ -727,7 +838,7 @@
   }
   @media (max-width: 960px) {
     th {
-      top: calc(var(--sticky-header-height, 60px) - 2px);
+      top: 0;
       border-bottom-width: 3px;
     }
     th:first-child { border-top-left-radius: 10px; }
@@ -833,6 +944,7 @@
     line-height: 1.5;
     margin: 0.5rem 0;
   }
+  .modal-box .access-banner + p { margin-top: 16px; }
   .modal-list {
     color: var(--muted);
     font-size: 0.85rem;
@@ -842,6 +954,7 @@
   }
   .modal-list li { margin-bottom: 0.5rem; }
   .modal-list li:last-child { margin-bottom: 0; }
+  .modal-list.location-list { padding-left: 0; margin: 0; }
   .map-body { margin-top: 16px; }
   .map-body[hidden] { display: none; }
   .area-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
@@ -898,12 +1011,13 @@
   }
   .attribution strong { display: block; color: var(--text); font-size: 0.82rem; margin-bottom: 0.4rem; }
   .attribution a, .modal-box p a { color: var(--link); font-weight: 600; }
+  .attribution a.thecrag-link, .modal-box p a.thecrag-link { color: var(--climb-link); }
   .attribution a.support-cta, .modal-box a.support-cta { color: var(--on-accent); }
   @media (min-width: 961px) {
     .attribution-panel { display: flex; flex-direction: column; gap: 16px; }
     .attribution { display: contents; }
     .site-footer { padding-top: 0; }
-    .attribution-bottom-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .attribution-bottom-row { display: flex; align-items: center; justify-content: center; gap: 1rem; }
   }
   .overflow { overflow-x: auto; }
   @media (max-width: 960px) {
@@ -947,10 +1061,14 @@
   <div class="page-header" id="site-header">
     <h1>Cragify</h1>
     <div class="page-header-right">
-      <button class="attribution-cta" id="attribution-btn" type="button">Data &amp; attribution</button>
+      <button class="attribution-cta" id="attribution-btn" type="button"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0;margin-right:5px;"><path d="M8 1.5L15 14H1L8 1.5Z"/><rect x="7.3" y="6" width="1.4" height="4.2" fill="var(--warning-bg)"/><circle cx="8" cy="11.7" r="0.85" fill="var(--warning-bg)"/></svg><span class="attribution-cta-label">Important: Read this first</span></button>
       <button class="theme-toggle" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
-        <span class="theme-toggle-icon theme-toggle-icon-sun">☀️</span>
-        <span class="theme-toggle-icon theme-toggle-icon-moon">🌙</span>
+        <span class="theme-toggle-icon theme-toggle-icon-sun" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/><line x1="4.2" y1="4.2" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.8" y2="19.8"/><line x1="4.2" y1="19.8" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.8" y2="4.2"/></g></svg>
+        </span>
+        <span class="theme-toggle-icon theme-toggle-icon-moon" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A9 9 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/></svg>
+        </span>
         <span class="theme-toggle-knob"></span>
       </button>
     </div>
@@ -959,18 +1077,18 @@
   <div class="modal-overlay" id="attribution-modal" hidden>
     <div class="modal-box">
       <div class="modal-header">
-        <strong>Data &amp; attribution</strong>
+        <strong>Important: Read this first</strong>
         <button class="icon-btn" id="attribution-close" type="button" aria-label="Close">✕</button>
       </div>
-      <p>Climbing information displayed on this site has been compiled from information publicly available on the web, including <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a>, and is provided for informational purposes only.</p>
-      <p>This is an independent project and is not affiliated with, endorsed by, or sponsored by <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> or other referenced sources.</p>
+      <div class="access-banner">
+        <span class="access-banner-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M8 1.5L15 14H1L8 1.5Z"/><rect x="7.3" y="6" width="1.4" height="4.2" fill="var(--warning-bg)"/><circle cx="8" cy="11.7" r="0.85" fill="var(--warning-bg)"/></svg></span>
+        <span>Check <a href="https://www.parks.vic.gov.au/places-to-see/parks/grampians-national-park/rock-climbing-in-gariwerd#resources" target="_blank" rel="noopener">Parks Victoria</a> for access restrictions. Climb only where permitted.</span>
+      </div>
+      <p>Climbing information displayed on this site has been compiled from information publicly available on the web, including <a class="thecrag-link" href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a>, and is provided for informational purposes only.</p>
+      <p>This is an independent project and is not affiliated with, endorsed by, or sponsored by <a class="thecrag-link" href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> or other referenced sources.</p>
       <p>Climb information may be incomplete, inaccurate or out of date. Always check current access restrictions, conditions and risks before climbing.</p>
       <p>All third-party content and trademarks remain the property of their respective owners.</p>
-      <a class="support-banner" href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener">
-        <span class="support-banner-icon">❤️</span>
-        <span class="support-banner-text">Support theCrag to help keep the platform going.</span>
-        <span class="support-banner-arrow">→</span>
-      </a>
+      <p><a href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener" style="color: var(--climb-link);">Support theCrag to help keep the platform going.</a></p>
       <div class="made-by">
         <span>Made by Jim</span>
         <a href="https://www.instagram.com/jimi.sendrix" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">
@@ -979,7 +1097,7 @@
         <a href="https://github.com/vietcowboy" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 1.5C6.2 1.5 1.5 6.2 1.5 12c0 4.64 3.01 8.58 7.19 9.97.53.1.72-.23.72-.51 0-.25-.01-1.08-.01-1.96-2.93.64-3.55-1.24-3.55-1.24-.48-1.22-1.17-1.54-1.17-1.54-.96-.65.07-.64.07-.64 1.06.07 1.62 1.09 1.62 1.09.94 1.61 2.46 1.15 3.06.88.1-.68.37-1.15.67-1.42-2.34-.27-4.8-1.17-4.8-5.21 0-1.15.41-2.09 1.09-2.83-.11-.27-.47-1.36.1-2.83 0 0 .89-.28 2.91 1.08a10.1 10.1 0 0 1 5.3 0c2.02-1.36 2.91-1.08 2.91-1.08.57 1.47.21 2.56.1 2.83.68.74 1.09 1.68 1.09 2.83 0 4.05-2.47 4.94-4.82 5.2.38.33.72.97.72 1.96 0 1.41-.01 2.55-.01 2.9 0 .28.19.62.73.51A10.51 10.51 0 0 0 22.5 12c0-5.8-4.7-10.5-10.5-10.5z"/></svg>
         </a>
-        <button class="contact-chip" id="contact-chip" type="button" data-email="huaj@live.com" data-revealed="false">Contact: h***@live.com</button>
+        <button class="contact-chip" id="contact-chip" type="button" data-email="huaj@live.com" data-revealed="false">Give feedback: h***@live.com</button>
       </div>
     </div>
   </div>
@@ -1063,10 +1181,6 @@
           <select id="area-filter"></select>
           <button class="reset-btn" id="reset-filters" type="button">Reset</button>
         </div>
-        <div class="access-banner">
-          <span class="access-banner-icon" aria-hidden="true">&#9888;</span>
-          <span>Check <a href="https://www.parks.vic.gov.au/places-to-see/parks/grampians-national-park" target="_blank" rel="noopener">Parks Victoria</a> for access restrictions. Climb only where permitted.</span>
-        </div>
       </div>
     </div>
   </div>
@@ -1088,16 +1202,15 @@
   <div class="attribution-panel">
     <div class="attribution">
       <div class="attribution-full-text">
-        <strong>Data &amp; attribution</strong>
-        <p>Climbing information displayed on this site has been compiled from information publicly available on the web, including <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a>, and is provided for informational purposes only.</p>
-        <p>This is an independent project and is not affiliated with, endorsed by, or sponsored by <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> or other referenced sources.</p>
+        <strong>Important: Read this first</strong>
+        <p>Climbing information displayed on this site has been compiled from information publicly available on the web, including <a class="thecrag-link" href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a>, and is provided for informational purposes only.</p>
+        <p>This is an independent project and is not affiliated with, endorsed by, or sponsored by <a class="thecrag-link" href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> or other referenced sources.</p>
         <p>Climb information may be incomplete, inaccurate or out of date. Always check current access restrictions, conditions and risks before climbing.</p>
         <p>All third-party content and trademarks remain the property of their respective owners.</p>
       </div>
     </div>
 
     <div class="attribution-bottom-row">
-      <button class="attribution-cta attribution-cta-panel" type="button">Data &amp; attribution</button>
       <footer class="site-footer">
         <img src="https://hits.sh/vietcowboy.github.io/Outdoors/grampians-boulders.svg?style=flat-square&label=visitors" alt="visitor count" height="20">
       </footer>
@@ -2051,26 +2164,58 @@ function hexToRgb(hex) {
 const GRADIENT_STOPS = [
   { pos: 0,       rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-green")) },
   { pos: 0.05882, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-yellow")) },
+  { pos: 0.23529, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-yellow")) },
   { pos: 0.29412, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-red")) },
+  { pos: 0.58824, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-red")) },
   { pos: 0.64706, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple")) },
-  { pos: 1,       rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple")) }
+  { pos: 0.70588, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple")) },
+  { pos: 1,       rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple-dark")) }
 ];
 // The exact color the continuous slider gradient shows at a given 0-1
 // position along the track — used so ticks/bubbles match it precisely
 // instead of snapping to one of the four flat band colors.
-function gradientColorAt(frac) {
+function gradientRgbAt(frac) {
   for (let i = 0; i < GRADIENT_STOPS.length - 1; i++) {
     const a = GRADIENT_STOPS[i], b = GRADIENT_STOPS[i + 1];
     if (frac >= a.pos && frac <= b.pos) {
       const t = b.pos === a.pos ? 0 : (frac - a.pos) / (b.pos - a.pos);
-      const rgb = a.rgb.map((v, i) => Math.round(v + (b.rgb[i] - v) * t));
-      return `rgb(${rgb.join(",")})`;
+      return a.rgb.map((v, i) => Math.round(v + (b.rgb[i] - v) * t));
     }
   }
-  return `rgb(${GRADIENT_STOPS[GRADIENT_STOPS.length - 1].rgb.join(",")})`;
+  return GRADIENT_STOPS[GRADIENT_STOPS.length - 1].rgb;
+}
+function gradientColorAt(frac) {
+  return `rgb(${gradientRgbAt(frac).join(",")})`;
 }
 function gradeColor(grade) {
   return gradientColorAt((grade - GRADE_MIN) / (GRADE_MAX - GRADE_MIN));
+}
+// WCAG relative luminance + contrast ratio, used to pick whichever of the two
+// on-vivid text colors (dark or light) reads at AA contrast against a given
+// background — needed because the gradient runs from light (green/yellow) to
+// very dark (purple near V17), so a single fixed text color can't work everywhere.
+function relativeLuminance([r, g, b]) {
+  const chan = v => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  const [rl, gl, bl] = [chan(r), chan(g), chan(b)];
+  return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
+}
+function contrastRatio(l1, l2) {
+  const lighter = Math.max(l1, l2), darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+const DARK_TEXT = [26, 26, 26]; // #1a1a1a, matches --on-vivid
+const LIGHT_TEXT = [238, 230, 242]; // soft off-white (#eee6f2) — still comfortably AA vs the darkest purple, less glaring than pure white
+function bestTextColorFor(rgb) {
+  const bgLum = relativeLuminance(rgb);
+  const darkContrast = contrastRatio(bgLum, relativeLuminance(DARK_TEXT));
+  const lightContrast = contrastRatio(bgLum, relativeLuminance(LIGHT_TEXT));
+  return lightContrast > darkContrast ? `rgb(${LIGHT_TEXT.join(",")})` : "var(--on-vivid)";
+}
+function gradeTextColor(grade) {
+  return bestTextColorFor(gradientRgbAt((grade - GRADE_MIN) / (GRADE_MAX - GRADE_MIN)));
 }
 
 // One vertical ruler-tick per selectable V-grade, positioned to match the
@@ -2129,6 +2274,8 @@ function updateTrackFill() {
   maxBubble.textContent = "V" + max;
   minBubble.style.background = gradeColor(min);
   maxBubble.style.background = gradeColor(max);
+  minBubble.style.color = gradeTextColor(min);
+  maxBubble.style.color = gradeTextColor(max);
   gradeTicks.forEach(tick => {
     const g = parseInt(tick.dataset.grade);
     const inRange = g >= min && g <= max;
@@ -2257,6 +2404,8 @@ document.getElementById("reset-filters").addEventListener("click", () => {
   sortDir = 1;
   updateSortIndicators();
   render();
+  map.closePopup();
+  map.fitBounds(allBounds, { padding: [30, 30] });
 });
 function getCheckedStars() {
   return new Set([...starToggles].filter(btn => btn.getAttribute("aria-pressed") === "true").map(btn => parseInt(btn.dataset.value)));
@@ -2407,7 +2556,7 @@ const contactChip = document.getElementById("contact-chip");
 contactChip.addEventListener("click", () => {
   if (contactChip.dataset.revealed === "true") return;
   contactChip.dataset.revealed = "true";
-  contactChip.textContent = `Contact: ${contactChip.dataset.email}`;
+  contactChip.textContent = `Give feedback: ${contactChip.dataset.email}`;
   contactChip.title = "Click to email";
   contactChip.addEventListener("click", () => {
     window.location.href = `mailto:${contactChip.dataset.email}`;
