@@ -484,6 +484,8 @@
     align-items: flex-end;
   }
   .control { flex: 1; min-width: 220px; }
+  .filter-stack { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+  .filter-stack .access-banner { margin-top: 0; }
   .grade-control { flex: 1; min-width: 220px; width: 100%; }
   .control label {
     display: block;
@@ -1047,7 +1049,7 @@
           <input type="range" id="max-grade" min="0" max="17" value="17" step="1">
         </div>
       </div>
-      <div class="control">
+      <div class="control filter-stack">
         <div class="star-filter-row">
           <div class="star-filter-left">
             <div class="star-filter" id="star-filter" role="group" aria-label="Star rating filter">
@@ -1057,8 +1059,6 @@
             </div>
           </div>
         </div>
-      </div>
-      <div class="control">
         <div class="area-filter-row">
           <select id="area-filter"></select>
           <button class="reset-btn" id="reset-filters" type="button">Reset</button>
