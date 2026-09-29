@@ -718,7 +718,8 @@
     background: var(--panel);
     cursor: pointer;
   }
-  .star-toggle-glyph { color: var(--star); font-size: 1rem; letter-spacing: 1px; }
+  .star-toggle-glyph { color: var(--muted); opacity: 0.6; font-size: 1rem; letter-spacing: 1px; transition: color 0.15s ease, opacity 0.15s ease; }
+  .star-toggle[aria-pressed="true"] .star-toggle-glyph { color: var(--star); opacity: 1; }
   .star-toggle:hover { border-color: var(--accent); }
   .star-toggle[aria-pressed="true"] {
     background: var(--accent-light);
