@@ -149,6 +149,7 @@
       margin-bottom: 0;
       padding-top: 0;
     }
+    .main-layout > .attribution-panel { margin-top: 16px; }
   }
   .panel.results-panel { padding-left: 0; padding-right: 0; }
   .results-panel th:first-child, .results-panel td:first-child { padding-left: 16px; }
@@ -993,7 +994,7 @@
   <div class="page-header" id="site-header">
     <h1>Cragify</h1>
     <div class="page-header-right">
-      <button class="attribution-cta" id="attribution-btn" type="button">Data &amp; attribution</button>
+      <button class="attribution-cta" id="attribution-btn" type="button">Readme</button>
       <button class="theme-toggle" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
         <span class="theme-toggle-icon theme-toggle-icon-sun">☀️</span>
         <span class="theme-toggle-icon theme-toggle-icon-moon">🌙</span>
@@ -1005,8 +1006,12 @@
   <div class="modal-overlay" id="attribution-modal" hidden>
     <div class="modal-box">
       <div class="modal-header">
-        <strong>Data &amp; attribution</strong>
+        <strong>Readme</strong>
         <button class="icon-btn" id="attribution-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="access-banner">
+        <span class="access-banner-icon" aria-hidden="true">&#9888;</span>
+        <span>Check <a href="https://www.parks.vic.gov.au/places-to-see/parks/grampians-national-park/rock-climbing-in-gariwerd#resources" target="_blank" rel="noopener">Parks Victoria</a> for access restrictions. Climb only where permitted.</span>
       </div>
       <p>Climbing information displayed on this site has been compiled from information publicly available on the web, including <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a>, and is provided for informational purposes only.</p>
       <p>This is an independent project and is not affiliated with, endorsed by, or sponsored by <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> or other referenced sources.</p>
@@ -1025,7 +1030,7 @@
         <a href="https://github.com/vietcowboy" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 1.5C6.2 1.5 1.5 6.2 1.5 12c0 4.64 3.01 8.58 7.19 9.97.53.1.72-.23.72-.51 0-.25-.01-1.08-.01-1.96-2.93.64-3.55-1.24-3.55-1.24-.48-1.22-1.17-1.54-1.17-1.54-.96-.65.07-.64.07-.64 1.06.07 1.62 1.09 1.62 1.09.94 1.61 2.46 1.15 3.06.88.1-.68.37-1.15.67-1.42-2.34-.27-4.8-1.17-4.8-5.21 0-1.15.41-2.09 1.09-2.83-.11-.27-.47-1.36.1-2.83 0 0 .89-.28 2.91 1.08a10.1 10.1 0 0 1 5.3 0c2.02-1.36 2.91-1.08 2.91-1.08.57 1.47.21 2.56.1 2.83.68.74 1.09 1.68 1.09 2.83 0 4.05-2.47 4.94-4.82 5.2.38.33.72.97.72 1.96 0 1.41-.01 2.55-.01 2.9 0 .28.19.62.73.51A10.51 10.51 0 0 0 22.5 12c0-5.8-4.7-10.5-10.5-10.5z"/></svg>
         </a>
-        <button class="contact-chip" id="contact-chip" type="button" data-email="huaj@live.com" data-revealed="false">Contact: h***@live.com</button>
+        <button class="contact-chip" id="contact-chip" type="button" data-email="huaj@live.com" data-revealed="false">Give feedback: h***@live.com</button>
       </div>
     </div>
   </div>
@@ -1109,10 +1114,6 @@
           <select id="area-filter"></select>
           <button class="reset-btn" id="reset-filters" type="button">Reset</button>
         </div>
-        <div class="access-banner">
-          <span class="access-banner-icon" aria-hidden="true">&#9888;</span>
-          <span>Check <a href="https://www.parks.vic.gov.au/places-to-see/parks/grampians-national-park/rock-climbing-in-gariwerd#resources" target="_blank" rel="noopener">Parks Victoria</a> for access restrictions. Climb only where permitted.</span>
-        </div>
       </div>
     </div>
   </div>
@@ -1134,7 +1135,7 @@
   <div class="attribution-panel">
     <div class="attribution">
       <div class="attribution-full-text">
-        <strong>Data &amp; attribution</strong>
+        <strong>Readme</strong>
         <p>Climbing information displayed on this site has been compiled from information publicly available on the web, including <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a>, and is provided for informational purposes only.</p>
         <p>This is an independent project and is not affiliated with, endorsed by, or sponsored by <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> or other referenced sources.</p>
         <p>Climb information may be incomplete, inaccurate or out of date. Always check current access restrictions, conditions and risks before climbing.</p>
@@ -1143,7 +1144,7 @@
     </div>
 
     <div class="attribution-bottom-row">
-      <button class="attribution-cta attribution-cta-panel" type="button">Data &amp; attribution</button>
+      <button class="attribution-cta attribution-cta-panel" type="button">Readme</button>
       <footer class="site-footer">
         <img src="https://hits.sh/vietcowboy.github.io/Outdoors/grampians-boulders.svg?style=flat-square&label=visitors" alt="visitor count" height="20">
       </footer>
@@ -2489,7 +2490,7 @@ const contactChip = document.getElementById("contact-chip");
 contactChip.addEventListener("click", () => {
   if (contactChip.dataset.revealed === "true") return;
   contactChip.dataset.revealed = "true";
-  contactChip.textContent = `Contact: ${contactChip.dataset.email}`;
+  contactChip.textContent = `Give feedback: ${contactChip.dataset.email}`;
   contactChip.title = "Click to email";
   contactChip.addEventListener("click", () => {
     window.location.href = `mailto:${contactChip.dataset.email}`;
