@@ -515,11 +515,12 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       grid-template-areas:
-        "slider area"
-        "stars  banner";
+        "slider slider"
+        "stars  area"
+        "banner banner";
       column-gap: 1.5rem;
       row-gap: 16px;
-      align-items: start;
+      align-items: stretch;
     }
     .grade-control { grid-area: slider; }
     .filter-stack { display: contents; }
@@ -527,7 +528,8 @@
     .star-filter-row .star-filter-left { height: 100%; }
     .star-filter-row .star-filter { height: 100%; }
     .star-filter-row .star-toggle { height: 100%; }
-    .area-filter-row { grid-area: area; }
+    .area-filter-row { grid-area: area; align-self: stretch; height: 100%; }
+    .area-filter-row select { height: 100%; }
     .access-banner { grid-area: banner; margin-top: 0; }
   }
   .control label {
