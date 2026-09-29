@@ -581,18 +581,19 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    height: 3px;
+    height: 8px;
     left: 16px; right: 16px;
-    border-radius: 2px;
     background: var(--border);
+    clip-path: polygon(0% 37.5%, 100% 0%, 100% 100%, 0% 62.5%);
   }
   .dual-slider .track-fill {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    height: 6px;
+    height: 8px;
     left: 0; right: 0;
     pointer-events: none;
+    clip-path: polygon(0% 37.5%, 100% 0%, 100% 100%, 0% 62.5%);
   }
   .track-fill-gradient {
     position: absolute;
