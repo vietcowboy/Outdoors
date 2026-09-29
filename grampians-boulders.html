@@ -500,7 +500,10 @@
     }
     .grade-control { grid-area: slider; }
     .filter-stack { display: contents; }
-    .star-filter-row { grid-area: stars; align-self: end; }
+    .star-filter-row { grid-area: stars; align-self: stretch; height: 100%; }
+    .star-filter-row .star-filter-left { height: 100%; }
+    .star-filter-row .star-filter { height: 100%; }
+    .star-filter-row .star-toggle { height: 100%; }
     .area-filter-row { grid-area: area; }
     .access-banner { grid-area: banner; margin-top: 0; }
   }
