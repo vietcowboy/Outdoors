@@ -37,6 +37,7 @@
     --grade-vivid-yellow: #dcbc76;
     --grade-vivid-red: #d18888;
     --grade-vivid-purple: #ac93c9;
+    --grade-vivid-purple-dark: #5b3f7a;
     --on-vivid: #1a1a1a;
     --link: #1d6fd6;
     --climb-link: #3f7a43;
@@ -604,7 +605,8 @@
       var(--grade-vivid-yellow) 5.882%,
       var(--grade-vivid-red) 29.412%,
       var(--grade-vivid-purple) 64.706%,
-      var(--grade-vivid-purple) 100%);
+      var(--grade-vivid-purple) 82.353%,
+      var(--grade-vivid-purple-dark) 100%);
   }
   .track-mask {
     position: absolute;
@@ -2073,7 +2075,8 @@ const GRADIENT_STOPS = [
   { pos: 0.05882, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-yellow")) },
   { pos: 0.29412, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-red")) },
   { pos: 0.64706, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple")) },
-  { pos: 1,       rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple")) }
+  { pos: 0.82353, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple")) },
+  { pos: 1,       rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple-dark")) }
 ];
 // The exact color the continuous slider gradient shows at a given 0-1
 // position along the track — used so ticks/bubbles match it precisely
