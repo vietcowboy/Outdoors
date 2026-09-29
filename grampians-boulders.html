@@ -169,7 +169,6 @@
       padding-top: 0;
     }
     .main-layout > .attribution-panel { margin-top: 16px; }
-    .page-header { position: static; }
   }
   .panel.results-panel { padding-left: 0; padding-right: 0; }
   .results-panel th:first-child, .results-panel td:first-child { padding-left: 16px; }
@@ -180,13 +179,15 @@
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 16px;
-    position: sticky;
-    top: 0;
+    position: static;
     z-index: 20;
     background: transparent;
     padding: 1.5rem 0 0;
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
+  }
+  @media (min-width: 961px) {
+    .page-header { position: sticky; top: 0; }
   }
   .page-header-right { display: flex; align-items: center; gap: 0.9rem; }
   h1 { font-size: 1.4rem; margin: 0; font-family: Papyrus, "Herculanum", fantasy; }
@@ -781,7 +782,7 @@
   }
   @media (max-width: 960px) {
     th {
-      top: calc(var(--sticky-header-height, 60px) - 2px);
+      top: 0;
       border-bottom-width: 3px;
     }
     th:first-child { border-top-left-radius: 10px; }
