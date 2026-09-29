@@ -607,6 +607,7 @@
     background: linear-gradient(to right,
       var(--grade-vivid-green) 0%,
       var(--grade-vivid-yellow) 5.882%,
+      var(--grade-vivid-yellow) 23.529%,
       var(--grade-vivid-red) 29.412%,
       var(--grade-vivid-red) 58.824%,
       var(--grade-vivid-purple) 64.706%,
@@ -2096,6 +2097,7 @@ function hexToRgb(hex) {
 const GRADIENT_STOPS = [
   { pos: 0,       rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-green")) },
   { pos: 0.05882, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-yellow")) },
+  { pos: 0.23529, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-yellow")) },
   { pos: 0.29412, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-red")) },
   { pos: 0.58824, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-red")) },
   { pos: 0.64706, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple")) },
