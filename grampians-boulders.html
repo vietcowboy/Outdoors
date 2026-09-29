@@ -237,15 +237,15 @@
   .attribution-cta {
     display: inline-flex;
     align-items: center;
-    height: 28px;
+    height: 36px;
     box-sizing: border-box;
-    background: var(--warning-bg);
-    border: 1px solid var(--warning-border);
-    color: var(--warning-text);
+    background: var(--grade-purple-bg);
+    border: 1px solid var(--grade-purple);
+    color: var(--grade-purple);
     font-size: 0.82rem;
     font-weight: 600;
-    padding: 0 0.8rem;
-    border-radius: 999px;
+    padding: 0 0.9rem;
+    border-radius: 8px;
     white-space: nowrap;
     cursor: pointer;
     text-decoration: none;
@@ -254,7 +254,8 @@
   .attribution-cta:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-    background: var(--warning-border);
+    background: var(--grade-purple);
+    color: var(--on-vivid);
   }
   .attribution-cta:hover .attribution-cta-label { text-decoration: underline; }
   .attribution-full-text { display: none; }
@@ -1061,7 +1062,7 @@
   <div class="page-header" id="site-header">
     <h1>Cragify</h1>
     <div class="page-header-right">
-      <button class="attribution-cta" id="attribution-btn" type="button"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0;margin-right:5px;"><path d="M8 1.5L15 14H1L8 1.5Z"/><rect x="7.3" y="6" width="1.4" height="4.2" fill="var(--warning-bg)"/><circle cx="8" cy="11.7" r="0.85" fill="var(--warning-bg)"/></svg><span class="attribution-cta-label">Important: Read this first</span></button>
+      <button class="attribution-cta" id="attribution-btn" type="button"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0;margin-right:5px;"><path d="M8 1.5L15 14H1L8 1.5Z"/><rect x="7.3" y="6" width="1.4" height="4.2" fill="var(--grade-purple-bg)"/><circle cx="8" cy="11.7" r="0.85" fill="var(--grade-purple-bg)"/></svg><span class="attribution-cta-label">Important: Read this first</span></button>
       <button class="theme-toggle" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
         <span class="theme-toggle-icon theme-toggle-icon-sun" aria-hidden="true">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/><line x1="4.2" y1="4.2" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.8" y2="19.8"/><line x1="4.2" y1="19.8" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.8" y2="4.2"/></g></svg>
