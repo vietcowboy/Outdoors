@@ -487,6 +487,23 @@
   .filter-stack { display: flex; flex-direction: column; gap: 16px; width: 100%; }
   .filter-stack .access-banner { margin-top: 0; }
   .grade-control { flex: 1; min-width: 220px; width: 100%; }
+  @media (min-width: 961px) {
+    .controls-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "slider area"
+        "stars  banner";
+      column-gap: 1.5rem;
+      row-gap: 16px;
+      align-items: start;
+    }
+    .grade-control { grid-area: slider; }
+    .filter-stack { display: contents; }
+    .star-filter-row { grid-area: stars; align-self: end; }
+    .area-filter-row { grid-area: area; }
+    .access-banner { grid-area: banner; margin-top: 0; }
+  }
   .control label {
     display: block;
     font-size: 0.78rem;
@@ -1065,7 +1082,7 @@
         </div>
         <div class="access-banner">
           <span class="access-banner-icon" aria-hidden="true">&#9888;</span>
-          <span>Check <a href="https://www.parks.vic.gov.au/places-to-see/parks/grampians-national-park" target="_blank" rel="noopener">Parks Victoria</a> for access restrictions. Climb only where permitted.</span>
+          <span>Check <a href="https://www.parks.vic.gov.au/places-to-see/parks/grampians-national-park/rock-climbing-in-gariwerd#resources" target="_blank" rel="noopener">Parks Victoria</a> for access restrictions. Climb only where permitted.</span>
         </div>
       </div>
     </div>
