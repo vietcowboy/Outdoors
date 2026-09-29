@@ -2136,12 +2136,12 @@ function contrastRatio(l1, l2) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 const DARK_TEXT = [26, 26, 26]; // #1a1a1a, matches --on-vivid
-const LIGHT_TEXT = [255, 255, 255];
+const LIGHT_TEXT = [238, 230, 242]; // soft off-white (#eee6f2) — still comfortably AA vs the darkest purple, less glaring than pure white
 function bestTextColorFor(rgb) {
   const bgLum = relativeLuminance(rgb);
   const darkContrast = contrastRatio(bgLum, relativeLuminance(DARK_TEXT));
   const lightContrast = contrastRatio(bgLum, relativeLuminance(LIGHT_TEXT));
-  return lightContrast > darkContrast ? "#fff" : "var(--on-vivid)";
+  return lightContrast > darkContrast ? `rgb(${LIGHT_TEXT.join(",")})` : "var(--on-vivid)";
 }
 function gradeTextColor(grade) {
   return bestTextColorFor(gradientRgbAt((grade - GRADE_MIN) / (GRADE_MAX - GRADE_MIN)));
