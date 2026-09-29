@@ -2277,6 +2277,8 @@ document.getElementById("reset-filters").addEventListener("click", () => {
   sortDir = 1;
   updateSortIndicators();
   render();
+  map.closePopup();
+  map.fitBounds(allBounds, { padding: [30, 30] });
 });
 function getCheckedStars() {
   return new Set([...starToggles].filter(btn => btn.getAttribute("aria-pressed") === "true").map(btn => parseInt(btn.dataset.value)));
