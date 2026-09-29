@@ -605,7 +605,7 @@
       var(--grade-vivid-yellow) 5.882%,
       var(--grade-vivid-red) 29.412%,
       var(--grade-vivid-purple) 64.706%,
-      var(--grade-vivid-purple) 76.471%,
+      var(--grade-vivid-purple) 70.588%,
       var(--grade-vivid-purple-dark) 100%);
   }
   .track-mask {
@@ -658,10 +658,8 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     z-index: 5;
     text-shadow:
-      -1px -1px 1px rgba(255,255,255,0.7),
-       1px -1px 1px rgba(255,255,255,0.7),
-      -1px  1px 1px rgba(255,255,255,0.7),
-       1px  1px 1px rgba(255,255,255,0.7);
+      0 0 3px rgba(255,255,255,0.85),
+      0 0 5px rgba(255,255,255,0.6);
   }
 
   .star-filter-row {
@@ -2080,7 +2078,7 @@ const GRADIENT_STOPS = [
   { pos: 0.05882, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-yellow")) },
   { pos: 0.29412, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-red")) },
   { pos: 0.64706, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple")) },
-  { pos: 0.76471, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple")) },
+  { pos: 0.70588, rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple")) },
   { pos: 1,       rgb: hexToRgb(rootStyle.getPropertyValue("--grade-vivid-purple-dark")) }
 ];
 // The exact color the continuous slider gradient shows at a given 0-1
