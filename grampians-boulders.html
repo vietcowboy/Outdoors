@@ -487,23 +487,6 @@
   .filter-stack { display: flex; flex-direction: column; gap: 16px; width: 100%; }
   .filter-stack .access-banner { margin-top: 0; }
   .grade-control { flex: 1; min-width: 220px; width: 100%; }
-  @media (min-width: 961px) {
-    .controls-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-areas:
-        "slider area"
-        "stars  banner";
-      column-gap: 1.5rem;
-      row-gap: 16px;
-      align-items: start;
-    }
-    .grade-control { grid-area: slider; }
-    .filter-stack { display: contents; }
-    .star-filter-row { grid-area: stars; align-self: end; }
-    .area-filter-row { grid-area: area; }
-    .access-banner { grid-area: banner; margin-top: 0; }
-  }
   .control label {
     display: block;
     font-size: 0.78rem;
