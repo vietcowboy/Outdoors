@@ -226,8 +226,8 @@
     font-size: 12px;
     line-height: 1;
   }
-  .theme-toggle-icon-sun { left: 6px; }
-  .theme-toggle-icon-moon { right: 6px; }
+  .theme-toggle-icon-sun { left: 6px; color: #1f3d24; display: flex; }
+  .theme-toggle-icon-moon { right: 6px; color: #a9dcae; display: flex; }
   .theme-toggle-knob {
     position: absolute;
     top: 3px;
@@ -266,9 +266,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--muted);
+    color: #1f3d24;
   }
-  .map-switch[aria-checked="true"] .map-switch-knob { transform: translateX(24px); color: var(--accent); }
+  .map-switch[aria-checked="true"] .map-switch-knob { transform: translateX(24px); color: #1f3d24; }
   .support-cta {
     display: inline-block;
     background: var(--accent);
@@ -1009,8 +1009,12 @@
     <div class="page-header-right">
       <button class="attribution-cta" id="attribution-btn" type="button">Read before use</button>
       <button class="theme-toggle" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
-        <span class="theme-toggle-icon theme-toggle-icon-sun">☀️</span>
-        <span class="theme-toggle-icon theme-toggle-icon-moon">🌙</span>
+        <span class="theme-toggle-icon theme-toggle-icon-sun" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/><line x1="4.2" y1="4.2" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.8" y2="19.8"/><line x1="4.2" y1="19.8" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.8" y2="4.2"/></g></svg>
+        </span>
+        <span class="theme-toggle-icon theme-toggle-icon-moon" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5A9 9 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/></svg>
+        </span>
         <span class="theme-toggle-knob"></span>
       </button>
     </div>
@@ -1030,7 +1034,7 @@
       <p>This is an independent project and is not affiliated with, endorsed by, or sponsored by <a href="https://www.thecrag.com" target="_blank" rel="noopener">theCrag</a> or other referenced sources.</p>
       <p>Climb information may be incomplete, inaccurate or out of date. Always check current access restrictions, conditions and risks before climbing.</p>
       <p>All third-party content and trademarks remain the property of their respective owners.</p>
-      <p><a href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener">Support theCrag to help keep the platform going.</a></p>
+      <p><a href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener" style="color: var(--climb-link);">Support theCrag to help keep the platform going.</a></p>
       <div class="made-by">
         <span>Made by Jim</span>
         <a href="https://www.instagram.com/jimi.sendrix" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">
