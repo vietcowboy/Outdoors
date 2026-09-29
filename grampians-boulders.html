@@ -50,7 +50,7 @@
     --bg-grad-1: #eef2e9;
     --bg-grad-2: #d8e4d1;
     --bg-grain-rgb: 0,0,0;
-    --bg-grain-alpha: 0.04;
+    --bg-grain-alpha: 0.09;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -83,7 +83,7 @@
       --bg-grad-1: #16281c;
       --bg-grad-2: #0b1710;
       --bg-grain-rgb: 255,255,255;
-      --bg-grain-alpha: 0.05;
+      --bg-grain-alpha: 0.11;
     }
   }
   :root[data-theme="dark"] {
@@ -116,13 +116,13 @@
     --bg-grad-1: #16281c;
     --bg-grad-2: #0b1710;
     --bg-grain-rgb: 255,255,255;
-    --bg-grain-alpha: 0.05;
+    --bg-grain-alpha: 0.11;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
     background:
-      radial-gradient(circle 1.3px at 0 0, rgba(var(--bg-grain-rgb), var(--bg-grain-alpha)) 1.3px, transparent 1.3px) 0 0 / 3px 3px,
+      radial-gradient(circle 1.6px at 0 0, rgba(var(--bg-grain-rgb), var(--bg-grain-alpha)) 1.6px, transparent 1.6px) 0 0 / 3px 3px,
       linear-gradient(165deg, var(--bg-grad-1), var(--bg-grad-2));
     background-attachment: fixed;
     color: var(--text);
