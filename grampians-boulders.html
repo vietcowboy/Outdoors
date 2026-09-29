@@ -126,15 +126,20 @@
       linear-gradient(165deg, var(--bg-grad-1), var(--bg-grad-2));
     background-size: 320px 320px, 400% 400%;
     background-attachment: fixed;
-    animation: bg-flow 50s ease-in-out infinite alternate;
+    animation: bg-flow 75s ease-in-out infinite;
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     padding: 0 1.5rem 1.5rem;
   }
   @keyframes bg-flow {
-    0%   { background-position: 0px 0px, 0% 0%; }
-    50%  { background-position: 160px 160px, 100% 50%; }
-    100% { background-position: 320px 320px, 0% 100%; }
+    0%   { background-position: 0px 0px,     0% 0%; }
+    14%  { background-position: 70px -35px,  30% 65%; }
+    28%  { background-position: 15px 80px,   75% 15%; }
+    42%  { background-position: -60px 45px,  40% 90%; }
+    56%  { background-position: -35px -70px, 90% 45%; }
+    70%  { background-position: 45px -15px,  15% 5%; }
+    84%  { background-position: 10px 55px,   60% 75%; }
+    100% { background-position: 0px 0px,     0% 0%; }
   }
   @media (prefers-reduced-motion: reduce) {
     body { animation: none; }
