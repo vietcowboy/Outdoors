@@ -361,25 +361,30 @@
   .support-banner:hover { background: var(--accent-light); }
   .made-by {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 0.7rem;
     margin-top: 1rem;
     color: var(--muted);
     font-size: 0.8rem;
   }
-  .made-by a { color: var(--muted); display: inline-flex; }
-  .made-by a:hover { color: var(--accent); }
+  .made-by-row { display: flex; align-items: center; gap: 0.7rem; }
+  .made-by-row a { color: var(--muted); display: inline-flex; }
+  .made-by-row a:hover { color: var(--accent); }
   .contact-chip {
-    display: inline-block;
-    margin-left: 0.2rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     background: none;
     border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 0.3rem 0.8rem;
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
     font-size: 0.78rem;
+    font-family: inherit;
     color: var(--muted);
     cursor: pointer;
   }
+  .contact-chip-icon { flex-shrink: 0; }
   .contact-chip:hover { border-color: var(--accent); color: var(--accent); }
   .contact-chip[data-revealed="true"] { cursor: text; }
 
@@ -1098,14 +1103,23 @@
       <p>All third-party content and trademarks remain the property of their respective owners.</p>
       <p><a href="https://www.thecrag.com/pay_as_you_feel" target="_blank" rel="noopener" style="color: var(--climb-link);">Support theCrag to help keep the platform going.</a></p>
       <div class="made-by">
-        <span>Made by Jim</span>
-        <a href="https://www.instagram.com/jimi.sendrix" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
-        </a>
-        <a href="https://github.com/vietcowboy" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 1.5C6.2 1.5 1.5 6.2 1.5 12c0 4.64 3.01 8.58 7.19 9.97.53.1.72-.23.72-.51 0-.25-.01-1.08-.01-1.96-2.93.64-3.55-1.24-3.55-1.24-.48-1.22-1.17-1.54-1.17-1.54-.96-.65.07-.64.07-.64 1.06.07 1.62 1.09 1.62 1.09.94 1.61 2.46 1.15 3.06.88.1-.68.37-1.15.67-1.42-2.34-.27-4.8-1.17-4.8-5.21 0-1.15.41-2.09 1.09-2.83-.11-.27-.47-1.36.1-2.83 0 0 .89-.28 2.91 1.08a10.1 10.1 0 0 1 5.3 0c2.02-1.36 2.91-1.08 2.91-1.08.57 1.47.21 2.56.1 2.83.68.74 1.09 1.68 1.09 2.83 0 4.05-2.47 4.94-4.82 5.2.38.33.72.97.72 1.96 0 1.41-.01 2.55-.01 2.9 0 .28.19.62.73.51A10.51 10.51 0 0 0 22.5 12c0-5.8-4.7-10.5-10.5-10.5z"/></svg>
-        </a>
-        <button class="contact-chip" id="contact-chip" type="button" data-email="huaj@live.com" data-revealed="false">Give feedback: h***@live.com</button>
+        <button class="contact-chip" id="contact-chip" type="button" data-email="huaj@live.com" data-revealed="false">
+          <svg class="contact-chip-icon" width="14" height="14" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M2 2.5C2 1.67 2.67 1 3.5 1h9c0.83 0 1.5 0.67 1.5 1.5v7c0 0.83-0.67 1.5-1.5 1.5H6l-3 3v-3H3.5C2.67 11 2 10.33 2 9.5v-7z"/>
+            <rect x="4.2" y="3.8" width="7.6" height="1.2" rx="0.6" fill="var(--panel)"/>
+            <rect x="4.2" y="6.4" width="5.2" height="1.2" rx="0.6" fill="var(--panel)"/>
+          </svg>
+          <span class="contact-chip-label">Give feedback: h***@live.com</span>
+        </button>
+        <div class="made-by-row">
+          <span>Made by Jim</span>
+          <a href="https://www.instagram.com/jimi.sendrix" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="https://github.com/vietcowboy" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 1.5C6.2 1.5 1.5 6.2 1.5 12c0 4.64 3.01 8.58 7.19 9.97.53.1.72-.23.72-.51 0-.25-.01-1.08-.01-1.96-2.93.64-3.55-1.24-3.55-1.24-.48-1.22-1.17-1.54-1.17-1.54-.96-.65.07-.64.07-.64 1.06.07 1.62 1.09 1.62 1.09.94 1.61 2.46 1.15 3.06.88.1-.68.37-1.15.67-1.42-2.34-.27-4.8-1.17-4.8-5.21 0-1.15.41-2.09 1.09-2.83-.11-.27-.47-1.36.1-2.83 0 0 .89-.28 2.91 1.08a10.1 10.1 0 0 1 5.3 0c2.02-1.36 2.91-1.08 2.91-1.08.57 1.47.21 2.56.1 2.83.68.74 1.09 1.68 1.09 2.83 0 4.05-2.47 4.94-4.82 5.2.38.33.72.97.72 1.96 0 1.41-.01 2.55-.01 2.9 0 .28.19.62.73.51A10.51 10.51 0 0 0 22.5 12c0-5.8-4.7-10.5-10.5-10.5z"/></svg>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -2567,10 +2581,11 @@ window.addEventListener("resize", updateHeaderHeightVar);
 
 // --- Contact chip (reveals email on click) ---
 const contactChip = document.getElementById("contact-chip");
+const contactChipLabel = contactChip.querySelector(".contact-chip-label");
 contactChip.addEventListener("click", () => {
   if (contactChip.dataset.revealed === "true") return;
   contactChip.dataset.revealed = "true";
-  contactChip.textContent = `Give feedback: ${contactChip.dataset.email}`;
+  contactChipLabel.textContent = `Give feedback: ${contactChip.dataset.email}`;
   contactChip.title = "Click to email";
   contactChip.addEventListener("click", () => {
     window.location.href = `mailto:${contactChip.dataset.email}`;
