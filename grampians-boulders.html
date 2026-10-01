@@ -569,7 +569,7 @@
   .wx-days { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
   .wx-day {
     display: grid;
-    grid-template-columns: 5.2rem 1.6rem minmax(0, 1fr) minmax(0, 1fr) 4.6rem;
+    grid-template-columns: 5.4rem 1.6rem minmax(0, 1fr) minmax(0, 1fr) 4.2rem 4.6rem;
     align-items: center;
     gap: 0.5rem;
     padding: 0.6rem 0.25rem;
@@ -585,8 +585,8 @@
   .wx-rain strong { font-size: 0.95rem; color: var(--text); }
   .wx-rain.is-wet strong { color: var(--link); }
   .wx-wind strong { color: var(--text); }
-  .wx-cond-col { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; }
   .wx-cond {
+    justify-self: end;
     font-size: 0.72rem;
     font-weight: 700;
     padding: 0.2rem 0.5rem;
@@ -597,14 +597,28 @@
   .wx-cond.good { color: var(--grade-green); background: var(--grade-green-bg); }
   .wx-cond.average { color: var(--grade-orange); background: var(--grade-orange-bg); }
   .wx-cond.bad { color: var(--grade-red); background: var(--grade-red-bg); }
-  .wx-temp { font-size: 0.75rem; }
+  .wx-temp { font-size: 0.85rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  .wx-short { display: none; }
+  .wx-tmin { color: var(--link); }
+  .wx-tmax { color: var(--grade-red); }
+  .wx-day.wx-head { padding: 0 0.25rem 0.35rem; border-bottom: none; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .wx-head span:last-child { text-align: right; }
   .wx-status { padding: 1.2rem 0; text-align: center; }
   .modal-box p.wx-note { font-size: 0.75rem; margin-top: 0.8rem; }
   @media (max-width: 480px) {
     .modal-box.weather-box { padding: 1rem; }
-    .wx-day { grid-template-columns: 4.7rem 1.4rem minmax(0, 1fr) minmax(0, 1fr) 3.9rem; gap: 0.4rem; font-size: 0.74rem; }
+    .wx-day { grid-template-columns: 4.3rem minmax(0, 1fr) minmax(0, 1fr) 2.9rem 3.3rem; gap: 0.4rem; font-size: 0.74rem; }
     .wx-date strong { font-size: 0.8rem; }
     .wx-chance { display: none; }
+    .wx-icon, .wx-head span:nth-child(2) { display: none; }
+    .wx-temp { font-size: 0.78rem; }
+    .wx-long { display: none; }
+    .wx-short { display: inline; }
+    .wx-dash { margin: 0 1px; }
+    .wx-dash { font-size: 0; }
+    .wx-dash::before { content: "–"; font-size: 0.78rem; }
+    .wx-rain strong, .wx-wind strong { font-size: 0.8rem; }
+    .wx-cond { font-size: 0.66rem; padding: 0.2rem 0.35rem; }
     .wx-rain strong { font-size: 0.88rem; }
     .wx-spot { font-size: 0.75rem; padding: 0.25rem 0.6rem; }
   }
@@ -1255,7 +1269,7 @@
         <button class="icon-btn wx-arrow" id="wx-next" type="button" aria-label="Next week">›</button>
       </div>
       <div id="wx-body"><p class="wx-status">Loading forecast…</p></div>
-      <p class="wx-note">Climbing conditions are a rough guide from rain, wind and temperature. Grampians sandstone is fragile when wet, so give it a day or two to dry after heavy rain. Forecast by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>
+      <p class="wx-note">Climb quality is a rough guide to how dry the rock will be, based on forecast rain and rain over the previous two days. Grampians sandstone is fragile when wet, so give it a day or two to dry after heavy rain. Forecast by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>
     </div>
   </div>
 
@@ -2531,9 +2545,10 @@ function wxKind(code) {
   return ["rain", "Rain"];
 }
 
-// Rough climbing-conditions call. Rain matters most (wet sandstone is both
-// slippery and breakable), then wind, then heat/cold.
-function wxConditions(day, prevRain) {
+// Rough climb-quality call based only on how dry the rock is likely to be:
+// rain on the day, plus rain over the previous two days (wet sandstone is
+// slippery and breakable, and takes a day or two to dry out).
+function wxConditions(day, prevRain, prev2Rain) {
   const reasons = [];
   let level = 0;
   const bump = (l, why) => { level = Math.max(level, l); reasons.push(why); };
@@ -2541,11 +2556,8 @@ function wxConditions(day, prevRain) {
   else if (day.rain >= 0.5 || day.prob >= 30) bump(1, "chance of showers");
   if (prevRain >= 5) bump(2, "rock likely still wet from yesterday");
   else if (prevRain >= 1) bump(1, "some rain yesterday");
-  if (day.gust >= 60) bump(2, "very gusty");
-  else if (day.gust >= 40) bump(1, "windy");
-  if (day.tmax >= 33) bump(2, "very hot");
-  else if (day.tmax >= 28) bump(1, "warm");
-  if (day.tmax < 8) bump(1, "cold");
+  if (prev2Rain >= 10) bump(prevRain >= 1 ? 2 : 1, "heavy rain two days ago");
+  else if (prev2Rain >= 5) bump(1, "rain two days ago");
   return { level: ["good", "average", "bad"][level], label: ["Good", "Average", "Bad"][level], reasons };
 }
 
@@ -2598,21 +2610,22 @@ function renderWeather() {
   if (!days.length) return;
   const range = { weekday: "short", day: "numeric", month: "short" };
   wxWeekLabel.textContent = `${wxFmt(days[0].date, range)} – ${wxFmt(days[days.length - 1].date, range)}`;
-  wxBody.innerHTML = '<ul class="wx-days">' + days.map((day, k) => {
+  wxBody.innerHTML = '<div class="wx-day wx-head" aria-hidden="true"><span>Day</span><span></span><span>Rain</span><span>Wind</span><span>Temp</span><span>Climb quality</span></div><ul class="wx-days">' + days.map((day, k) => {
     const idx = start + k;
     const overall = idx - WX_PAST_DAYS;
-    const dayName = overall === 0 ? "Today" : overall === 1 ? "Tomorrow" : wxFmt(day.date, { weekday: "long" });
+    const dayName = overall === 0 ? "Today" : overall === 1 ? "Tomorrow" : `<span class="wx-long">${wxFmt(day.date, { weekday: "long" })}</span><span class="wx-short">${wxFmt(day.date, { weekday: "short" })}</span>`;
     const dow = new Date(day.date + "T12:00:00").getDay();
     const [icon, desc] = wxKind(day.code);
-    const cond = wxConditions(day, all[idx - 1] ? all[idx - 1].rain : 0);
-    const why = cond.reasons.length ? cond.reasons.join(", ") : "dry, calm and mild";
+    const cond = wxConditions(day, all[idx - 1] ? all[idx - 1].rain : 0, all[idx - 2] ? all[idx - 2].rain : 0);
+    const why = cond.reasons.length ? cond.reasons.join(", ") : "rock should be dry";
     const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
     return `<li class="wx-day${dow === 0 || dow === 6 ? " is-weekend" : ""}">
       <div class="wx-date"><strong>${dayName}</strong><span>${wxFmt(day.date, { weekday: overall <= 1 ? "short" : undefined, day: "numeric", month: "short" })}</span></div>
       <div class="wx-icon" title="${desc}"><svg width="22" height="22" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div>
       <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}"><strong>${rainMm} mm</strong><span>${Math.round(day.prob)}%<span class="wx-chance"> chance</span></span></div>
       <div class="wx-wind"><strong>${Math.round(day.wind)} km/h</strong><span>gusts ${Math.round(day.gust)}</span></div>
-      <div class="wx-cond-col"><span class="wx-cond ${cond.level}" title="${cond.label}: ${why}">${cond.label}</span><span class="wx-temp">${Math.round(day.tmin)}–${Math.round(day.tmax)}°C</span></div>
+      <span class="wx-temp"><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-dash"> – </span><span class="wx-tmax">${Math.round(day.tmax)}°</span></span>
+      <span class="wx-cond ${cond.level}" title="${cond.label}: ${why}">${cond.label}</span>
     </li>`;
   }).join("") + "</ul>";
 }
