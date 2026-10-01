@@ -1194,10 +1194,10 @@
           <div class="track"></div>
           <div class="track-fill" id="track-fill"></div>
           <div class="grade-ticks" id="grade-ticks"></div>
-          <div class="slider-bubble" id="min-bubble">0</div>
-          <div class="slider-bubble" id="max-bubble">17</div>
-          <input type="range" id="min-grade" min="0" max="17" value="0" step="1">
-          <input type="range" id="max-grade" min="0" max="17" value="17" step="1">
+          <div class="slider-bubble" id="min-bubble">3</div>
+          <div class="slider-bubble" id="max-bubble">14</div>
+          <input type="range" id="min-grade" min="0" max="17" value="3" step="1">
+          <input type="range" id="max-grade" min="0" max="17" value="14" step="1">
         </div>
       </div>
       <div class="control filter-stack">
@@ -1890,6 +1890,7 @@ const REGIONS = {
 };
 
 const GRADE_MIN = 0, GRADE_MAX = 17;
+const DEFAULT_GRADE_MIN = 3, DEFAULT_GRADE_MAX = 14;
 let sortKey = "grade", sortDir = 1;
 
 const minSlider = document.getElementById("min-grade");
@@ -2428,8 +2429,8 @@ starToggles.forEach(btn => btn.addEventListener("click", () => {
 }));
 
 document.getElementById("reset-filters").addEventListener("click", () => {
-  minSlider.value = GRADE_MIN;
-  maxSlider.value = GRADE_MAX;
+  minSlider.value = DEFAULT_GRADE_MIN;
+  maxSlider.value = DEFAULT_GRADE_MAX;
   updateTrackFill();
   areaFilter.value = "";
   starToggles.forEach(btn => btn.setAttribute("aria-pressed", btn.dataset.value !== "1" ? "true" : "false"));
