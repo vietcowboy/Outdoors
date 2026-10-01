@@ -242,9 +242,9 @@
     align-items: center;
     height: 36px;
     box-sizing: border-box;
-    background: var(--grade-purple-bg);
-    border: 1px solid var(--grade-purple);
-    color: var(--grade-purple);
+    background: var(--accent);
+    border: none;
+    color: #1f3d24;
     font-size: 0.82rem;
     font-weight: 600;
     font-family: inherit;
@@ -258,8 +258,7 @@
   .attribution-cta:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-    background: var(--grade-purple);
-    color: var(--on-vivid);
+    filter: brightness(1.1);
   }
   .attribution-cta:hover .attribution-cta-label { text-decoration: underline; }
   .attribution-full-text { display: none; }
@@ -609,7 +608,6 @@
     .wx-spot { font-size: 0.75rem; padding: 0.25rem 0.6rem; }
   }
   .location-header h2 { margin: 0; font-size: 1.2rem; color: var(--text); }
-  .location-swap-btn { font-size: 0.9rem; }
   .location-list { list-style: none; padding: 0; margin: 0; }
   .location-option {
     display: flex;
@@ -1164,7 +1162,7 @@
   <div class="page-header" id="site-header">
     <h1>Cragify</h1>
     <div class="page-header-right">
-      <button class="attribution-cta" id="attribution-btn" type="button"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0;margin-right:5px;"><path d="M8 1.5L15 14H1L8 1.5Z"/><rect x="7.3" y="6" width="1.4" height="4.2" fill="var(--grade-purple-bg)"/><circle cx="8" cy="11.7" r="0.85" fill="var(--grade-purple-bg)"/></svg><span class="attribution-cta-label">Read first</span></button>
+      <button class="attribution-cta" id="attribution-btn" type="button"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0;margin-right:5px;"><path d="M8 1.5L15 14H1L8 1.5Z"/><rect x="7.3" y="6" width="1.4" height="4.2" fill="var(--accent)"/><circle cx="8" cy="11.7" r="0.85" fill="var(--accent)"/></svg><span class="attribution-cta-label">Read first</span></button>
       <button class="theme-toggle" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
         <span class="theme-toggle-icon theme-toggle-icon-sun" aria-hidden="true">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/><line x1="4.2" y1="4.2" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.8" y2="19.8"/><line x1="4.2" y1="19.8" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.8" y2="4.2"/></g></svg>
@@ -1265,14 +1263,13 @@
     <div class="location-header">
       <div class="location-header-left">
         <h2>Grampians</h2>
-        <button class="icon-btn location-swap-btn" id="location-swap-btn" type="button" aria-label="Switch location" title="Switch location">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M3 5.5H12.5M12.5 5.5L9.5 2.5M12.5 5.5L9.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M13 10.5H3.5M3.5 10.5L6.5 7.5M3.5 10.5L6.5 13.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
       </div>
       <div class="location-header-right">
+        <button class="weather-btn location-swap-btn" id="location-swap-btn" type="button" aria-label="Switch location" title="Switch location">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.93 6h-2.95a15.65 15.65 0 0 0-1.38-3.56A8.03 8.03 0 0 1 18.93 8zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14a8.2 8.2 0 0 1 0-4h3.38a16.5 16.5 0 0 0 0 4H4.26zm.81 2h2.95c.32 1.25.78 2.45 1.38 3.56A7.99 7.99 0 0 1 5.07 16zm2.95-8H5.07a7.99 7.99 0 0 1 4.33-3.56A15.65 15.65 0 0 0 8.02 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66a14.7 14.7 0 0 1 0-4h4.68a14.7 14.7 0 0 1 0 4zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 0 1-4.33 3.56zM16.36 14a16.5 16.5 0 0 0 0-4h3.38a8.2 8.2 0 0 1 0 4h-3.38z"/>
+          </svg>
+        </button>
         <button class="weather-btn" id="weather-btn" type="button" aria-label="Weather forecast" title="Weather forecast">
           <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <g class="wx-sun"><circle cx="15" cy="8" r="4"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="15" y1="1.5" x2="15" y2="2.3"/><line x1="21.5" y1="8" x2="20.7" y2="8"/><line x1="19.6" y1="3.4" x2="19" y2="4"/><line x1="10.4" y1="3.4" x2="11" y2="4"/></g></g>
