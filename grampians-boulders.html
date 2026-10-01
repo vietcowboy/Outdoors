@@ -536,7 +536,7 @@
     border-radius: 50%;
     border: none;
     background: var(--accent);
-    color: #fff;
+    color: #1f3d24;
     padding: 0;
     cursor: pointer;
     display: inline-flex;
@@ -1268,7 +1268,7 @@
         <button class="icon-btn wx-arrow" id="wx-next" type="button" aria-label="Next week">›</button>
       </div>
       <div id="wx-body"><p class="wx-status">Loading forecast…</p></div>
-      <p class="wx-note">Climb quality is a rough guide to how dry the rock will be, based on forecast rain and rain over the previous two days. Grampians sandstone is fragile when wet, so give it a day or two to dry after heavy rain. Forecast by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>
+      <p class="wx-note">Conditions are a rough guide to how dry the rock will be for a 10am start, based on rain in the previous 24 hours and how long it has had to dry. Grampians sandstone is fragile when wet, so give it a day or two to dry after heavy rain. Forecast by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>
     </div>
   </div>
 
@@ -2544,20 +2544,38 @@ function wxKind(code) {
   return ["rain", "Rain"];
 }
 
-// Rough climb-quality call based only on how dry the rock is likely to be:
-// rain on the day, plus rain over the previous two days (wet sandstone is
-// slippery and breakable, and takes a day or two to dry out).
-function wxConditions(day, prevRain, prev2Rain) {
-  const reasons = [];
+// Rough conditions call for a 10am start, based only on how dry the rock is
+// likely to be: rain in the 24 hours to 10am, and how many hours it has had
+// to dry since the last real rain. Wet sandstone is slippery and breakable.
+const WX_START_HOUR = 10, WX_WET_MM = 0.2;
+function wxConditions(day) {
+  const r = day.rain24, dry = day.dryHours;
   let level = 0;
-  const bump = (l, why) => { level = Math.max(level, l); reasons.push(why); };
-  if (day.rain >= 2 || day.prob >= 60) bump(2, "rain likely");
-  else if (day.rain >= 0.5 || day.prob >= 30) bump(1, "chance of showers");
-  if (prevRain >= 5) bump(2, "rock likely still wet from yesterday");
-  else if (prevRain >= 1) bump(1, "some rain yesterday");
-  if (prev2Rain >= 10) bump(prevRain >= 1 ? 2 : 1, "heavy rain two days ago");
-  else if (prev2Rain >= 5) bump(1, "rain two days ago");
-  return { level: ["good", "average", "bad"][level], label: ["Good", "Average", "Bad"][level], reasons };
+  if ((r >= 5 && dry < 18) || (r >= 1 && dry < 6)) level = 2;
+  else if (r >= 5 || (r >= 1 && dry < 14) || (r >= WX_WET_MM && dry < 4)) level = 1;
+  const rainTxt = r < 0.1 ? "No rain" : `${r < 10 ? r.toFixed(1) : Math.round(r)} mm of rain`;
+  const dryTxt = r < 0.1 ? "" : dry === 0 ? ", still raining at 10am" : `, last rain ${dry} hour${dry === 1 ? "" : "s"} before`;
+  return {
+    level: ["good", "average", "bad"][level],
+    label: ["Good", "Average", "Bad"][level],
+    why: `${rainTxt} in the 24 hours to 10am${dryTxt}`,
+  };
+}
+
+// Rain in the 24 hours to 10am on the given day, and hours since the last
+// hour with measurable rain (capped at 48). Open-Meteo hourly precipitation is
+// the total for the preceding hour.
+function wxDryness(hourly, date) {
+  const i = hourly.time.indexOf(`${date}T${String(WX_START_HOUR).padStart(2, "0")}:00`);
+  if (i < 0) return { rain24: 0, dryHours: 48 };
+  const p = hourly.precipitation;
+  let rain24 = 0;
+  for (let h = Math.max(0, i - 23); h <= i; h++) rain24 += p[h] ?? 0;
+  let dryHours = 48;
+  for (let h = i; h >= Math.max(0, i - 47); h--) {
+    if ((p[h] ?? 0) >= WX_WET_MM) { dryHours = i - h; break; }
+  }
+  return { rain24, dryHours };
 }
 
 async function loadWeather() {
@@ -2568,6 +2586,7 @@ async function loadWeather() {
     latitude: WX_SPOTS.map(s => s.lat).join(","),
     longitude: WX_SPOTS.map(s => s.lng).join(","),
     daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max",
+    hourly: "precipitation",
     timezone: "Australia/Melbourne",
     forecast_days: WX_DAYS_PER_PAGE * WX_PAGES,
     past_days: WX_PAST_DAYS,
@@ -2587,6 +2606,7 @@ async function loadWeather() {
         prob: d.precipitation_probability_max[i] ?? 0,
         wind: d.wind_speed_10m_max[i],
         gust: d.wind_gusts_10m_max[i],
+        ...wxDryness(loc.hourly, t),
       }));
     });
   } catch (err) {
@@ -2610,14 +2630,13 @@ function renderWeather() {
   if (!days.length) return;
   const range = { weekday: "short", day: "numeric", month: "short" };
   wxWeekLabel.textContent = `${wxFmt(days[0].date, range)} – ${wxFmt(days[days.length - 1].date, range)}`;
-  wxBody.innerHTML = '<div class="wx-day wx-head" aria-hidden="true"><span>Day</span><span>Temp</span><span></span><span>Rain</span><span>Wind</span><span>Climb quality</span></div><ul class="wx-days">' + days.map((day, k) => {
+  wxBody.innerHTML = '<div class="wx-day wx-head" aria-hidden="true"><span>Day</span><span>Temp</span><span></span><span>Rain</span><span>Wind</span><span>Conditions</span></div><ul class="wx-days">' + days.map((day, k) => {
     const idx = start + k;
     const overall = idx - WX_PAST_DAYS;
     const dayName = overall === 0 ? "Today" : overall === 1 ? "Tomorrow" : `<span class="wx-long">${wxFmt(day.date, { weekday: "long" })}</span><span class="wx-short">${wxFmt(day.date, { weekday: "short" })}</span>`;
     const dow = new Date(day.date + "T12:00:00").getDay();
     const [icon, desc] = wxKind(day.code);
-    const cond = wxConditions(day, all[idx - 1] ? all[idx - 1].rain : 0, all[idx - 2] ? all[idx - 2].rain : 0);
-    const why = cond.reasons.length ? cond.reasons.join(", ") : "rock should be dry";
+    const cond = wxConditions(day);
     const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
     return `<li class="wx-day${dow === 0 || dow === 6 ? " is-weekend" : ""}">
       <div class="wx-date"><strong>${dayName}</strong><span>${wxFmt(day.date, { weekday: overall <= 1 ? "short" : undefined, day: "numeric", month: "short" })}</span></div>
@@ -2625,7 +2644,7 @@ function renderWeather() {
       <div class="wx-icon" title="${desc}"><svg width="22" height="22" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div>
       <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}"><strong>${rainMm} mm</strong><span>${Math.round(day.prob)}%<span class="wx-chance"> chance</span></span></div>
       <div class="wx-wind"><strong>${Math.round(day.wind)} km/h</strong><span>gusts ${Math.round(day.gust)}</span></div>
-      <span class="wx-cond ${cond.level}" title="${cond.label}: ${why}">${cond.label}</span>
+      <span class="wx-cond ${cond.level}" title="${cond.label}: ${cond.why}">${cond.label}</span>
     </li>`;
   }).join("") + "</ul>";
 }
