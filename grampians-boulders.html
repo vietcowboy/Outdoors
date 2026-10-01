@@ -534,9 +534,9 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--muted);
+    border: none;
+    background: var(--accent);
+    color: #fff;
     padding: 0;
     cursor: pointer;
     display: inline-flex;
@@ -544,10 +544,9 @@
     justify-content: center;
     flex-shrink: 0;
   }
-  .weather-btn:hover { background: var(--accent-light); color: var(--text); }
+  .weather-btn:hover { filter: brightness(1.1); }
   .weather-btn .wx-sun { fill: var(--star); }
-  .weather-btn .wx-cloud { fill: currentColor; stroke: var(--panel); stroke-width: 1.2; }
-  .weather-btn:hover .wx-cloud { stroke: var(--accent-light); }
+  .weather-btn .wx-cloud { fill: currentColor; stroke: var(--accent); stroke-width: 1.2; }
   .modal-box.weather-box { width: 100%; max-width: 560px; box-sizing: border-box; }
   .modal-header h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
   .wx-spots { display: flex; flex-wrap: wrap; gap: 0.4rem; }
