@@ -626,6 +626,9 @@
     cursor: not-allowed;
   }
   .location-option-active { color: var(--accent); }
+  .location-name { display: flex; flex-direction: column; gap: 0.1rem; }
+  .location-region { font-size: 0.75rem; font-weight: 400; color: var(--muted); }
+  .location-tick { flex-shrink: 0; color: var(--accent); }
   .location-soon {
     font-size: 0.7rem;
     font-weight: 600;
@@ -1230,12 +1233,13 @@
         <button class="icon-btn" id="location-close" type="button" aria-label="Close">✕</button>
       </div>
       <ul class="modal-list location-list">
-        <li class="location-option location-option-active">Grampians/Gariwerd</li>
-        <li class="location-option" aria-disabled="true">Mount Alexander<span class="location-soon">Coming soon</span></li>
-        <li class="location-option" aria-disabled="true">Mount Macedon<span class="location-soon">Coming soon</span></li>
-        <li class="location-option" aria-disabled="true">Fontainebleau, France<span class="location-soon">Coming soon</span></li>
-        <li class="location-option" aria-disabled="true">Rocklands, South Africa<span class="location-soon">Coming soon</span></li>
-        <li class="location-option" aria-disabled="true">Squamish, Canada<span class="location-soon">Coming soon</span></li>
+        <li class="location-option location-option-active" aria-current="true"><span class="location-name"><span>Grampians/Gariwerd</span><span class="location-region">Victoria, Australia</span></span><svg class="location-tick" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-label="Selected"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></li>
+        <li class="location-option" aria-disabled="true"><span class="location-name"><span>Cathedral Ranges</span><span class="location-region">Victoria, Australia</span></span><span class="location-soon">Coming soon</span></li>
+        <li class="location-option" aria-disabled="true"><span class="location-name"><span>Mount Alexander</span><span class="location-region">Victoria, Australia</span></span><span class="location-soon">Coming soon</span></li>
+        <li class="location-option" aria-disabled="true"><span class="location-name"><span>Mount Macedon</span><span class="location-region">Victoria, Australia</span></span><span class="location-soon">Coming soon</span></li>
+        <li class="location-option" aria-disabled="true"><span class="location-name"><span>Fontainebleau</span><span class="location-region">France</span></span><span class="location-soon">Coming soon</span></li>
+        <li class="location-option" aria-disabled="true"><span class="location-name"><span>Rocklands</span><span class="location-region">South Africa</span></span><span class="location-soon">Coming soon</span></li>
+        <li class="location-option" aria-disabled="true"><span class="location-name"><span>Squamish</span><span class="location-region">Canada</span></span><span class="location-soon">Coming soon</span></li>
       </ul>
     </div>
   </div>
