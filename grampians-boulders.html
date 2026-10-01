@@ -2165,7 +2165,7 @@ BOULDER_PINS.forEach(b => {
   boulderPinMarkers[b.name] = marker;
   const initialPlacement = labelPlacementFor(marker);
   marker.bindTooltip(b.name, { className: "area-label area-label-floating", permanent: true, direction: initialPlacement.direction, offset: initialPlacement.offset, interactive: false });
-  marker.bindPopup(`
+  marker.bindPopup(() => `
     <div class="boulder-popup">
       <strong>${b.name}</strong>
       ${b.note ? `<p style="color:var(--closed);font-weight:600;">${b.note}</p>` : ""}
@@ -2240,7 +2240,7 @@ const parkingPinIcon = L.divIcon({
 PARKING_SPOTS.forEach(p => {
   const marker = L.marker([p.lat, p.lng], { icon: parkingPinIcon }).addTo(map);
   marker.bindTooltip(p.name, { className: "area-label", direction: "top", offset: [0, -14] });
-  marker.bindPopup(`
+  marker.bindPopup(() => `
     <div class="boulder-popup">
       <strong>${p.name}</strong>
       <div class="modal-detail-stack">
@@ -2426,7 +2426,13 @@ function handleSliders(e) {
     if (e && e.target === minSlider) maxSlider.value = min; else minSlider.value = max;
   }
   updateTrackFill();
-  render();
+  scheduleRender();
+}
+// Dragging a slider fires many input events; redraw the table at most once per frame.
+let renderFrame = 0;
+function scheduleRender() {
+  if (renderFrame) return;
+  renderFrame = requestAnimationFrame(() => { renderFrame = 0; render(); });
 }
 
 // Bring whichever thumb the cursor is nearest to the front, so hover/click
@@ -2774,8 +2780,13 @@ function updateAreaOptions() {
   areaFilter.value = availableAreas.includes(currentVal) ? currentVal : "";
 }
 
+let lastRenderKey = "";
 function render() {
   updateAreaOptions();
+  // Skip the table rebuild when nothing that affects it has changed.
+  const renderKey = [minSlider.value, maxSlider.value, areaFilter.value, [...getCheckedStars()].sort().join(), sortKey, sortDir].join("|");
+  if (renderKey === lastRenderKey) return;
+  lastRenderKey = renderKey;
   const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
   const areaVal = areaFilter.value;
   const checkedStars = getCheckedStars();
@@ -2870,7 +2881,7 @@ contactChip.addEventListener("click", () => {
 const backToTop = document.getElementById("back-to-top");
 window.addEventListener("scroll", () => {
   backToTop.classList.toggle("visible", window.scrollY > 400);
-});
+}, { passive: true });
 backToTop.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
