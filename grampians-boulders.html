@@ -550,7 +550,8 @@
   .weather-btn:hover .wx-cloud { stroke: var(--accent-light); }
   .modal-box.weather-box { width: 100%; max-width: 560px; box-sizing: border-box; }
   .modal-header h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
-  .wx-spots { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.8rem; }
+  .wx-spots { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .modal-box p.wx-covers { font-size: 0.8rem; margin: 0.5rem 0 0.8rem; }
   .wx-spot {
     font-family: inherit;
     font-size: 0.8rem;
@@ -1263,6 +1264,7 @@
         <button class="icon-btn" id="weather-close" type="button" aria-label="Close">✕</button>
       </div>
       <div class="wx-spots" id="wx-spots" role="group" aria-label="Forecast location"></div>
+      <p class="wx-covers" id="wx-covers"></p>
       <div class="wx-week-nav">
         <button class="icon-btn wx-arrow" id="wx-prev" type="button" aria-label="Previous week">‹</button>
         <div class="wx-week-label" id="wx-week-label" aria-live="polite"></div>
@@ -2503,9 +2505,8 @@ locationModal.addEventListener("click", (e) => { if (e.target === locationModal)
 
 // --- Weather modal (Open-Meteo, free, no API key) ---
 const WX_SPOTS = [
-  { name: "Northern Grampians", lat: -36.97, lng: 142.44 },
-  { name: "Halls Gap", lat: -37.14, lng: 142.52 },
-  { name: "Victoria Range", lat: -37.33, lng: 142.36 },
+  { name: "Northern Grampians", lat: -36.97, lng: 142.44, covers: "Andersens, Trackside, the Citadel and surrounds" },
+  { name: "Central Grampians", lat: -37.14, lng: 142.52, covers: "Bleachers, Venus Baths and surrounds" },
 ];
 const WX_DAYS_PER_PAGE = 7, WX_PAGES = 2, WX_PAST_DAYS = 2;
 const weatherModal = document.getElementById("weather-modal");
@@ -2514,6 +2515,7 @@ const wxPrev = document.getElementById("wx-prev");
 const wxNext = document.getElementById("wx-next");
 const wxWeekLabel = document.getElementById("wx-week-label");
 const wxSpots = document.getElementById("wx-spots");
+const wxCovers = document.getElementById("wx-covers");
 let wxData = null, wxLoading = false, wxSpot = 0, wxPage = 0;
 
 wxSpots.innerHTML = WX_SPOTS.map((sp, i) =>
@@ -2601,6 +2603,7 @@ async function loadWeather() {
 const wxFmt = (iso, opts) => new Date(iso + "T12:00:00").toLocaleDateString("en-AU", opts);
 
 function renderWeather() {
+  wxCovers.textContent = `Covers ${WX_SPOTS[wxSpot].covers}.`;
   wxPrev.disabled = wxPage === 0;
   wxNext.disabled = wxPage === WX_PAGES - 1;
   if (!wxData) return;
