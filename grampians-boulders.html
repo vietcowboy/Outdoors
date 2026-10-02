@@ -2147,18 +2147,70 @@ const boulderPinMarkers = {};
 let labelsEnabled = true;
 
 // Floating name label to the right of a pin, shifted up slightly (per the mockup).
-// If that would push the label off the edge of the map, flip it to the left side
-// and/or shift it down, so it stays fully visible as long as the pin itself is.
-function labelPlacementFor(marker) {
-  const point = map.latLngToContainerPoint(marker.getLatLng());
-  const size = map.getSize();
-  const direction = point.x > size.x - 150 ? "left" : "right";
-  const offsetY = point.y < 40 ? -2 : -14;
-  const offsetX = direction === "left" ? -14 : 14;
-  return { direction, offset: [offsetX, offsetY] };
+// When labels would collide with each other or with other pins (e.g. the dense
+// northern Grampians areas), each label tries alternative spots — the other side
+// of its pin, then stepped up or down — and takes the first one that is clear and
+// on screen, falling back to whichever spot overlaps least.
+const LABEL_H = 13;
+const LABEL_GAP_X = 14;
+const LABEL_BASE_Y = -14;
+const LABEL_STEPS_Y = [0, -14, 14, -28, 28, -42, 42];
+const labelWidthCache = {};
+let labelMeasureCtx = null;
+function labelWidth(name) {
+  if (labelWidthCache[name]) return labelWidthCache[name];
+  if (!labelMeasureCtx) {
+    labelMeasureCtx = document.createElement("canvas").getContext("2d");
+    const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    labelMeasureCtx.font = `700 ${0.68 * rootPx}px ${getComputedStyle(document.body).fontFamily}`;
+  }
+  return (labelWidthCache[name] = Math.ceil(labelMeasureCtx.measureText(name).width) + 4);
 }
-function refreshLabelPlacement(marker, name) {
-  const { direction, offset } = labelPlacementFor(marker);
+function labelRect(point, w, direction, offset) {
+  const x = direction === "right" ? point.x + offset[0] : point.x + offset[0] - w;
+  const y = point.y + offset[1] - LABEL_H / 2;
+  return { x1: x, y1: y, x2: x + w, y2: y + LABEL_H };
+}
+function rectOverlap(a, b) {
+  const w = Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1);
+  const h = Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1);
+  return w > 0 && h > 0 ? w * h : 0;
+}
+function layoutLabels() {
+  const size = map.getSize();
+  const bounds = map.getBounds().pad(0.2);
+  const items = BOULDER_PINS
+    .filter(b => boulderPinMarkers[b.name] && bounds.contains(boulderPinMarkers[b.name].getLatLng()))
+    .map(b => ({ name: b.name, point: map.latLngToContainerPoint(boulderPinMarkers[b.name].getLatLng()) }));
+  // Pins are obstacles too, so a label never sits on top of another pin.
+  const taken = items.map(it => ({ x1: it.point.x - 13, y1: it.point.y - 34, x2: it.point.x + 13, y2: it.point.y }));
+  // Place top-to-bottom, then left-to-right, so stacks read in a natural order.
+  items.sort((a, b) => a.point.y - b.point.y || a.point.x - b.point.x);
+  const placements = {};
+  items.forEach(it => {
+    const w = labelWidth(it.name);
+    const preferLeft = it.point.x > size.x - 150;
+    const sides = preferLeft ? ["left", "right"] : ["right", "left"];
+    let best = null;
+    for (const dy of LABEL_STEPS_Y) {
+      for (const direction of sides) {
+        const offsetY = Math.max(LABEL_BASE_Y + dy, LABEL_H - it.point.y);
+        const offset = [direction === "left" ? -LABEL_GAP_X : LABEL_GAP_X, Math.round(offsetY)];
+        const rect = labelRect(it.point, w, direction, offset);
+        let score = taken.reduce((sum, r) => sum + rectOverlap(rect, r), 0);
+        if (rect.x1 < 0 || rect.x2 > size.x) score += 1e6;
+        if (!best || score < best.score) best = { score, direction, offset, rect };
+        if (score === 0) break;
+      }
+      if (best.score === 0) break;
+    }
+    taken.push(best.rect);
+    placements[it.name] = { direction: best.direction, offset: best.offset };
+  });
+  return placements;
+}
+function refreshLabelPlacement(marker, name, placement) {
+  const { direction, offset } = placement;
   const existing = marker.getTooltip();
   if (existing && existing.options.direction === direction &&
       existing.options.offset[0] === offset[0] && existing.options.offset[1] === offset[1]) {
@@ -2170,19 +2222,18 @@ function refreshLabelPlacement(marker, name) {
   if (wasOpen) marker.openTooltip();
 }
 function refreshAllLabelPlacements() {
-  BOULDER_PINS.forEach(b => {
-    const marker = boulderPinMarkers[b.name];
-    if (marker) refreshLabelPlacement(marker, b.name);
+  const placements = layoutLabels();
+  Object.entries(placements).forEach(([name, placement]) => {
+    refreshLabelPlacement(boulderPinMarkers[name], name, placement);
   });
 }
-map.on("moveend zoomend", refreshAllLabelPlacements);
+map.on("moveend zoomend resize", refreshAllLabelPlacements);
 
 BOULDER_PINS.forEach(b => {
   if (b.hidden) return; // off-limits area — kept in the data but not shown on the map
   const marker = L.marker([b.lat, b.lng], { icon: boulderPinIcon }).addTo(map);
   boulderPinMarkers[b.name] = marker;
-  const initialPlacement = labelPlacementFor(marker);
-  marker.bindTooltip(b.name, { className: "area-label area-label-floating", permanent: true, direction: initialPlacement.direction, offset: initialPlacement.offset, interactive: false });
+  marker.bindTooltip(b.name, { className: "area-label area-label-floating", permanent: true, direction: "right", offset: [LABEL_GAP_X, LABEL_BASE_Y], interactive: false });
   marker.bindPopup(() => `
     <div class="boulder-popup">
       <strong>${b.name}</strong>
