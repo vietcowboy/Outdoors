@@ -2205,10 +2205,28 @@ function layoutLabels() {
       if (best.score === 0) break;
     }
     taken.push(best.rect);
-    placements[it.name] = { direction: best.direction, offset: best.offset };
+    placements[it.name] = { direction: best.direction, offset: best.offset, rect: best.rect, moved: best.direction !== sides[0] || best.offset[1] !== LABEL_BASE_Y };
   });
   return placements;
 }
+// Leader lines join any label that was moved off its usual spot back to the tip
+// of its pin, with a small red dot where the pin points. Lines sit under the pins;
+// the dots sit on top so they stay visible at the tip.
+map.createPane("labelLeaders").style.zIndex = 450;
+map.createPane("labelLeaderDots").style.zIndex = 650;
+const labelLeaders = L.layerGroup().addTo(map);
+function drawLabelLeaders(placements) {
+  labelLeaders.clearLayers();
+  Object.entries(placements).forEach(([name, pl]) => {
+    if (!pl.moved) return;
+    const tip = boulderPinMarkers[name].getLatLng();
+    const end = map.containerPointToLatLng([pl.direction === "right" ? pl.rect.x1 - 2 : pl.rect.x2 + 2, (pl.rect.y1 + pl.rect.y2) / 2]);
+    L.polyline([tip, end], { pane: "labelLeaders", color: "#000", weight: 3, opacity: 0.45, interactive: false }).addTo(labelLeaders);
+    L.polyline([tip, end], { pane: "labelLeaders", color: "#fff", weight: 1.3, opacity: 0.95, interactive: false }).addTo(labelLeaders);
+    L.circleMarker(tip, { pane: "labelLeaderDots", radius: 3, color: "#fff", weight: 1, fillColor: "#e05c4a", fillOpacity: 1, interactive: false }).addTo(labelLeaders);
+  });
+}
+
 function refreshLabelPlacement(marker, name, placement) {
   const { direction, offset } = placement;
   const existing = marker.getTooltip();
@@ -2226,6 +2244,7 @@ function refreshAllLabelPlacements() {
   Object.entries(placements).forEach(([name, placement]) => {
     refreshLabelPlacement(boulderPinMarkers[name], name, placement);
   });
+  drawLabelLeaders(placements);
 }
 map.on("moveend zoomend resize", refreshAllLabelPlacements);
 
@@ -2276,6 +2295,7 @@ const LabelsToggleControl = L.Control.extend({
     const checkbox = container.querySelector("input");
     L.DomEvent.on(checkbox, "change", () => {
       labelsEnabled = checkbox.checked;
+      if (labelsEnabled) labelLeaders.addTo(map); else labelLeaders.remove();
       Object.entries(boulderPinMarkers).forEach(([name, marker]) => {
         if (labelsEnabled) {
           marker.openTooltip();
