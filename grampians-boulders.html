@@ -550,6 +550,8 @@
   .wx-week-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 0.5rem; }
   .wx-week-label { font-size: 0.88rem; font-weight: 600; color: var(--text); text-align: center; padding: 0.3rem 0.9rem; border: 1px solid var(--border); border-radius: 999px; white-space: nowrap; }
   .wx-arrow { width: 2rem; height: 2rem; font-size: 1rem; }
+  .wx-arrow:not(:disabled) { background: var(--grade-green-bg); color: var(--grade-green); font-weight: 700; }
+  .wx-arrow:not(:disabled):hover { background: var(--accent); color: var(--on-accent); }
   .wx-arrow:disabled { opacity: 0.35; cursor: default; background: none; }
   .wx-days { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
   .wx-day {
