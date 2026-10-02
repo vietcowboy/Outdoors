@@ -532,7 +532,7 @@
   .weather-btn:hover { filter: brightness(1.1); }
   .weather-btn .wx-sun { fill: currentColor; }
   .weather-btn .wx-cloud { fill: currentColor; stroke: var(--accent); stroke-width: 1.6; }
-  .modal-box.weather-box { width: 100%; max-width: 560px; box-sizing: border-box; }
+  .modal-box.weather-box, .modal-box.modal-wide { width: 100%; max-width: 560px; box-sizing: border-box; }
   .modal-header h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
   .wx-spots { display: flex; flex-wrap: wrap; gap: 0.4rem; }
   .modal-box p.wx-covers { font-size: 0.8rem; margin: 0.5rem 0 0.8rem; }
@@ -1195,7 +1195,7 @@
   </div>
 
   <div class="modal-overlay" id="attribution-modal" hidden>
-    <div class="modal-box">
+    <div class="modal-box modal-wide">
       <div class="modal-header">
         <strong>Important: Read this first</strong>
         <button class="icon-btn" id="attribution-close" type="button" aria-label="Close">✕</button>
@@ -1243,7 +1243,7 @@
   </div>
 
   <div class="modal-overlay" id="location-modal" hidden>
-    <div class="modal-box">
+    <div class="modal-box modal-wide">
       <div class="modal-header">
         <strong>Switch location</strong>
         <button class="icon-btn" id="location-close" type="button" aria-label="Close">✕</button>
