@@ -554,7 +554,7 @@
   .wx-days { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
   .wx-day {
     display: grid;
-    grid-template-columns: 6.4rem 6.1rem 4rem 4.6rem;
+    grid-template-columns: 8.3rem 4rem 4rem 4.6rem;
     justify-content: space-between;
     align-items: center;
     gap: 0.5rem;
@@ -567,7 +567,7 @@
   .wx-date strong { color: var(--text); font-size: 0.88rem; }
   .wx-icon { color: var(--text); display: flex; }
   .wx-wx { display: flex; align-items: center; gap: 8px; }
-  .wx-head-rain { padding-left: calc(22px + 8px); }
+  .wx-head-day { padding-left: calc(22px + 8px); }
   .wx-rain, .wx-wind { display: flex; flex-direction: column; line-height: 1.25; white-space: nowrap; }
   .wx-rain strong { font-size: 0.95rem; color: var(--text); }
   .wx-rain.is-wet strong { color: var(--link); }
@@ -585,7 +585,7 @@
   .wx-cond.average { color: var(--grade-orange); background: var(--grade-orange-bg); }
   .wx-cond.bad { color: var(--grade-red); background: var(--grade-red-bg); }
   .wx-temp { display: flex; gap: 0.3rem; margin-top: 0.15rem; line-height: 1.3; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
-  .wx-tsep { color: var(--text); }
+  .wx-tsep { color: var(--muted); font-weight: 400; }
   .wx-short { display: none; }
   .wx-tmin { color: var(--link); }
   .wx-tmax { color: var(--grade-red); }
@@ -597,7 +597,7 @@
     .wx-day { grid-template-columns: 4.8rem 3.2rem 3.6rem 3.3rem; gap: 0.4rem; font-size: 0.74rem; }
     .wx-date strong { font-size: 0.8rem; }
     .wx-icon { display: none; }
-    .wx-head-rain { padding-left: 0; }
+    .wx-head-day { padding-left: 0; }
     .wx-temp { font-size: 0.78rem; }
     .wx-long { display: none; }
     .wx-short { display: inline; }
@@ -2622,7 +2622,7 @@ function renderWeather() {
   if (!days.length) return;
   const range = { weekday: "short", day: "numeric", month: "short" };
   wxWeekLabel.textContent = `${wxFmt(days[0].date, range)} – ${wxFmt(days[days.length - 1].date, range)}`;
-  wxBody.innerHTML = '<div class="wx-day wx-head" aria-hidden="true"><span>Day</span><span class="wx-head-rain">Rain</span><span>Wind</span><span>Conditions</span></div><ul class="wx-days">' + days.map((day, k) => {
+  wxBody.innerHTML = '<div class="wx-day wx-head" aria-hidden="true"><span class="wx-head-day">Day</span><span>Rain</span><span>Wind</span><span>Conditions</span></div><ul class="wx-days">' + days.map((day, k) => {
     const idx = start + k;
     const overall = idx - WX_PAST_DAYS;
     const dayName = overall === 0 ? "Today" : overall === 1 ? "Tomorrow" : `<span class="wx-long">${wxFmt(day.date, { weekday: "long" })}</span><span class="wx-short">${wxFmt(day.date, { weekday: "short" })}</span>`;
@@ -2630,10 +2630,10 @@ function renderWeather() {
     const cond = wxConditions(day);
     const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
     return `<li class="wx-day">
-      <div class="wx-date"><strong>${dayName}</strong><span>${wxFmt(day.date, { weekday: overall <= 1 ? "short" : undefined, day: "numeric", month: "short" })}</span>
-        <div class="wx-temp"><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-tsep">-</span><span class="wx-tmax">${Math.round(day.tmax)}°</span></div></div>
       <div class="wx-wx"><div class="wx-icon" title="${desc}"><svg width="22" height="22" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div>
-      <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}"><strong>${rainMm} mm</strong><span>${Math.round(day.prob)}%</span></div></div>
+      <div class="wx-date"><strong>${dayName}</strong><span>${wxFmt(day.date, { weekday: overall <= 1 ? "short" : undefined, day: "numeric", month: "short" })}</span>
+        <div class="wx-temp"><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-tsep">-</span><span class="wx-tmax">${Math.round(day.tmax)}°</span></div></div></div>
+      <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}"><strong>${rainMm} mm</strong><span>${Math.round(day.prob)}%</span></div>
       <div class="wx-wind"><strong>${Math.round(day.wind)} km/h</strong></div>
       <span class="wx-cond ${cond.level}" title="${cond.label}: ${cond.why}">${cond.label}</span>
     </li>`;
