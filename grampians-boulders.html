@@ -2617,7 +2617,7 @@ function wxHourly(day) {
     return `<div class="wx-bar" title="${tip}"><span style="height:${pct}%;opacity:${(0.35 + 0.65 * h.prob / 100).toFixed(2)}"></span>${h.mm >= 0.1 ? `<b style="bottom:${pct}%">${h.mm.toFixed(1)}</b>` : ""}</div>`;
   }).join("")}</div></div>
   <div class="wx-bar-axis">${[0, 3, 6, 9, 12, 15, 18, 21].map(h => `<span>${wxHourLabel(h)}</span>`).join("")}</div>
-  <p class="wx-hourly-key">Rainfall per hour in mm. Paler bars are less likely. Hover a bar for exact amounts.</p>`;
+  <p class="wx-hourly-key">Rain each hour, in mm. Darker bars mean a higher chance of rain.</p>`;
 }
 
 async function loadWeather() {
