@@ -2743,7 +2743,7 @@ function renderWeather() {
   if (!days.length) return;
   const range = { weekday: "short", day: "numeric", month: "short" };
   wxWeekLabel.textContent = `${wxFmt(days[0].date, range)} – ${wxFmt(days[days.length - 1].date, range)}`;
-  wxBody.innerHTML = '<div class="wx-day wx-head" aria-hidden="true"><span class="wx-head-day">Day</span><span>Rain &amp; wind</span><span>Conditions</span><span></span></div><ul class="wx-days">' + days.map((day, k) => {
+  wxBody.innerHTML = '<div class="wx-day wx-head" aria-hidden="true"><span class="wx-head-day">Day</span><span>Rain &amp; wind</span><span>Climb<br>conditions</span><span></span></div><ul class="wx-days">' + days.map((day, k) => {
     const idx = start + k;
     const overall = idx - WX_PAST_DAYS;
     const dayName = overall === 0 ? "Today" : overall === 1 ? "Tomorrow" : `<span class="wx-long">${wxFmt(day.date, { weekday: "long" })}</span><span class="wx-short">${wxFmt(day.date, { weekday: "short" })}</span>`;
