@@ -583,7 +583,7 @@
   .modal-box p.wx-hourly-key, .modal-box p.wx-hourly-empty { font-size: 0.72rem; margin: 0.35rem 0 0; color: var(--muted); }
   .wx-date { display: flex; flex-direction: column; line-height: 1.25; }
   .wx-date strong { color: var(--text); font-size: 0.88rem; }
-  .wx-icon { color: var(--text); display: flex; }
+  .wx-icon { color: var(--text); display: flex; margin-right: 0.15rem; }
   .wx-wx { display: flex; align-items: center; gap: 8px; }
   .wx-rain { display: flex; flex-direction: column; line-height: 1.25; white-space: nowrap; }
   .wx-rain strong { font-size: 0.95rem; color: var(--text); }
@@ -600,7 +600,7 @@
   .wx-cond.good { color: var(--grade-green); background: var(--grade-green-bg); }
   .wx-cond.average { color: var(--grade-orange); background: var(--grade-orange-bg); }
   .wx-cond.bad { color: var(--grade-red); background: var(--grade-red-bg); }
-  .wx-temp { display: flex; gap: 0.3rem; margin-top: 0.15rem; line-height: 1.3; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
+  .wx-temp { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.15rem; line-height: 1.3; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
   .wx-tsep { color: var(--muted); font-weight: 400; }
   .wx-short { display: none; }
   .wx-tmin { color: var(--link); }
@@ -2750,9 +2750,9 @@ function renderWeather() {
     const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
     const open = wxOpen.has(day.date);
     return `<li class="wx-day${open ? " is-open" : ""}" data-date="${day.date}" tabindex="0" role="button" aria-expanded="${open}">
-      <div class="wx-wx"><div class="wx-icon" title="${desc}"><svg width="22" height="22" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div>
+      <div class="wx-wx">
       <div class="wx-date"><strong>${dayName}</strong><span>${wxFmt(day.date, { weekday: overall <= 1 ? "short" : undefined, day: "numeric", month: "short" })}</span>
-        <div class="wx-temp"><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-tsep">-</span><span class="wx-tmax">${Math.round(day.tmax)}°</span></div></div></div>
+        <div class="wx-temp"><div class="wx-icon" title="${desc}"><svg width="18" height="18" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-tsep">-</span><span class="wx-tmax">${Math.round(day.tmax)}°</span></div></div></div>
       <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}"><strong>${rainMm} mm</strong><span>${Math.round(day.prob)}%</span><span>${Math.round(day.wind)} km/h</span></div>
       <span class="wx-cond ${cond.level}" title="${cond.label}: ${cond.why}">${cond.label}</span>
       <svg class="wx-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${open ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"}"/></svg>
