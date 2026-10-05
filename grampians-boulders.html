@@ -2769,7 +2769,7 @@ function renderWeather() {
         <div class="wx-temp"><div class="wx-icon" title="${desc}"><svg width="18" height="18" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-tsep">-</span><span class="wx-tmax">${Math.round(day.tmax)}°</span></div></div></div>
       <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}"><strong>${rainMm} mm</strong><span>${Math.round(day.prob)}%</span><span>${Math.round(day.wind)} km/h</span></div>
       <div class="wx-conds">${day.cond.length === 1
-        ? `<span class="wx-cond ${day.cond[0].level}" title="${day.cond[0].label} all day: ${day.cond[0].why}">${day.cond[0].label}</span>`
+        ? `<span class="wx-cond ${day.cond[0].level}" title="${day.cond[0].label} all day: ${day.cond[0].why}">${day.cond[0].label} all day</span>`
         : day.cond.map(c => `<span class="wx-cond ${c.level}" title="${c.label} ${wxHourLabel(c.from)}–${wxHourLabel(c.to)}: ${c.why}">${c.label}: ${wxHourLabel(c.from)}–${wxHourLabel(c.to)}</span>`).join("")}</div>
       <svg class="wx-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${open ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"}"/></svg>
       ${open ? `<div class="wx-hourly">${wxHourly(day)}</div>` : ""}
