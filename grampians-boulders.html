@@ -547,7 +547,17 @@
     cursor: pointer;
   }
   .wx-spot[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
-  .wx-week-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 0.5rem; }
+  .wx-week-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
+  .wx-band-key { margin: 0 0 0.9rem; font-size: 0.7rem; color: var(--muted); }
+  .wx-band-key .wx-band-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--grade-red), var(--grade-orange), var(--grade-green));
+    opacity: 0.55;
+  }
+  .wx-band-labels { display: flex; justify-content: space-between; margin-top: 0.2rem; }
+  .wx-band-labels span { white-space: nowrap; }
+  .wx-band-labels span:nth-child(2) { text-align: center; }
   .wx-week-label { font-size: 0.88rem; font-weight: 600; color: var(--text); text-align: center; white-space: nowrap; }
   .wx-arrow { width: 2rem; height: 2rem; font-size: 1rem; }
   .wx-arrow:not(:disabled) { background: var(--grade-green-bg); color: var(--grade-green); font-weight: 700; }
@@ -574,6 +584,7 @@
   .wx-y span { position: absolute; right: 0; transform: translateY(50%); line-height: 1; }
   .wx-bars { position: relative; flex: 1; display: flex; align-items: flex-end; gap: 2px; height: 3.5rem; border-bottom: 1px solid var(--border); }
   .wx-bars i { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); opacity: 0.6; pointer-events: none; }
+  .wx-band { position: absolute; inset: 0; opacity: 0.28; border-radius: 2px; pointer-events: none; }
   .wx-chev { color: var(--muted); justify-self: end; }
   .wx-bar { position: relative; flex: 1; height: 100%; display: flex; align-items: flex-end; }
   .wx-bar b { position: absolute; left: 50%; transform: translateX(-50%); margin-bottom: 1px; font-size: 0.5rem; font-weight: 600; color: var(--text); line-height: 1; white-space: nowrap; letter-spacing: -0.02em; }
@@ -1268,6 +1279,10 @@
       </div>
       <div class="wx-spots" id="wx-spots" role="group" aria-label="Forecast location"></div>
       <p class="wx-covers" id="wx-covers"></p>
+      <div class="wx-band-key">
+        <div class="wx-band-bar" aria-hidden="true"></div>
+        <div class="wx-band-labels"><span>Bad</span><span>Check conditions</span><span>Good climbing</span></div>
+      </div>
       <div class="wx-week-nav">
         <button class="icon-btn wx-arrow" id="wx-prev" type="button" aria-label="Previous week">‹</button>
         <div class="wx-week-label" id="wx-week-label" aria-live="polite"></div>
@@ -2668,19 +2683,33 @@ function wxConditions(hourly, date) {
   }));
 }
 
-// The 24 hourly rain totals and chances for one day, for the expanded row.
+// The 24 hourly rain totals and chances for one day, plus the conditions level
+// at each hour, for the expanded row.
 function wxHours(hourly, date) {
   const i = hourly.time.indexOf(`${date}T00:00`);
   if (i < 0) return [];
-  return hourly.time.slice(i, i + 24).map((t, k) => ({
-    hour: k,
-    mm: hourly.precipitation[i + k] ?? 0,
-    prob: hourly.precipitation_probability?.[i + k] ?? 0,
-  }));
+  return hourly.time.slice(i, i + 24).map((t, k) => {
+    const { rain24, dryHours } = wxDrynessAt(hourly.precipitation, i + k);
+    return {
+      hour: k,
+      mm: hourly.precipitation[i + k] ?? 0,
+      prob: hourly.precipitation_probability?.[i + k] ?? 0,
+      lv: wxLevel(rain24, dryHours),
+    };
+  });
 }
 
 const wxOpen = new Set();
 const wxHourLabel = h => h === 0 ? "12am" : h === 12 ? "12pm" : h < 12 ? `${h}am` : `${h - 12}pm`;
+
+// A green/yellow/red wash behind the rainfall bars, showing the conditions
+// level hour by hour. Stops sit at hour centres so neighbouring levels blend.
+const WX_BAND_COLOURS = ["var(--grade-green)", "var(--grade-orange)", "var(--grade-red)"];
+function wxCondBand(hours) {
+  if (!hours.length) return "";
+  const stops = hours.map((h, k) => `${WX_BAND_COLOURS[h.lv]} ${(((k + 0.5) / hours.length) * 100).toFixed(2)}%`);
+  return `<div class="wx-band" aria-hidden="true" style="background:linear-gradient(to right,${stops.join(",")})"></div>`;
+}
 
 function wxHourly(day) {
   if (!day.hours.length) return '<p class="wx-hourly-empty">No hourly forecast for this day.</p>';
@@ -2692,13 +2721,13 @@ function wxHourly(day) {
   for (let v = max; v >= 0; v -= step) ticks.push(v);
   const yAxis = `<div class="wx-y">${ticks.map(v => `<span style="bottom:${(v / max) * 100}%">${v}</span>`).join("")}</div>`;
   const grid = ticks.map(v => `<i style="bottom:${(v / max) * 100}%"></i>`).join("");
-  return `<div class="wx-chart">${yAxis}<div class="wx-bars" role="img" aria-label="Hourly rainfall in mm">${grid}${day.hours.map(h => {
+  return `<div class="wx-chart">${yAxis}<div class="wx-bars" role="img" aria-label="Hourly rainfall in mm">${wxCondBand(day.hours)}${grid}${day.hours.map(h => {
     const pct = h.mm < 0.1 ? 0 : Math.max(6, (h.mm / max) * 100);
     const tip = `${wxHourLabel(h.hour)}: ${h.mm < 0.1 ? "0" : h.mm.toFixed(1)} mm, ${Math.round(h.prob)}% chance`;
     return `<div class="wx-bar" title="${tip}"><span style="height:${pct}%;opacity:${(0.35 + 0.65 * h.prob / 100).toFixed(2)}"></span>${h.mm >= 0.1 ? `<b style="bottom:${pct}%">${h.mm.toFixed(1)}</b>` : ""}</div>`;
   }).join("")}</div></div>
   <div class="wx-bar-axis">${[0, 3, 6, 9, 12, 15, 18, 21].map(h => `<span>${wxHourLabel(h)}</span>`).join("")}</div>
-  <p class="wx-hourly-key">Rain each hour, in mm. Darker bars mean a higher chance of rain.</p>`;
+  <p class="wx-hourly-key">Rain each hour, in mm. Darker bars mean a higher chance of rain. The wash behind the bars is the climbing conditions at that hour.</p>`;
 }
 
 async function loadWeather() {
