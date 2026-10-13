@@ -577,8 +577,9 @@
   .wx-bar-axis { display: flex; font-size: 0.66rem; color: var(--muted); margin-top: 0.2rem; padding-left: 1.05rem; }
   .wx-bar-axis span { flex: 1; }
   .modal-box p.wx-hourly-empty { font-size: 0.72rem; margin: 0.35rem 0 0; color: var(--muted); }
-  .wx-date { display: flex; flex-direction: column; line-height: 1.25; }
-  .wx-date strong { color: var(--text); font-size: 0.88rem; }
+  /* Own line above the summary: bold all-caps weekday, then a low-emphasis date. */
+  .wx-date { display: flex; align-items: baseline; gap: 0.4rem; line-height: 1.25; margin-bottom: 0.5rem; }
+  .wx-date strong { color: var(--text); font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.04em; }
   .wx-icon { color: var(--text); display: flex; margin-right: 0.15rem; }
   .wx-rain { display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; color: var(--text); }
   .wx-rain-text { display: flex; flex-direction: column; line-height: 1.2; }
@@ -2898,11 +2899,15 @@ async function loadWeather() {
 
 const wxFmt = (iso, opts) => new Date(iso + "T12:00:00").toLocaleDateString("en-AU", opts);
 
-function wxDayBody(day) {
+// showDate is false for the Yesterday card, whose collapsed header already names the day.
+function wxDayBody(day, showDate = true) {
   const [icon, desc] = wxKind(day.code);
   const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
-  return `<div class="wx-summary">
-      <div class="wx-date"><strong>${wxFmt(day.date, { weekday: "short" })}</strong><span>${wxFmt(day.date, { day: "numeric", month: "short" })}</span></div>
+  const dateLine = showDate
+    ? `<div class="wx-date"><strong>${wxFmt(day.date, { weekday: "short" })}</strong><span>${wxFmt(day.date, { day: "numeric", month: "short" })}</span></div>`
+    : "";
+  return `${dateLine}
+    <div class="wx-summary">
       <div class="wx-temp"><div class="wx-icon" title="${desc}"><svg width="18" height="18" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div><span class="wx-temp-range"><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-tsep">-</span><span class="wx-tmax">${Math.round(day.tmax)}°</span></span></div>
       <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5s7 7.8 7 12.5a7 7 0 1 1-14 0C5 10.3 12 2.5 12 2.5Z" fill="currentColor"/></svg>
@@ -2930,7 +2935,7 @@ function wxYesterdayCard(all) {
       <span class="wx-yesterday-date">${wxFmt(day.date, { weekday: "short", day: "numeric", month: "short" })}</span>
       <svg class="wx-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
-    <div class="wx-yesterday-body"${wxYesterdayOpen ? "" : " hidden"}>${wxDayBody(day)}</div>
+    <div class="wx-yesterday-body"${wxYesterdayOpen ? "" : " hidden"}>${wxDayBody(day, false)}</div>
   </li>`;
 }
 
