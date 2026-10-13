@@ -2766,7 +2766,7 @@ function wxTempLine(hours) {
   const pts = hours.map((h, k) => {
     const x = ((k + 0.5) / hours.length) * 100;
     const y = h.temp == null ? null : (100 - padBottom) - ((h.temp - tMin) / range) * (100 - padTop - padBottom);
-    return { x, y, temp: h.temp };
+    return { x, y, temp: h.temp, idx: k };
   }).filter(p => p.y != null);
   if (!pts.length) return "";
   const line = pts.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
@@ -2774,7 +2774,17 @@ function wxTempLine(hours) {
     <polyline points="${line}" fill="none" stroke="var(--grade-orange)" stroke-width="0.9" vector-effect="non-scaling-stroke"/>
   </svg>`;
   const dots = `<div class="wx-temp-dots" aria-hidden="true">${pts.map(p => `<span style="left:${p.x.toFixed(2)}%;top:${p.y.toFixed(2)}%"></span>`).join("")}</div>`;
-  const labels = `<div class="wx-temp-labels" aria-hidden="true">${pts.map((p, k) => `<span data-i3="${k % 3}" style="left:${p.x.toFixed(2)}%;top:${p.y.toFixed(2)}%">${Math.round(p.temp)}°</span>`).join("")}</div>`;
+  // Rain values are pinned near the bottom of the chart (~85%+ from the
+  // top) — if a temperature label would land in that band on an hour
+  // that also has a rain value, push it up clear of the collision so
+  // both stay legible instead of overlapping.
+  const RAIN_LABEL_ZONE = 82;
+  const CLEAR_OF_RAIN = 70;
+  const labels = `<div class="wx-temp-labels" aria-hidden="true">${pts.map(p => {
+    const collides = hours[p.idx].mm >= 0.1 && p.y > RAIN_LABEL_ZONE;
+    const labelY = collides ? Math.min(p.y, CLEAR_OF_RAIN) : p.y;
+    return `<span data-i3="${p.idx % 3}" style="left:${p.x.toFixed(2)}%;top:${labelY.toFixed(2)}%">${Math.round(p.temp)}°</span>`;
+  }).join("")}</div>`;
   return svg + dots + labels;
 }
 
