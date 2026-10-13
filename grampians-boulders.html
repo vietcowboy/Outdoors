@@ -20,6 +20,7 @@
   :root {
     --bg: #f7f5f2;
     --panel: #ffffff;
+    --card: #faf9f6;
     --text: #1f2320;
     --muted: #6b6f6c;
     --border: #e2ddd5;
@@ -60,6 +61,7 @@
     :root:not([data-theme="light"]) {
       --bg: #1b1d1a;
       --panel: #24261f;
+      --card: #2d2f27;
       --text: #eae7df;
       --muted: #a3a79c;
       --border: #3a3d34;
@@ -94,6 +96,7 @@
   :root[data-theme="dark"] {
     --bg: #1b1d1a;
     --panel: #24261f;
+    --card: #2d2f27;
     --text: #eae7df;
     --muted: #a3a79c;
     --border: #3a3d34;
@@ -352,8 +355,15 @@
     color: var(--muted) !important;
   }
   .leaflet-control-attribution a { color: var(--link) !important; }
+  .map-toggle-row { display: none; }
   .map-body { margin-bottom: 16px; }
   .map-body[hidden] { margin-bottom: 0; }
+  @media (min-width: 768px) {
+    .map-toggle-row { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  }
+  @media (min-width: 961px) {
+    #climbs-results { padding-top: 44px; }
+  }
   .boulder-pin {
     width: 24px;
     height: 24px;
@@ -524,14 +534,14 @@
   .wx-arrow:not(:disabled) { background: var(--grade-green-bg); color: var(--grade-green); font-weight: 700; }
   .wx-arrow:not(:disabled):hover { background: var(--accent); color: var(--on-accent); }
   .wx-arrow:disabled { opacity: 0.35; cursor: default; background: none; }
-  #wx-body { max-height: 70vh; overflow-y: auto; }
+  #wx-body { max-height: 70vh; overflow-y: auto; padding-right: 16px; }
   .wx-days { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
   .wx-day {
     padding: 0.9rem;
     border-radius: 10px;
-    background: var(--panel);
+    background: var(--card);
     border: 1px solid var(--border);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.18);
     font-size: 0.82rem;
     color: var(--muted);
   }
@@ -544,7 +554,7 @@
   .wx-bars { position: relative; flex: 1; display: flex; align-items: flex-end; gap: 2px; height: 6rem; border-bottom: 1px solid var(--border); }
   .wx-temp-line { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 2; }
   .wx-temp-labels { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
-  .wx-temp-labels span { position: absolute; transform: translate(-50%, 0); font-size: 0.64rem; font-weight: 700; color: var(--text); white-space: nowrap; background: var(--panel); padding: 0 3px; border-radius: 3px; }
+  .wx-temp-labels span { position: absolute; transform: translate(-50%, -50%); font-size: 0.64rem; font-weight: 700; color: #1f2320; white-space: nowrap; background: var(--grade-orange); padding: 1px 4px; border-radius: 3px; }
   .wx-temp-dots { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
   .wx-temp-dots span { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--grade-orange); transform: translate(-50%, -50%); }
   .wx-bars i { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); opacity: 0.6; pointer-events: none; }
@@ -1125,7 +1135,6 @@
   .modal-list li { margin-bottom: 0.5rem; }
   .modal-list li:last-child { margin-bottom: 0; }
   .modal-list.location-list { padding-left: 0; margin: 0; }
-  .map-body { margin-top: 16px; }
   .map-body[hidden] { display: none; }
   .area-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
   .area-value-row { display: flex; align-items: center; gap: 0.35rem; }
@@ -1315,12 +1324,6 @@
           </button>
           <h2>Grampians</h2>
         </div>
-        <button class="map-switch climbs-only map-toggle-desktop" id="map-toggle-desktop" type="button" role="switch" aria-checked="true" aria-label="Show/hide map" title="Show/hide map">
-          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M1.5 3.5L5.5 2L10.5 3.5L14.5 2V12.5L10.5 14L5.5 12.5L1.5 14V3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-            <path d="M5.5 2V12.5M10.5 3.5V14" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
-        </button>
       </div>
       <div class="location-header-right">
         <button class="map-switch climbs-only map-toggle-mobile" id="map-toggle-mobile" type="button" role="switch" aria-checked="true" aria-label="Show/hide map" title="Show/hide map">
@@ -1332,13 +1335,13 @@
         <div class="view-tabs view-tabs-compact" role="tablist">
           <button class="view-tab" id="tab-weather" type="button" role="tab" aria-selected="true" aria-label="Weather" title="Weather">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M10.8 11A4.5 4.5 0 1 1 18.8 10.6" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>
-              <line x1="15" y1="1.6" x2="15" y2="3.6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-              <line x1="20.3" y1="8" x2="22.3" y2="8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-              <line x1="9.7" y1="8" x2="7.7" y2="8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-              <line x1="18.6" y1="3.9" x2="20" y2="2.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-              <line x1="11.4" y1="3.9" x2="10" y2="2.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-              <path d="M9 20.5a4 4 0 0 1-.4-7.98 5.2 5.2 0 0 1 9.98-1.9A4.1 4.1 0 0 1 18.3 20.5H9Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M10.8 11A4.5 4.5 0 1 1 18.8 10.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+              <line x1="15" y1="1.6" x2="15" y2="3.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="20.3" y1="8" x2="22.3" y2="8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="9.7" y1="8" x2="7.7" y2="8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="18.6" y1="3.9" x2="20" y2="2.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="11.4" y1="3.9" x2="10" y2="2.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="M9 20.5a4 4 0 0 1-.4-7.98 5.2 5.2 0 0 1 9.98-1.9A4.1 4.1 0 0 1 18.3 20.5H9Z" fill="currentColor"/>
             </svg>
           </button>
           <button class="view-tab" id="tab-climbs" type="button" role="tab" aria-selected="false" aria-label="Find climbs" title="Find climbs">
@@ -1351,13 +1354,13 @@
         <div class="view-tabs view-tabs-wide" role="tablist">
           <button class="view-tab-wide" id="tab-weather-wide" type="button" role="tab" aria-selected="true">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M10.8 11A4.5 4.5 0 1 1 18.8 10.6" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>
-              <line x1="15" y1="1.6" x2="15" y2="3.6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-              <line x1="20.3" y1="8" x2="22.3" y2="8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-              <line x1="9.7" y1="8" x2="7.7" y2="8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-              <line x1="18.6" y1="3.9" x2="20" y2="2.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-              <line x1="11.4" y1="3.9" x2="10" y2="2.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-              <path d="M9 20.5a4 4 0 0 1-.4-7.98 5.2 5.2 0 0 1 9.98-1.9A4.1 4.1 0 0 1 18.3 20.5H9Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M10.8 11A4.5 4.5 0 1 1 18.8 10.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+              <line x1="15" y1="1.6" x2="15" y2="3.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="20.3" y1="8" x2="22.3" y2="8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="9.7" y1="8" x2="7.7" y2="8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="18.6" y1="3.9" x2="20" y2="2.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="11.4" y1="3.9" x2="10" y2="2.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="M9 20.5a4 4 0 0 1-.4-7.98 5.2 5.2 0 0 1 9.98-1.9A4.1 4.1 0 0 1 18.3 20.5H9Z" fill="currentColor"/>
             </svg>
             <span>Weather</span>
           </button>
@@ -1389,6 +1392,14 @@
 
     <div class="climbs-layout climbs-only" id="climbs-layout">
       <div id="climbs-filters">
+        <div class="map-toggle-row">
+          <button class="map-switch climbs-only map-toggle-desktop" id="map-toggle-desktop" type="button" role="switch" aria-checked="true" aria-label="Show/hide map" title="Show/hide map">
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M1.5 3.5L5.5 2L10.5 3.5L14.5 2V12.5L10.5 14L5.5 12.5L1.5 14V3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M5.5 2V12.5M10.5 3.5V14" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </button>
+        </div>
         <div class="map-body" id="map-body">
           <div id="map"></div>
         </div>
@@ -2788,7 +2799,7 @@ function wxTempLine(hours) {
     <polyline points="${line}" fill="none" stroke="var(--grade-orange)" stroke-width="0.9" vector-effect="non-scaling-stroke"/>
   </svg>`;
   const dots = `<div class="wx-temp-dots" aria-hidden="true">${pts.map(p => `<span style="left:${p.x.toFixed(2)}%;top:${p.y.toFixed(2)}%"></span>`).join("")}</div>`;
-  const labels = `<div class="wx-temp-labels" aria-hidden="true">${pts.map((p, k) => `<span data-i3="${k % 3}" style="left:${p.x.toFixed(2)}%;top:${Math.max(0, p.y - 15).toFixed(2)}%">${Math.round(p.temp)}°</span>`).join("")}</div>`;
+  const labels = `<div class="wx-temp-labels" aria-hidden="true">${pts.map((p, k) => `<span data-i3="${k % 3}" style="left:${p.x.toFixed(2)}%;top:${p.y.toFixed(2)}%">${Math.round(p.temp)}°</span>`).join("")}</div>`;
   return svg + dots + labels;
 }
 
