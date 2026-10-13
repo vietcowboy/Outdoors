@@ -655,8 +655,6 @@
   }
   .view-tab-wide svg { flex-shrink: 0; }
   .view-tab-wide[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
-  .map-toggle-mobile, .map-toggle-desktop { display: none; }
-  .map-toggle-mobile:not([hidden]) { display: inline-flex; }
   @media (min-width: 768px) {
     .view-tabs-compact { display: none; }
     .view-tabs-wide {
@@ -667,20 +665,12 @@
       padding: 4px;
       flex-shrink: 0;
     }
-    .map-toggle-mobile:not([hidden]) { display: none; }
-    .map-toggle-desktop:not([hidden]) { display: inline-flex; }
   }
   .weather-only[hidden], .climbs-only[hidden], .climbs-layout[hidden] { display: none; }
   #weather-panel { margin-top: 16px; }
   .climbs-layout { margin-top: 16px; }
   @media (min-width: 961px) {
     .climbs-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
-  }
-  @media (max-width: 600px) {
-    .location-header { flex-wrap: wrap; row-gap: 10px; }
-    .location-header-right { width: 100%; justify-content: space-between; }
-    body.view-weather .location-header { flex-wrap: nowrap; }
-    body.view-weather .location-header-right { width: auto; justify-content: flex-end; }
   }
   .location-list { list-style: none; padding: 0; margin: 0; }
   .location-option {
@@ -1329,12 +1319,6 @@
         </div>
       </div>
       <div class="location-header-right">
-        <button class="map-switch climbs-only map-toggle-mobile" id="map-toggle-mobile" type="button" role="switch" aria-checked="true" aria-label="Show/hide map" title="Show/hide map">
-          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M1.5 3.5L5.5 2L10.5 3.5L14.5 2V12.5L10.5 14L5.5 12.5L1.5 14V3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-            <path d="M5.5 2V12.5M10.5 3.5V14" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
-        </button>
         <div class="view-tabs view-tabs-compact" role="tablist">
           <button class="view-tab" id="tab-weather" type="button" role="tab" aria-selected="true" aria-label="Weather" title="Weather">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -2614,7 +2598,7 @@ function updateSliderStacking(clientX) {
 sliderWrap.addEventListener("pointermove", (e) => updateSliderStacking(e.clientX));
 sliderWrap.addEventListener("pointerdown", (e) => updateSliderStacking(e.clientX));
 
-const mapToggles = [document.getElementById("map-toggle-desktop"), document.getElementById("map-toggle-mobile")];
+const mapToggles = [document.getElementById("map-toggle-desktop")];
 const mapBody = document.getElementById("map-body");
 let mapOpen = true;
 function setMapOpen(open) {
@@ -2902,7 +2886,7 @@ const weatherTabs = [document.getElementById("tab-weather"), document.getElement
 const climbsTabs = [document.getElementById("tab-climbs"), document.getElementById("tab-climbs-wide")];
 const weatherPanel = document.getElementById("weather-panel");
 const climbsLayout = document.getElementById("climbs-layout");
-const mapToggleBtns = [document.getElementById("map-toggle-desktop"), document.getElementById("map-toggle-mobile")];
+const mapToggleBtns = [document.getElementById("map-toggle-desktop")];
 function setView(view) {
   const isWeather = view === "weather";
   weatherTabs.forEach(b => b.setAttribute("aria-selected", isWeather ? "true" : "false"));
