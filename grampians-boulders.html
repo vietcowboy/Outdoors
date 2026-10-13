@@ -21,6 +21,7 @@
     --bg: #f7f5f2;
     --panel: #ffffff;
     --card: #faf9f6;
+    --temp-label-text: #4a4e47;
     --text: #1f2320;
     --muted: #6b6f6c;
     --border: #e2ddd5;
@@ -355,14 +356,19 @@
     color: var(--muted) !important;
   }
   .leaflet-control-attribution a { color: var(--link) !important; }
-  .map-toggle-row { display: none; }
+  .map-body-wrap { position: relative; }
   .map-body { margin-bottom: 16px; }
   .map-body[hidden] { margin-bottom: 0; }
   @media (min-width: 768px) {
-    .map-toggle-row { display: flex; justify-content: flex-end; margin-bottom: 8px; }
-  }
-  @media (min-width: 961px) {
-    #climbs-results { padding-top: 44px; }
+    .map-body-wrap .map-toggle-desktop:not([hidden]) {
+      display: inline-flex;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 500;
+      background: var(--panel);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
   }
   .boulder-pin {
     width: 24px;
@@ -481,7 +487,7 @@
     gap: 0.5rem;
     margin-bottom: 0;
   }
-  .location-header-left { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex: 1; min-width: 0; }
+  .location-header-left { display: flex; align-items: center; justify-content: flex-start; gap: 0.5rem; flex: 1; min-width: 0; }
   .location-label { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
   .location-header-right { display: flex; align-items: center; gap: 0.6rem; }
   .weather-btn {
@@ -557,13 +563,13 @@
   .wx-bars { position: relative; flex: 1; display: flex; align-items: flex-end; gap: 2px; height: 6rem; border-bottom: 1px solid var(--border); }
   .wx-temp-line { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 2; }
   .wx-temp-labels { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
-  .wx-temp-labels span { position: absolute; transform: translate(-50%, -50%); font-size: 0.64rem; font-weight: 700; color: #1f2320; white-space: nowrap; background: var(--grade-orange); padding: 1px 4px; border-radius: 3px; }
+  .wx-temp-labels span { position: absolute; transform: translate(-50%, -50%); font-size: 0.64rem; font-weight: 700; color: var(--temp-label-text, #1f2320); white-space: nowrap; background: var(--grade-orange); padding: 1px 4px; border-radius: 3px; }
   .wx-temp-dots { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
   .wx-temp-dots span { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--grade-orange); transform: translate(-50%, -50%); }
   .wx-bars i { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); opacity: 0.6; pointer-events: none; }
   .wx-band { position: absolute; inset: 0; opacity: 0.28; border-radius: 2px; pointer-events: none; }
-  .wx-bar { position: relative; z-index: 1; flex: 1; height: 100%; display: flex; align-items: flex-end; }
-  .wx-bar b { position: absolute; left: 50%; transform: translateX(-50%); margin-bottom: 1px; font-size: 0.5rem; font-weight: 600; color: var(--text); line-height: 1; white-space: nowrap; letter-spacing: -0.02em; }
+  .wx-bar { position: relative; z-index: 4; flex: 1; height: 100%; display: flex; align-items: flex-end; }
+  .wx-bar b { position: absolute; left: 50%; bottom: 2px; transform: translateX(-50%); font-size: 0.5rem; font-weight: 600; color: var(--on-accent); background: var(--link); line-height: 1; white-space: nowrap; letter-spacing: -0.02em; padding: 1px 3px; border-radius: 3px; }
   .wx-bar span { display: block; width: 100%; background: var(--link); border-radius: 2px 2px 0 0; }
   .wx-bar-axis { display: flex; font-size: 0.66rem; color: var(--muted); margin-top: 0.2rem; padding-left: 1.45rem; }
   .wx-bar-axis span { flex: 1; }
@@ -1395,16 +1401,16 @@
 
     <div class="climbs-layout climbs-only" id="climbs-layout">
       <div id="climbs-filters">
-        <div class="map-toggle-row">
+        <div class="map-body-wrap">
           <button class="map-switch climbs-only map-toggle-desktop" id="map-toggle-desktop" type="button" role="switch" aria-checked="true" aria-label="Show/hide map" title="Show/hide map">
             <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M1.5 3.5L5.5 2L10.5 3.5L14.5 2V12.5L10.5 14L5.5 12.5L1.5 14V3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
               <path d="M5.5 2V12.5M10.5 3.5V14" stroke="currentColor" stroke-width="1.5"/>
             </svg>
           </button>
-        </div>
         <div class="map-body" id="map-body">
           <div id="map"></div>
+        </div>
         </div>
 
         <div class="controls-row">
@@ -2818,7 +2824,7 @@ function wxHourly(day) {
   return `<div class="wx-chart">${yAxis}<div class="wx-bars" role="img" aria-label="Hourly rainfall and temperature">${wxCondBand(day.hours)}${grid}${day.hours.map((h, k) => {
     const pct = h.mm < 0.1 ? 0 : Math.max(6, (h.mm / max) * 100);
     const tip = `${wxHourLabel(h.hour)}: ${h.mm < 0.1 ? "0" : h.mm.toFixed(1)} mm, ${Math.round(h.prob)}% chance${h.temp != null ? `, ${Math.round(h.temp)}°` : ""}`;
-    return `<div class="wx-bar" data-i3="${k % 3}" title="${tip}"><span style="height:${pct}%;opacity:${(0.35 + 0.65 * h.prob / 100).toFixed(2)}"></span>${h.mm >= 0.1 ? `<b style="bottom:${pct}%">${h.mm.toFixed(1)}</b>` : ""}</div>`;
+    return `<div class="wx-bar" data-i3="${k % 3}" title="${tip}"><span style="height:${pct}%;opacity:${(0.35 + 0.65 * h.prob / 100).toFixed(2)}"></span>${h.mm >= 0.1 ? `<b>${h.mm.toFixed(1)}</b>` : ""}</div>`;
   }).join("")}${wxTempLine(day.hours)}</div></div>
   <div class="wx-bar-axis">${[0, 3, 6, 9, 12, 15, 18, 21].map(h => `<span>${wxHourLabel(h)}</span>`).join("")}</div>`;
 }
