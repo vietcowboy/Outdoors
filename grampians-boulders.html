@@ -22,6 +22,9 @@
     --panel: #ffffff;
     --card: #faf9f6;
     --temp-color: #e0a15c;
+    --wash-green: #7fd19c;
+    --wash-orange: #e0a15c;
+    --wash-red: #e08585;
     --text: #1f2320;
     --muted: #6b6f6c;
     --border: #e2ddd5;
@@ -515,7 +518,7 @@
   .wx-week-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
   .wx-band-key { margin: 0 0 0.9rem; font-size: 0.7rem; color: var(--muted); }
   .wx-band-bar { position: relative; display: flex; border-radius: 8px; overflow: hidden; height: 32px; }
-  .wx-band-gradient { position: absolute; inset: 0; background: linear-gradient(to right, var(--grade-red), var(--grade-orange), var(--grade-green)); opacity: 0.28; }
+  .wx-band-gradient { position: absolute; inset: 0; background: linear-gradient(to right, var(--wash-red), var(--wash-orange), var(--wash-green)); opacity: 0.28; }
   .wx-band-seg { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 700; white-space: nowrap; padding: 0 4px; }
   .wx-band-seg.bad { color: var(--grade-red); }
   .wx-band-seg.average { color: var(--grade-orange); }
@@ -2769,7 +2772,7 @@ const wxHourLabel = h => h === 0 ? "12am" : h === 12 ? "12pm" : h < 12 ? `${h}am
 
 // A green/yellow/red wash behind the rainfall bars, showing the conditions
 // level hour by hour. Stops sit at hour centres so neighbouring levels blend.
-const WX_BAND_COLOURS = ["var(--grade-green)", "var(--grade-orange)", "var(--grade-red)"];
+const WX_BAND_COLOURS = ["var(--wash-green)", "var(--wash-orange)", "var(--wash-red)"];
 function wxCondBand(hours) {
   if (!hours.length) return "";
   const stops = hours.map((h, k) => `${WX_BAND_COLOURS[h.lv]} ${(((k + 0.5) / hours.length) * 100).toFixed(2)}%`);
