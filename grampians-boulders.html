@@ -1021,7 +1021,16 @@
 
   table { width: 100%; border-collapse: collapse; font-size: 0.9rem; table-layout: fixed; }
   th, td { text-align: left; padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--border); overflow-wrap: break-word; word-break: break-word; }
-  #climbs-results { border: 1px solid var(--border); border-radius: 10px; max-height: 70vh; overflow-y: auto; }
+  /* Same shaded surface as the weather day cards: --card on top of the panel, with
+     a matching soft drop shadow. */
+  #climbs-results {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--card);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+  }
   #results-table th:nth-child(1), #results-table td:nth-child(1) { width: 40%; }
   #results-table th:nth-child(2), #results-table td:nth-child(2) { width: 30%; }
   #results-table th:nth-child(3), #results-table td:nth-child(3) { width: 30%; }
@@ -1037,7 +1046,7 @@
     top: 0;
     padding-top: 16px;
     padding-bottom: 16px;
-    background: var(--panel);
+    background: var(--card);
     border-bottom: 2px solid var(--border);
     z-index: 2;
   }
