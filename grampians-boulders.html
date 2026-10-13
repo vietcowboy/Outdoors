@@ -669,6 +669,9 @@
   .weather-only[hidden], .climbs-only[hidden], .climbs-layout[hidden] { display: none; }
   #weather-panel { margin-top: 16px; }
   .climbs-layout { margin-top: 16px; }
+  @media (max-width: 960px) {
+    #climbs-results { margin-top: 16px; }
+  }
   @media (min-width: 961px) {
     .climbs-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
   }
