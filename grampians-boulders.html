@@ -22,9 +22,11 @@
     --panel: #ffffff;
     --card: #faf9f6;
     --temp-color: #e0a15c;
-    --wash-green: #7fd19c;
-    --wash-orange: #e0a15c;
-    --wash-red: #e08585;
+    /* Brighter, and the middle step pushed to yellow so it reads clearly against the
+       red step — the old orange and red were too close to tell apart at low opacity. */
+    --wash-green: #72e39d;
+    --wash-orange: #f7d84f;
+    --wash-red: #f7706c;
     --text: #1f2320;
     --muted: #6b6f6c;
     --border: #e2ddd5;
@@ -536,7 +538,7 @@
   .wx-week-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
   .wx-band-key { margin: 0 0 0.9rem; font-size: 0.7rem; color: var(--muted); }
   .wx-band-bar { position: relative; display: flex; border-radius: 8px; overflow: hidden; height: 32px; }
-  .wx-band-gradient { position: absolute; inset: 0; background: linear-gradient(to right, var(--wash-red), var(--wash-orange), var(--wash-green)); opacity: 0.28; }
+  .wx-band-gradient { position: absolute; inset: 0; background: linear-gradient(to right, var(--wash-red), var(--wash-orange), var(--wash-green)); opacity: 0.36; }
   .wx-band-seg { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 700; white-space: nowrap; padding: 0 4px; }
   .wx-band-seg.bad { color: var(--grade-red); }
   .wx-band-seg.average { color: var(--grade-orange); }
@@ -574,7 +576,7 @@
   .wx-temp-dots { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
   .wx-temp-dots span { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--temp-color); transform: translate(-50%, -50%); }
   .wx-bars i { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); opacity: 0.6; pointer-events: none; }
-  .wx-band { position: absolute; inset: 0; opacity: 0.28; border-radius: 2px; pointer-events: none; }
+  .wx-band { position: absolute; inset: 0; opacity: 0.36; border-radius: 2px; pointer-events: none; }
   .wx-bar { position: relative; z-index: 1; flex: 1; height: 100%; display: flex; align-items: flex-end; }
   .wx-bar span { display: block; width: 100%; background: var(--link); border-radius: 2px 2px 0 0; }
   .wx-rain-labels { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
