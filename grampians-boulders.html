@@ -498,7 +498,7 @@
   .modal-box.weather-box, .modal-box.modal-wide { width: 100%; max-width: 560px; box-sizing: border-box; }
   .modal-header h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
   .wx-spots { display: flex; gap: 0.4rem; }
-  p.wx-covers { font-size: 0.72rem; color: var(--muted); margin: 0.5rem 0 0.8rem; }
+  p.wx-covers { font-size: 0.72rem; color: var(--muted); margin: 8px 0 0.8rem; }
   .wx-spot {
     flex: 1;
     font-family: inherit;
@@ -590,6 +590,26 @@
   .wx-tmax { color: var(--grade-red); }
   .wx-day-chip-row { width: 100%; margin-bottom: 0.5rem; }
   .wx-day-chip { display: inline-flex; width: auto; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 0.7rem; line-height: 1; padding: 0.3rem 0.55rem; border-radius: 999px; }
+  .wx-day-chip-muted { background: var(--border); color: var(--muted); }
+  .wx-yesterday-card { padding: 0; opacity: 0.85; }
+  .wx-yesterday-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border: none;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    padding: 0.9rem;
+    cursor: pointer;
+    text-align: left;
+  }
+  .wx-yesterday-date { flex: 1; font-size: 0.78rem; }
+  .wx-chevron { flex-shrink: 0; transition: transform 0.15s ease; }
+  .wx-yesterday-toggle[aria-expanded="true"] .wx-chevron { transform: rotate(180deg); }
+  .wx-yesterday-body { padding: 0 0.9rem 0.9rem; }
+  .wx-yesterday-body[hidden] { display: none; }
   .wx-status { padding: 1.2rem 0; text-align: center; }
   @media (max-width: 480px) {
     .modal-box.weather-box { padding: 1rem; }
@@ -2850,28 +2870,11 @@ async function loadWeather() {
 
 const wxFmt = (iso, opts) => new Date(iso + "T12:00:00").toLocaleDateString("en-AU", opts);
 
-function renderWeather() {
-  wxCovers.textContent = `Covers ${WX_SPOTS[wxSpot].covers}.`;
-  wxPrev.disabled = wxPage === 0;
-  wxNext.disabled = wxPage === WX_PAGES - 1;
-  if (!wxData) return;
-  const all = wxData[wxSpot];
-  const start = WX_PAST_DAYS + wxPage * WX_DAYS_PER_PAGE;
-  const days = all.slice(start, start + WX_DAYS_PER_PAGE);
-  if (!days.length) return;
-  const range = { weekday: "short", day: "numeric", month: "short" };
-  wxWeekLabel.textContent = `${wxFmt(days[0].date, range)} – ${wxFmt(days[days.length - 1].date, range)}`;
-  wxBody.innerHTML = '<ul class="wx-days">' + days.map((day, k) => {
-    const idx = start + k;
-    const overall = idx - WX_PAST_DAYS;
-    const chipRow = overall === 0 ? `<div class="wx-day-chip-row"><span class="wx-day-chip">Today</span></div>` : overall === 1 ? `<div class="wx-day-chip-row"><span class="wx-day-chip">Tomorrow</span></div>` : "";
-    const dayLabel = `<strong>${wxFmt(day.date, { weekday: "short" })}</strong>`;
-    const [icon, desc] = wxKind(day.code);
-    const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
-    return `<li class="wx-day">
-      ${chipRow}
-      <div class="wx-summary">
-      <div class="wx-date">${dayLabel}<span>${wxFmt(day.date, { day: "numeric", month: "short" })}</span></div>
+function wxDayBody(day) {
+  const [icon, desc] = wxKind(day.code);
+  const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
+  return `<div class="wx-summary">
+      <div class="wx-date"><strong>${wxFmt(day.date, { weekday: "short" })}</strong><span>${wxFmt(day.date, { day: "numeric", month: "short" })}</span></div>
       <div class="wx-temp"><div class="wx-icon" title="${desc}"><svg width="18" height="18" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div><span class="wx-temp-range"><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-tsep">-</span><span class="wx-tmax">${Math.round(day.tmax)}°</span></span></div>
       <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5s7 7.8 7 12.5a7 7 0 1 1-14 0C5 10.3 12 2.5 12 2.5Z" fill="currentColor"/></svg>
@@ -2885,10 +2888,53 @@ function renderWeather() {
       <div class="wx-hourly">${wxHourly(day)}</div>
       <div class="wx-conds">${day.cond.length === 1
         ? `<span class="wx-cond ${day.cond[0].level}" title="${day.cond[0].label} all day: ${day.cond[0].why}">${day.cond[0].label} all day</span>`
-        : day.cond.map(c => `<span class="wx-cond ${c.level}" title="${c.label} ${wxHourLabel(c.from)}–${wxHourLabel(c.to)}: ${c.why}">${c.label}: ${wxHourLabel(c.from)}–${wxHourLabel(c.to)}</span>`).join("")}</div>
+        : day.cond.map(c => `<span class="wx-cond ${c.level}" title="${c.label} ${wxHourLabel(c.from)}–${wxHourLabel(c.to)}: ${c.why}">${c.label}: ${wxHourLabel(c.from)}–${wxHourLabel(c.to)}</span>`).join("")}</div>`;
+}
+
+let wxYesterdayOpen = false;
+
+function wxYesterdayCard(all) {
+  const day = all[WX_PAST_DAYS - 1];
+  if (!day) return "";
+  return `<li class="wx-day wx-yesterday-card">
+    <button class="wx-yesterday-toggle" type="button" aria-expanded="${wxYesterdayOpen}">
+      <span class="wx-day-chip wx-day-chip-muted">Yesterday</span>
+      <span class="wx-yesterday-date">${wxFmt(day.date, { weekday: "short", day: "numeric", month: "short" })}</span>
+      <svg class="wx-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="wx-yesterday-body"${wxYesterdayOpen ? "" : " hidden"}>${wxDayBody(day)}</div>
+  </li>`;
+}
+
+function renderWeather() {
+  wxCovers.textContent = `Covers ${WX_SPOTS[wxSpot].covers}.`;
+  wxPrev.disabled = wxPage === 0;
+  wxNext.disabled = wxPage === WX_PAGES - 1;
+  if (!wxData) return;
+  const all = wxData[wxSpot];
+  const start = WX_PAST_DAYS + wxPage * WX_DAYS_PER_PAGE;
+  const days = all.slice(start, start + WX_DAYS_PER_PAGE);
+  if (!days.length) return;
+  const range = { weekday: "short", day: "numeric", month: "short" };
+  wxWeekLabel.textContent = `${wxFmt(days[0].date, range)} – ${wxFmt(days[days.length - 1].date, range)}`;
+  const yesterdayCard = wxPage === 0 ? wxYesterdayCard(all) : "";
+  wxBody.innerHTML = '<ul class="wx-days">' + yesterdayCard + days.map((day, k) => {
+    const idx = start + k;
+    const overall = idx - WX_PAST_DAYS;
+    const chipRow = overall === 0 ? `<div class="wx-day-chip-row"><span class="wx-day-chip">Today</span></div>` : overall === 1 ? `<div class="wx-day-chip-row"><span class="wx-day-chip">Tomorrow</span></div>` : "";
+    return `<li class="wx-day">
+      ${chipRow}
+      ${wxDayBody(day)}
     </li>`;
   }).join("") + "</ul>" + '<p class="wx-note">Weather forecast provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>';
 }
+
+wxBody.addEventListener("click", (e) => {
+  const btn = e.target.closest(".wx-yesterday-toggle");
+  if (!btn) return;
+  wxYesterdayOpen = !wxYesterdayOpen;
+  renderWeather();
+});
 
 wxPrev.addEventListener("click", () => { if (wxPage > 0) { wxPage--; renderWeather(); } });
 wxNext.addEventListener("click", () => { if (wxPage < WX_PAGES - 1) { wxPage++; renderWeather(); } });
