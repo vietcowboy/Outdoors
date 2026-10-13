@@ -356,20 +356,10 @@
     color: var(--muted) !important;
   }
   .leaflet-control-attribution a { color: var(--link) !important; }
-  .map-body-wrap { position: relative; }
   .map-body { margin-bottom: 16px; }
   .map-body[hidden] { margin-bottom: 0; }
-  @media (min-width: 768px) {
-    .map-body-wrap .map-toggle-desktop:not([hidden]) {
-      display: inline-flex;
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      z-index: 500;
-      background: var(--panel);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-    }
-  }
+  .grade-control-row { display: flex; align-items: center; gap: 12px; }
+  .grade-control-row .dual-slider { flex: 1; min-width: 0; }
   .boulder-pin {
     width: 24px;
     height: 24px;
@@ -568,9 +558,10 @@
   .wx-temp-dots span { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--grade-orange); transform: translate(-50%, -50%); }
   .wx-bars i { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); opacity: 0.6; pointer-events: none; }
   .wx-band { position: absolute; inset: 0; opacity: 0.28; border-radius: 2px; pointer-events: none; }
-  .wx-bar { position: relative; z-index: 4; flex: 1; height: 100%; display: flex; align-items: flex-end; }
-  .wx-bar b { position: absolute; left: 50%; bottom: 2px; transform: translateX(-50%); font-size: 0.5rem; font-weight: 600; color: var(--on-accent); background: var(--link); line-height: 1; white-space: nowrap; letter-spacing: -0.02em; padding: 1px 3px; border-radius: 3px; }
+  .wx-bar { position: relative; z-index: 1; flex: 1; height: 100%; display: flex; align-items: flex-end; }
   .wx-bar span { display: block; width: 100%; background: var(--link); border-radius: 2px 2px 0 0; }
+  .wx-rain-labels { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+  .wx-rain-labels span { position: absolute; bottom: 2px; transform: translateX(-50%); font-size: 0.5rem; font-weight: 600; color: var(--on-accent); background: var(--link); line-height: 1; white-space: nowrap; letter-spacing: -0.02em; padding: 1px 3px; border-radius: 3px; }
   .wx-bar-axis { display: flex; font-size: 0.66rem; color: var(--muted); margin-top: 0.2rem; padding-left: 1.45rem; }
   .wx-bar-axis span { flex: 1; }
   .modal-box p.wx-hourly-empty { font-size: 0.72rem; margin: 0.35rem 0 0; color: var(--muted); }
@@ -614,8 +605,8 @@
     .wx-cond { font-size: 0.66rem; padding: 0.2rem 0.35rem; }
     .wx-rain strong { font-size: 0.88rem; }
     .wx-spot { font-size: 0.75rem; padding: 0.25rem 0.6rem; }
-    .wx-bar b { display: none; }
-    .wx-bar[data-i3="0"] b { display: block; }
+    .wx-rain-labels span { display: none; }
+    .wx-rain-labels span[data-i3="0"] { display: block; }
     .wx-temp-labels span { display: none; }
     .wx-temp-labels span[data-i3="0"] { display: block; }
   }
@@ -1401,28 +1392,28 @@
 
     <div class="climbs-layout climbs-only" id="climbs-layout">
       <div id="climbs-filters">
-        <div class="map-body-wrap">
-          <button class="map-switch climbs-only map-toggle-desktop" id="map-toggle-desktop" type="button" role="switch" aria-checked="true" aria-label="Show/hide map" title="Show/hide map">
-            <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M1.5 3.5L5.5 2L10.5 3.5L14.5 2V12.5L10.5 14L5.5 12.5L1.5 14V3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M5.5 2V12.5M10.5 3.5V14" stroke="currentColor" stroke-width="1.5"/>
-            </svg>
-          </button>
         <div class="map-body" id="map-body">
           <div id="map"></div>
-        </div>
         </div>
 
         <div class="controls-row">
           <div class="control grade-control">
-            <div class="dual-slider" role="group" aria-label="V grade range">
-              <div class="track"></div>
-              <div class="track-fill" id="track-fill"></div>
-              <div class="grade-ticks" id="grade-ticks"></div>
-              <div class="slider-bubble" id="min-bubble">3</div>
-              <div class="slider-bubble" id="max-bubble">14</div>
-              <input type="range" id="min-grade" min="0" max="17" value="3" step="1">
-              <input type="range" id="max-grade" min="0" max="17" value="14" step="1">
+            <div class="grade-control-row">
+              <div class="dual-slider" role="group" aria-label="V grade range">
+                <div class="track"></div>
+                <div class="track-fill" id="track-fill"></div>
+                <div class="grade-ticks" id="grade-ticks"></div>
+                <div class="slider-bubble" id="min-bubble">3</div>
+                <div class="slider-bubble" id="max-bubble">14</div>
+                <input type="range" id="min-grade" min="0" max="17" value="3" step="1">
+                <input type="range" id="max-grade" min="0" max="17" value="14" step="1">
+              </div>
+              <button class="map-switch climbs-only map-toggle-desktop" id="map-toggle-desktop" type="button" role="switch" aria-checked="true" aria-label="Show/hide map" title="Show/hide map">
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M1.5 3.5L5.5 2L10.5 3.5L14.5 2V12.5L10.5 14L5.5 12.5L1.5 14V3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                  <path d="M5.5 2V12.5M10.5 3.5V14" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+              </button>
             </div>
           </div>
           <div class="control filter-stack">
@@ -2821,11 +2812,12 @@ function wxHourly(day) {
   for (let v = max; v >= 0; v -= step) ticks.push(v);
   const yAxis = `<div class="wx-y">${ticks.map(v => `<span style="bottom:${(v / max) * 100}%">${v}</span>`).join("")}</div>`;
   const grid = ticks.map(v => `<i style="bottom:${(v / max) * 100}%"></i>`).join("");
+  const rainLabels = `<div class="wx-rain-labels" aria-hidden="true">${day.hours.map((h, k) => h.mm >= 0.1 ? `<span data-i3="${k % 3}" style="left:${((k + 0.5) / day.hours.length * 100).toFixed(2)}%">${h.mm.toFixed(1)}</span>` : "").join("")}</div>`;
   return `<div class="wx-chart">${yAxis}<div class="wx-bars" role="img" aria-label="Hourly rainfall and temperature">${wxCondBand(day.hours)}${grid}${day.hours.map((h, k) => {
     const pct = h.mm < 0.1 ? 0 : Math.max(6, (h.mm / max) * 100);
     const tip = `${wxHourLabel(h.hour)}: ${h.mm < 0.1 ? "0" : h.mm.toFixed(1)} mm, ${Math.round(h.prob)}% chance${h.temp != null ? `, ${Math.round(h.temp)}°` : ""}`;
-    return `<div class="wx-bar" data-i3="${k % 3}" title="${tip}"><span style="height:${pct}%;opacity:${(0.35 + 0.65 * h.prob / 100).toFixed(2)}"></span>${h.mm >= 0.1 ? `<b>${h.mm.toFixed(1)}</b>` : ""}</div>`;
-  }).join("")}${wxTempLine(day.hours)}</div></div>
+    return `<div class="wx-bar" data-i3="${k % 3}" title="${tip}"><span style="height:${pct}%;opacity:${(0.35 + 0.65 * h.prob / 100).toFixed(2)}"></span></div>`;
+  }).join("")}${wxTempLine(day.hours)}${rainLabels}</div></div>
   <div class="wx-bar-axis">${[0, 3, 6, 9, 12, 15, 18, 21].map(h => `<span>${wxHourLabel(h)}</span>`).join("")}</div>`;
 }
 
