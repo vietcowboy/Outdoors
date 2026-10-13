@@ -2867,7 +2867,9 @@ async function loadWeather() {
     daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max",
     hourly: "precipitation,precipitation_probability,temperature_2m",
     timezone: "Australia/Melbourne",
-    forecast_days: WX_DAYS_PER_PAGE * WX_PAGES,
+    // One day past the last page, so a Saturday-ending final page can still reach
+    // into the Sunday after it.
+    forecast_days: WX_DAYS_PER_PAGE * WX_PAGES + 1,
     past_days: WX_PAST_DAYS,
   });
   try {
@@ -2898,6 +2900,8 @@ async function loadWeather() {
 }
 
 const wxFmt = (iso, opts) => new Date(iso + "T12:00:00").toLocaleDateString("en-AU", opts);
+// 0 = Sunday … 6 = Saturday, in the browser's local time (midday avoids DST edges).
+const wxDayOfWeek = iso => new Date(iso + "T12:00:00").getDay();
 
 // showDate is false for the Yesterday card, whose collapsed header already names the day.
 function wxDayBody(day, showDate = true) {
@@ -2948,6 +2952,11 @@ function renderWeather() {
   const start = WX_PAST_DAYS + wxPage * WX_DAYS_PER_PAGE;
   const days = all.slice(start, start + WX_DAYS_PER_PAGE);
   if (!days.length) return;
+  // Most people climb on the weekend, so never end a page on a Saturday: pull in the
+  // Sunday after it so both weekend days can be compared side by side.
+  const last = days[days.length - 1];
+  const spill = all[start + days.length];
+  if (wxDayOfWeek(last.date) === 6 && spill) days.push(spill);
   const range = { weekday: "short", day: "numeric", month: "short" };
   wxWeekLabel.textContent = `${wxFmt(days[0].date, range)} – ${wxFmt(days[days.length - 1].date, range)}`;
   const yesterdayCard = wxPage === 0 ? wxYesterdayCard(all) : "";
