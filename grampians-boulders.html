@@ -514,15 +514,11 @@
   .wx-spot[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
   .wx-week-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
   .wx-band-key { margin: 0 0 0.9rem; font-size: 0.7rem; color: var(--muted); }
-  .wx-band-key .wx-band-bar {
-    height: 8px;
-    border-radius: 999px;
-    background: linear-gradient(to right, var(--grade-red), var(--grade-orange), var(--grade-green));
-    opacity: 0.55;
-  }
-  .wx-band-labels { display: flex; justify-content: space-between; margin-top: 0.2rem; }
-  .wx-band-labels span { white-space: nowrap; }
-  .wx-band-labels span:nth-child(2) { text-align: center; }
+  .wx-band-bar { display: flex; border-radius: 8px; overflow: hidden; }
+  .wx-band-seg { flex: 1; display: flex; align-items: center; justify-content: center; height: 32px; font-size: 0.68rem; font-weight: 700; white-space: nowrap; padding: 0 4px; }
+  .wx-band-seg.bad { background: var(--grade-red-bg); color: var(--grade-red); }
+  .wx-band-seg.average { background: var(--grade-orange-bg); color: var(--grade-orange); }
+  .wx-band-seg.good { background: var(--grade-green-bg); color: var(--grade-green); }
   .wx-week-label { font-size: 0.88rem; font-weight: 600; color: var(--text); text-align: center; white-space: nowrap; }
   .wx-arrow { width: 2rem; height: 2rem; font-size: 1rem; }
   .wx-arrow:not(:disabled) { background: var(--grade-green-bg); color: var(--grade-green); font-weight: 700; }
@@ -1355,8 +1351,11 @@
       <div class="wx-spots" id="wx-spots" role="group" aria-label="Forecast location"></div>
       <p class="wx-covers" id="wx-covers"></p>
       <div class="wx-band-key">
-        <div class="wx-band-bar" aria-hidden="true"></div>
-        <div class="wx-band-labels"><span>Bad climbing</span><span>Check conditions</span><span>Good climbing</span></div>
+        <div class="wx-band-bar">
+          <span class="wx-band-seg bad">Bad climbing</span>
+          <span class="wx-band-seg average">Check conditions</span>
+          <span class="wx-band-seg good">Good climbing</span>
+        </div>
       </div>
       <div class="wx-week-nav">
         <button class="icon-btn wx-arrow" id="wx-prev" type="button" aria-label="Previous week">‹</button>
