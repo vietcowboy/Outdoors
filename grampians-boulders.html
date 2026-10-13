@@ -535,6 +535,7 @@
     #wx-body { padding-right: 16px; }
   }
   .wx-days { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .wx-note { font-size: 0.72rem; color: var(--muted); margin: 12px 0 0; text-align: center; }
   .wx-day {
     padding: 0.9rem;
     border-radius: 10px;
@@ -2890,7 +2891,7 @@ function renderWeather() {
         ? `<span class="wx-cond ${day.cond[0].level}" title="${day.cond[0].label} all day: ${day.cond[0].why}">${day.cond[0].label} all day</span>`
         : day.cond.map(c => `<span class="wx-cond ${c.level}" title="${c.label} ${wxHourLabel(c.from)}–${wxHourLabel(c.to)}: ${c.why}">${c.label}: ${wxHourLabel(c.from)}–${wxHourLabel(c.to)}</span>`).join("")}</div>
     </li>`;
-  }).join("") + "</ul>";
+  }).join("") + "</ul>" + '<p class="wx-note">Weather forecast provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>';
 }
 
 wxPrev.addEventListener("click", () => { if (wxPage > 0) { wxPage--; renderWeather(); } });
