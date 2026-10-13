@@ -584,6 +584,7 @@
   .wx-cond.average { color: var(--grade-orange); background: var(--grade-orange-bg); }
   .wx-cond.bad { color: var(--grade-red); background: var(--grade-red-bg); }
   .wx-temp { display: flex; align-items: center; gap: 0.3rem; line-height: 1.3; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
+  .wx-temp-range { display: flex; align-items: center; gap: 0.3rem; }
   .wx-tsep { color: var(--muted); font-weight: 400; }
   .wx-tmin { color: var(--link); }
   .wx-tmax { color: var(--grade-red); }
@@ -596,6 +597,8 @@
     .wx-summary { gap: 0.4rem 24px; }
     .wx-date strong { font-size: 0.8rem; }
     .wx-temp { font-size: 0.78rem; }
+    .wx-temp-range { flex-direction: column; align-items: flex-start; gap: 0; line-height: 1.15; }
+    .wx-tsep { display: none; }
     .wx-rain strong { font-size: 0.8rem; }
     .wx-cond { font-size: 0.66rem; padding: 0.2rem 0.35rem; }
     .wx-rain strong { font-size: 0.88rem; }
@@ -2869,7 +2872,7 @@ function renderWeather() {
       ${chipRow}
       <div class="wx-summary">
       <div class="wx-date">${dayLabel}<span>${wxFmt(day.date, { day: "numeric", month: "short" })}</span></div>
-      <div class="wx-temp"><div class="wx-icon" title="${desc}"><svg width="18" height="18" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-tsep">-</span><span class="wx-tmax">${Math.round(day.tmax)}°</span></div>
+      <div class="wx-temp"><div class="wx-icon" title="${desc}"><svg width="18" height="18" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div><span class="wx-temp-range"><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-tsep">-</span><span class="wx-tmax">${Math.round(day.tmax)}°</span></span></div>
       <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5s7 7.8 7 12.5a7 7 0 1 1-14 0C5 10.3 12 2.5 12 2.5Z" fill="currentColor"/></svg>
         <span class="wx-rain-text"><strong>${rainMm} mm</strong><span>${Math.round(day.prob)}%</span></span>
