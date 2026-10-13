@@ -254,8 +254,8 @@
   .theme-toggle[aria-checked="true"] .theme-toggle-icon-moon { display: flex; }
   .theme-toggle-knob { display: none; }
   .map-switch {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     border: none;
     background: var(--border);
@@ -352,6 +352,7 @@
     color: var(--muted) !important;
   }
   .leaflet-control-attribution a { color: var(--link) !important; }
+  .map-toggle-row { display: flex; justify-content: flex-end; margin-bottom: 8px; }
   .map-body { margin-bottom: 16px; }
   .map-body[hidden] { margin-bottom: 0; }
   .boulder-pin {
@@ -474,8 +475,8 @@
   .location-header-left { display: flex; align-items: center; gap: 0.5rem; }
   .location-header-right { display: flex; align-items: center; gap: 0.6rem; }
   .weather-btn {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     border: none;
     background: var(--accent);
@@ -524,22 +525,26 @@
   .wx-arrow:not(:disabled):hover { background: var(--accent); color: var(--on-accent); }
   .wx-arrow:disabled { opacity: 0.35; cursor: default; background: none; }
   #wx-body { max-height: 70vh; overflow-y: auto; }
-  .wx-days { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
+  .wx-days { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
   .wx-day {
-    padding: 0.7rem 0.25rem;
-    border-bottom: 1px solid var(--border);
+    padding: 0.9rem;
+    border-radius: 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     font-size: 0.82rem;
     color: var(--muted);
   }
   .wx-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.1rem; }
-  .wx-hourly { padding: 0.5rem 0.25rem 0.1rem; cursor: default; }
+  .wx-day-row { width: 100%; }
+  .wx-hourly { padding: 0.5rem 0 0.1rem; cursor: default; }
   .wx-chart { display: flex; gap: 0.35rem; margin-top: 0.8rem; }
   .wx-y { position: relative; width: 1.1rem; height: 6rem; font-size: 0.62rem; color: var(--muted); }
   .wx-y span { position: absolute; right: 0; transform: translateY(50%); line-height: 1; }
   .wx-bars { position: relative; flex: 1; display: flex; align-items: flex-end; gap: 2px; height: 6rem; border-bottom: 1px solid var(--border); }
   .wx-temp-line { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
   .wx-temp-labels { position: absolute; inset: 0; pointer-events: none; }
-  .wx-temp-labels span { position: absolute; transform: translate(-50%, 0); font-size: 0.64rem; font-weight: 700; color: var(--text); white-space: nowrap; }
+  .wx-temp-labels span { position: absolute; transform: translate(-50%, 0); font-size: 0.64rem; font-weight: 700; color: var(--text); white-space: nowrap; background: var(--panel); padding: 0 3px; border-radius: 3px; }
   .wx-temp-dots { position: absolute; inset: 0; pointer-events: none; }
   .wx-temp-dots span { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--grade-orange); transform: translate(-50%, -50%); }
   .wx-bars i { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); opacity: 0.6; pointer-events: none; }
@@ -576,7 +581,8 @@
   .wx-tsep { color: var(--muted); font-weight: 400; }
   .wx-tmin { color: var(--link); }
   .wx-tmax { color: var(--grade-red); }
-  .wx-day-chip { display: inline-block; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 999px; }
+  .wx-day-chip-row { width: 100%; margin-bottom: 0.5rem; }
+  .wx-day-chip { display: inline-flex; width: auto; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 0.7rem; line-height: 1; padding: 0.3rem 0.55rem; border-radius: 999px; }
   .wx-status { padding: 1.2rem 0; text-align: center; }
   @media (max-width: 480px) {
     .modal-box.weather-box { padding: 1rem; }
@@ -597,8 +603,8 @@
     flex-shrink: 0;
   }
   .view-tab {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     box-sizing: border-box;
     border: 1px solid var(--border);
     background: none;
@@ -935,6 +941,7 @@
 
   table { width: 100%; border-collapse: collapse; font-size: 0.9rem; table-layout: fixed; }
   th, td { text-align: left; padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--border); overflow-wrap: break-word; word-break: break-word; }
+  #climbs-results { border: 1px solid var(--border); border-radius: 10px; max-height: 70vh; overflow-y: auto; }
   #results-table th:nth-child(1), #results-table td:nth-child(1) { width: 40%; }
   #results-table th:nth-child(2), #results-table td:nth-child(2) { width: 30%; }
   #results-table th:nth-child(3), #results-table td:nth-child(3) { width: 30%; }
@@ -1265,19 +1272,17 @@
           </svg>
         </button>
         <h2>Grampians</h2>
-        <button class="map-switch climbs-only" id="map-toggle" type="button" role="switch" aria-checked="true" aria-label="Show/hide map" title="Show/hide map">
-          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M1.5 3.5L5.5 2L10.5 3.5L14.5 2V12.5L10.5 14L5.5 12.5L1.5 14V3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-            <path d="M5.5 2V12.5M10.5 3.5V14" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
-        </button>
       </div>
       <div class="location-header-right">
         <div class="view-tabs" role="tablist">
           <button class="view-tab" id="tab-weather" type="button" role="tab" aria-selected="true" aria-label="Weather" title="Weather">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <circle cx="7.5" cy="8" r="3.6" fill="currentColor"/>
-              <path d="M9 20.5a4 4 0 0 1-.4-7.98 5.2 5.2 0 0 1 9.98-1.9A4.1 4.1 0 0 1 18.3 20.5H9Z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <circle cx="15" cy="8" r="4.3" fill="currentColor"/>
+              <line x1="15" y1="1.8" x2="15" y2="3.6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+              <line x1="20.2" y1="8" x2="22" y2="8" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+              <line x1="18.8" y1="4.2" x2="20.1" y2="2.9" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+              <line x1="11.2" y1="4.2" x2="9.9" y2="2.9" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+              <path d="M9 20.5a4 4 0 0 1-.4-7.98 5.2 5.2 0 0 1 9.98-1.9A4.1 4.1 0 0 1 18.3 20.5H9Z" fill="currentColor"/>
             </svg>
           </button>
           <button class="view-tab" id="tab-climbs" type="button" role="tab" aria-selected="false" aria-label="Find climbs" title="Find climbs">
@@ -1307,6 +1312,14 @@
 
     <div class="climbs-layout climbs-only" id="climbs-layout">
       <div id="climbs-filters">
+        <div class="map-toggle-row climbs-only">
+          <button class="map-switch" id="map-toggle" type="button" role="switch" aria-checked="true" aria-label="Show/hide map" title="Show/hide map">
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M1.5 3.5L5.5 2L10.5 3.5L14.5 2V12.5L10.5 14L5.5 12.5L1.5 14V3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M5.5 2V12.5M10.5 3.5V14" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </button>
+        </div>
         <div class="map-body" id="map-body">
           <div id="map"></div>
         </div>
@@ -2706,7 +2719,7 @@ function wxTempLine(hours) {
     <polyline points="${line}" fill="none" stroke="var(--grade-orange)" stroke-width="0.9" vector-effect="non-scaling-stroke"/>
   </svg>`;
   const dots = `<div class="wx-temp-dots" aria-hidden="true">${pts.map(p => `<span style="left:${p.x.toFixed(2)}%;top:${p.y.toFixed(2)}%"></span>`).join("")}</div>`;
-  const labels = `<div class="wx-temp-labels" aria-hidden="true">${pts.map(p => `<span style="left:${p.x.toFixed(2)}%;top:${Math.max(0, p.y - 9).toFixed(2)}%">${Math.round(p.temp)}°</span>`).join("")}</div>`;
+  const labels = `<div class="wx-temp-labels" aria-hidden="true">${pts.map(p => `<span style="left:${p.x.toFixed(2)}%;top:${Math.max(0, p.y - 15).toFixed(2)}%">${Math.round(p.temp)}°</span>`).join("")}</div>`;
   return svg + dots + labels;
 }
 
@@ -2783,16 +2796,18 @@ function renderWeather() {
   wxBody.innerHTML = '<ul class="wx-days">' + days.map((day, k) => {
     const idx = start + k;
     const overall = idx - WX_PAST_DAYS;
-    const dayLabel = overall === 0 ? `<span class="wx-day-chip">Today</span>` : overall === 1 ? `<span class="wx-day-chip">Tomorrow</span>` : `<strong>${wxFmt(day.date, { weekday: "short" })}</strong>`;
+    const chipRow = overall === 0 ? `<div class="wx-day-chip-row"><span class="wx-day-chip">Today</span></div>` : overall === 1 ? `<div class="wx-day-chip-row"><span class="wx-day-chip">Tomorrow</span></div>` : "";
+    const dayLabel = overall <= 1 ? "" : `<strong>${wxFmt(day.date, { weekday: "short" })}</strong>`;
     const [icon, desc] = wxKind(day.code);
     const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
     return `<li class="wx-day">
+      ${chipRow}
       <div class="wx-summary">
-      <div class="wx-date">${dayLabel}<span>${wxFmt(day.date, { weekday: overall <= 1 ? "short" : undefined, day: "numeric", month: "short" })}</span></div>
+      <div class="wx-date">${dayLabel}<span>${wxFmt(day.date, { day: "numeric", month: "short" })}</span></div>
       <div class="wx-temp"><div class="wx-icon" title="${desc}"><svg width="18" height="18" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-tsep">-</span><span class="wx-tmax">${Math.round(day.tmax)}°</span></div>
       <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5s7 7.8 7 12.5a7 7 0 1 1-14 0C5 10.3 12 2.5 12 2.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-        <span class="wx-rain-text"><strong>${rainMm} mm</strong><span>${Math.round(day.prob)}% chance</span></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5s7 7.8 7 12.5a7 7 0 1 1-14 0C5 10.3 12 2.5 12 2.5Z" fill="currentColor"/></svg>
+        <span class="wx-rain-text"><strong>${rainMm} mm</strong><span>${Math.round(day.prob)}%</span></span>
       </div>
       <div class="wx-wind">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8h11a2.5 2.5 0 1 0-2.1-3.9M3 12h14a2.5 2.5 0 1 1-2.1 3.9M3 16h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
