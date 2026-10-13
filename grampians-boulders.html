@@ -534,7 +534,10 @@
   .wx-arrow:not(:disabled) { background: var(--grade-green-bg); color: var(--grade-green); font-weight: 700; }
   .wx-arrow:not(:disabled):hover { background: var(--accent); color: var(--on-accent); }
   .wx-arrow:disabled { opacity: 0.35; cursor: default; background: none; }
-  #wx-body { max-height: 70vh; overflow-y: auto; padding-right: 16px; }
+  #wx-body { max-height: 70vh; overflow-y: auto; }
+  @media (min-width: 961px) {
+    #wx-body { padding-right: 16px; }
+  }
   .wx-days { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
   .wx-day {
     padding: 0.9rem;
