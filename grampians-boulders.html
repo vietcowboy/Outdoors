@@ -513,21 +513,26 @@
   .weather-btn .wx-cloud { fill: currentColor; stroke: var(--accent); stroke-width: 1.6; }
   .modal-box.weather-box, .modal-box.modal-wide { width: 100%; max-width: 560px; box-sizing: border-box; }
   .modal-header h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
-  .wx-spots { display: flex; gap: 0.4rem; }
+  .wx-spots { display: flex; }
   p.wx-covers { font-size: 0.72rem; color: var(--muted); margin: 8px 0 0.8rem; }
+  /* Tab-style selector: the selected location is marked by an accent underline across
+     its whole container, rather than a filled button. */
   .wx-spot {
     flex: 1;
     font-family: inherit;
     font-size: 0.8rem;
     text-align: center;
-    padding: 0.4rem 0.7rem;
-    border-radius: 8px;
-    border: 1px solid var(--border);
+    padding: 0.4rem 0.7rem 0.45rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
     background: none;
     color: var(--muted);
     cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
   }
-  .wx-spot[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+  .wx-spot:hover { color: var(--text); }
+  .wx-spot[aria-pressed="true"] { border-bottom-color: var(--accent); color: var(--text); font-weight: 600; }
   .wx-week-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
   .wx-band-key { margin: 0 0 0.9rem; font-size: 0.7rem; color: var(--muted); }
   .wx-band-bar { position: relative; display: flex; border-radius: 8px; overflow: hidden; height: 32px; }
@@ -639,7 +644,7 @@
     .wx-rain strong { font-size: 0.8rem; }
     .wx-cond { font-size: 0.66rem; padding: 0.2rem 0.35rem; }
     .wx-rain strong { font-size: 0.88rem; }
-    .wx-spot { font-size: 0.75rem; padding: 0.25rem 0.6rem; }
+    .wx-spot { font-size: 0.75rem; padding: 0.25rem 0.6rem 0.35rem; }
     .wx-rain-labels span { display: none; }
     .wx-rain-labels span[data-i3="0"] { display: block; }
     .wx-temp-labels span { display: none; }
