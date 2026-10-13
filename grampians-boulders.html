@@ -514,11 +514,12 @@
   .wx-spot[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
   .wx-week-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
   .wx-band-key { margin: 0 0 0.9rem; font-size: 0.7rem; color: var(--muted); }
-  .wx-band-bar { display: flex; border-radius: 8px; overflow: hidden; }
-  .wx-band-seg { flex: 1; display: flex; align-items: center; justify-content: center; height: 32px; font-size: 0.68rem; font-weight: 700; white-space: nowrap; padding: 0 4px; }
-  .wx-band-seg.bad { background: var(--grade-red-bg); color: var(--grade-red); }
-  .wx-band-seg.average { background: var(--grade-orange-bg); color: var(--grade-orange); }
-  .wx-band-seg.good { background: var(--grade-green-bg); color: var(--grade-green); }
+  .wx-band-bar { position: relative; display: flex; border-radius: 8px; overflow: hidden; height: 32px; }
+  .wx-band-gradient { position: absolute; inset: 0; background: linear-gradient(to right, var(--grade-red), var(--grade-orange), var(--grade-green)); opacity: 0.28; }
+  .wx-band-seg { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 700; white-space: nowrap; padding: 0 4px; }
+  .wx-band-seg.bad { color: var(--grade-red); }
+  .wx-band-seg.average { color: var(--grade-orange); }
+  .wx-band-seg.good { color: var(--grade-green); }
   .wx-week-label { font-size: 0.88rem; font-weight: 600; color: var(--text); text-align: center; white-space: nowrap; }
   .wx-arrow { width: 2rem; height: 2rem; font-size: 1rem; }
   .wx-arrow:not(:disabled) { background: var(--grade-green-bg); color: var(--grade-green); font-weight: 700; }
@@ -1352,6 +1353,7 @@
       <p class="wx-covers" id="wx-covers"></p>
       <div class="wx-band-key">
         <div class="wx-band-bar">
+          <div class="wx-band-gradient" aria-hidden="true"></div>
           <span class="wx-band-seg bad">Bad climbing</span>
           <span class="wx-band-seg average">Check conditions</span>
           <span class="wx-band-seg good">Good climbing</span>
