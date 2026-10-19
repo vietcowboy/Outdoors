@@ -807,7 +807,7 @@
   }
   .dual-slider {
     position: relative;
-    height: 60px;
+    height: 70px;
     margin-top: 0.3rem;
   }
   .dual-slider input[type=range] {
@@ -935,10 +935,9 @@
     width: 20px;
     height: 32px;
   }
-  .grade-tick-labels { position: absolute; top: 40px; left: 0; right: 0; height: 14px; pointer-events: none; }
+  .grade-tick-labels { position: absolute; inset: 0; pointer-events: none; }
   .grade-tick-label {
     position: absolute;
-    top: 0;
     transform: translateX(-50%);
     font-size: 0.6rem;
     line-height: 1;
@@ -2586,6 +2585,8 @@ for (let g = GRADE_MIN; g <= GRADE_MAX; g++) {
   const label = document.createElement("span");
   label.className = "grade-tick-label";
   label.style.left = sliderPos((g - GRADE_MIN) / (GRADE_MAX - GRADE_MIN));
+  if ((g - GRADE_MIN) % 2 === 0) label.style.top = "0";
+  else label.style.bottom = "0";
   label.textContent = "V" + g;
   gradeLabelsEl.appendChild(label);
 }
