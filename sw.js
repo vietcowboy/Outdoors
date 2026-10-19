@@ -20,18 +20,31 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.hostname !== WEATHER_HOST) return;
-  event.respondWith(staleWhileRevalidate(event.request));
+  event.respondWith(staleWhileRevalidate(event, event.request));
 });
 
-async function staleWhileRevalidate(request) {
+async function notifyClients() {
+  const clients = await self.clients.matchAll({ type: "window" });
+  clients.forEach((c) => c.postMessage({ type: "weather-updated" }));
+}
+
+async function staleWhileRevalidate(event, request) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request);
   const networkFetch = fetch(request)
-    .then((response) => {
-      if (response && response.ok) cache.put(request, response.clone());
+    .then(async (response) => {
+      if (response && response.ok) {
+        await cache.put(request, response.clone());
+        // Only the pages care if this was an actual refresh of data they'd
+        // already shown — not the very first fetch that had nothing to update.
+        if (cached) await notifyClients();
+      }
       return response;
     })
     .catch(() => null);
+  // Keep the service worker alive for the background refresh even though we
+  // respond with the cached copy (if any) right away below.
+  event.waitUntil(networkFetch);
   if (cached) return cached;
   const network = await networkFetch;
   if (network) return network;

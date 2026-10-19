@@ -2980,10 +2980,7 @@ function wxHourly(day) {
   <div class="wx-bar-axis">${[0, 3, 6, 9, 12, 15, 18, 21].map(h => `<span>${wxHourLabel(h)}</span>`).join("")}</div>`;
 }
 
-async function loadWeather() {
-  if (wxData || wxLoading) return;
-  wxLoading = true;
-  wxBody.innerHTML = '<p class="wx-status">Loading forecast…</p>';
+function wxForecastUrl() {
   const params = new URLSearchParams({
     latitude: WX_SPOTS.map(s => s.lat).join(","),
     longitude: WX_SPOTS.map(s => s.lng).join(","),
@@ -2995,31 +2992,57 @@ async function loadWeather() {
     forecast_days: WX_DAYS_PER_PAGE * WX_PAGES + 2,
     past_days: WX_PAST_DAYS,
   });
+  return `https://api.open-meteo.com/v1/forecast?${params}`;
+}
+
+async function fetchWeather() {
+  const res = await fetch(wxForecastUrl());
+  if (!res.ok) throw new Error(res.status);
+  const json = await res.json();
+  return (Array.isArray(json) ? json : [json]).map(loc => {
+    const d = loc.daily;
+    return d.time.map((t, i) => ({
+      date: t,
+      code: d.weather_code[i],
+      tmax: d.temperature_2m_max[i],
+      tmin: d.temperature_2m_min[i],
+      rain: d.precipitation_sum[i] ?? 0,
+      prob: d.precipitation_probability_max[i] ?? 0,
+      wind: d.wind_speed_10m_max[i],
+      gust: d.wind_gusts_10m_max[i],
+      cond: wxConditions(loc.hourly, t),
+      hours: wxHours(loc.hourly, t),
+    }));
+  });
+}
+
+async function loadWeather() {
+  if (wxData || wxLoading) return;
+  wxLoading = true;
+  wxBody.innerHTML = '<p class="wx-status">Loading forecast…</p>';
   try {
-    const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-    if (!res.ok) throw new Error(res.status);
-    const json = await res.json();
-    wxData = (Array.isArray(json) ? json : [json]).map(loc => {
-      const d = loc.daily;
-      return d.time.map((t, i) => ({
-        date: t,
-        code: d.weather_code[i],
-        tmax: d.temperature_2m_max[i],
-        tmin: d.temperature_2m_min[i],
-        rain: d.precipitation_sum[i] ?? 0,
-        prob: d.precipitation_probability_max[i] ?? 0,
-        wind: d.wind_speed_10m_max[i],
-        gust: d.wind_gusts_10m_max[i],
-        cond: wxConditions(loc.hourly, t),
-        hours: wxHours(loc.hourly, t),
-      }));
-    });
+    wxData = await fetchWeather();
   } catch (err) {
     wxBody.innerHTML = '<p class="wx-status">Couldn’t load the forecast. Check your connection and try again.</p>';
   } finally {
     wxLoading = false;
   }
   if (wxData) renderWeather();
+}
+
+// The service worker caches this same request and, once it has a fresh copy
+// (e.g. reception recovers mid-session), tells the page via postMessage —
+// re-fetch (now served from the just-updated cache) and redraw in place,
+// rather than making the visitor reload to see current weather.
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("message", async (e) => {
+    if (e.data?.type !== "weather-updated" || wxLoading) return;
+    try {
+      const fresh = await fetchWeather();
+      wxData = fresh;
+      renderWeather();
+    } catch (err) { /* keep showing what's already on screen */ }
+  });
 }
 
 const wxFmt = (iso, opts) => new Date(iso + "T12:00:00").toLocaleDateString("en-AU", opts);
