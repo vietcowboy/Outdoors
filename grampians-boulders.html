@@ -946,6 +946,9 @@
     color: var(--muted);
     opacity: 0.55;
     white-space: nowrap;
+    pointer-events: auto;
+    cursor: pointer;
+    padding: 4px 2px;
   }
   .grade-tick-label.in-range { opacity: 0.85; }
   .grade-tick-label.is-selected { font-weight: 700; opacity: 1; }
@@ -2609,15 +2612,17 @@ const gradeTicks = [...gradeTicksEl.children];
 const gradeLabels = [...gradeLabelsEl.children];
 
 // Tapping/clicking a tick filters the table to that exact grade (min = max).
-gradeTicksEl.addEventListener("click", (e) => {
-  const tick = e.target.closest(".grade-tick");
-  if (!tick) return;
-  const g = tick.dataset.grade;
+function selectExactGrade(e) {
+  const el = e.target.closest(".grade-tick, .grade-tick-label");
+  if (!el) return;
+  const g = el.dataset.grade;
   minSlider.value = g;
   maxSlider.value = g;
   updateTrackFill();
   render();
-});
+}
+gradeTicksEl.addEventListener("click", selectExactGrade);
+gradeLabelsEl.addEventListener("click", selectExactGrade);
 
 // A single static full-domain gradient (green→yellow→red→purple, blending
 // smoothly at each boundary) sits behind two gray "mask" bars that cover
