@@ -961,10 +961,14 @@
     font-size: 0.7rem;
     line-height: 1.2;
     white-space: nowrap;
-    pointer-events: none;
+    pointer-events: auto;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
     box-shadow: 2px 2px 5px rgba(0,0,0,0.35);
     z-index: 6;
   }
+  .grade-chip:active { cursor: grabbing; }
   .grade-chip::after {
     content: "";
     position: absolute;
@@ -2693,6 +2697,46 @@ function updateSliderStacking(clientX) {
 }
 sliderWrap.addEventListener("pointermove", (e) => updateSliderStacking(e.clientX));
 sliderWrap.addEventListener("pointerdown", (e) => updateSliderStacking(e.clientX));
+
+// The floating min/max chips are draggable too, as an alternative to grabbing
+// the (invisible) native range thumb on the bar itself — both control the
+// same underlying <input type=range> values.
+function gradeFromClientX(clientX) {
+  const rect = sliderWrap.getBoundingClientRect();
+  const usablePx = rect.width - SLIDER_PAD * 2;
+  const frac = Math.min(1, Math.max(0, (clientX - rect.left - SLIDER_PAD) / usablePx));
+  return Math.round(GRADE_MIN + frac * (GRADE_MAX - GRADE_MIN));
+}
+function dragSetGrade(kind, clientX) {
+  const v = gradeFromClientX(clientX);
+  if (kind === "min") {
+    minSlider.value = v;
+    if (parseInt(minSlider.value) > parseInt(maxSlider.value)) maxSlider.value = v;
+  } else {
+    maxSlider.value = v;
+    if (parseInt(maxSlider.value) < parseInt(minSlider.value)) minSlider.value = v;
+  }
+  updateTrackFill();
+  scheduleRender();
+}
+function makeChipDraggable(chip, kind) {
+  chip.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    chip.setPointerCapture(e.pointerId);
+    dragSetGrade(kind, e.clientX);
+    const onMove = (ev) => dragSetGrade(kind, ev.clientX);
+    const onUp = () => {
+      chip.removeEventListener("pointermove", onMove);
+      chip.removeEventListener("pointerup", onUp);
+      chip.removeEventListener("pointercancel", onUp);
+    };
+    chip.addEventListener("pointermove", onMove);
+    chip.addEventListener("pointerup", onUp);
+    chip.addEventListener("pointercancel", onUp);
+  });
+}
+makeChipDraggable(minChip, "min");
+makeChipDraggable(maxChip, "max");
 
 const mapToggles = [document.getElementById("map-toggle-desktop")];
 const mapBody = document.getElementById("map-body");
