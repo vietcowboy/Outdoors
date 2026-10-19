@@ -2657,6 +2657,7 @@ function updateTrackFill() {
     label.classList.toggle("is-selected", isSelected);
     label.classList.toggle("in-range", inRange);
     label.style.color = inRange ? gradeColor(g) : "";
+    label.style.visibility = isSelected ? "hidden" : "";
   });
 }
 
