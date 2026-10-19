@@ -2612,7 +2612,9 @@ const gradeTicks = [...gradeTicksEl.children];
 const gradeLabels = [...gradeLabelsEl.children];
 
 // Tapping/clicking a tick filters the table to that exact grade (min = max).
+let suppressNextLabelClick = false;
 function selectExactGrade(e) {
+  if (suppressNextLabelClick) { suppressNextLabelClick = false; return; }
   const el = e.target.closest(".grade-tick, .grade-tick-label");
   if (!el) return;
   const g = el.dataset.grade;
@@ -2623,6 +2625,33 @@ function selectExactGrade(e) {
 }
 gradeTicksEl.addEventListener("click", selectExactGrade);
 gradeLabelsEl.addEventListener("click", selectExactGrade);
+
+// Labels can also be dragged, just like the bar itself: whichever thumb
+// (min or max) is nearer follows the pointer. A plain tap (no movement)
+// still falls through to the click handler above and picks an exact grade.
+gradeLabelsEl.addEventListener("pointerdown", (e) => {
+  const label = e.target.closest(".grade-tick-label");
+  if (!label) return;
+  const startX = e.clientX;
+  const minVal = parseInt(minSlider.value), maxVal = parseInt(maxSlider.value);
+  const g = parseInt(label.dataset.grade);
+  const kind = Math.abs(g - minVal) <= Math.abs(g - maxVal) ? "min" : "max";
+  let dragged = false;
+  label.setPointerCapture(e.pointerId);
+  const onMove = (ev) => {
+    if (!dragged && Math.abs(ev.clientX - startX) > 3) dragged = true;
+    if (dragged) dragSetGrade(kind, ev.clientX);
+  };
+  const onUp = () => {
+    if (dragged) suppressNextLabelClick = true;
+    label.removeEventListener("pointermove", onMove);
+    label.removeEventListener("pointerup", onUp);
+    label.removeEventListener("pointercancel", onUp);
+  };
+  label.addEventListener("pointermove", onMove);
+  label.addEventListener("pointerup", onUp);
+  label.addEventListener("pointercancel", onUp);
+});
 
 // A single static full-domain gradient (green→yellow→red→purple, blending
 // smoothly at each boundary) sits behind two gray "mask" bars that cover
