@@ -924,11 +924,11 @@
     transform: translate(-50%, -50%);
     border-radius: 1px;
     background: var(--border);
-    opacity: 0.45;
-    transition: background 0.15s ease, opacity 0.15s ease;
+    filter: brightness(0.4) saturate(0.6);
+    transition: background 0.15s ease, filter 0.15s ease;
     cursor: pointer;
   }
-  .grade-tick.in-range { opacity: 1; }
+  .grade-tick.in-range { filter: none; }
   .grade-tick::before {
     content: "";
     position: absolute;
@@ -947,6 +947,7 @@
     opacity: 0.55;
     white-space: nowrap;
   }
+  .grade-tick-label.in-range { opacity: 0.85; }
   .grade-tick-label.is-selected { font-weight: 700; opacity: 1; }
   .slider-bubble {
     position: absolute;
@@ -2645,9 +2646,11 @@ function updateTrackFill() {
   });
   gradeLabels.forEach(label => {
     const g = parseInt(label.dataset.grade);
+    const inRange = g >= min && g <= max;
     const isSelected = g === min || g === max;
     label.classList.toggle("is-selected", isSelected);
-    label.style.color = isSelected ? gradeColor(g) : "";
+    label.classList.toggle("in-range", inRange);
+    label.style.color = inRange ? gradeColor(g) : "";
   });
 }
 
