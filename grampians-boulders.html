@@ -593,6 +593,7 @@
   /* Own line above the summary: bold all-caps weekday, then a low-emphasis date. */
   .wx-date { display: flex; align-items: baseline; gap: 0.4rem; line-height: 1.25; margin-bottom: 0.5rem; }
   .wx-date strong { color: var(--text); font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .wx-date-summary { font-weight: 700; color: var(--text); }
   .wx-icon { color: var(--text); display: flex; margin-right: 0.15rem; }
   .wx-rain { display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; color: var(--text); }
   .wx-rain-text { display: flex; flex-direction: column; line-height: 1.2; }
@@ -2860,6 +2861,21 @@ function wxKind(code) {
   return ["rain", "Rain"];
 }
 
+// A punchier one/two-word summary than wxKind's label alone — when there's
+// rain, says roughly when it falls instead of just "Rain".
+function wxPunchySummary(day) {
+  const [, desc] = wxKind(day.code);
+  if (day.code >= 95) return "Storms";
+  if (day.rain < 0.1) return desc;
+  const rainyHours = day.hours.filter(h => h.mm >= 0.1).map(h => h.hour);
+  if (!rainyHours.length) return desc;
+  const first = Math.min(...rainyHours), last = Math.max(...rainyHours);
+  if (rainyHours.length >= 14 || last - first >= 14) return "Raining all day";
+  if (last < 14) return "Early shower";
+  if (first >= 12) return "Late shower";
+  return "Showers";
+}
+
 // Rough conditions call, hour by hour through the climbing day, based only on
 // how dry the rock is likely to be: rain in the previous 24 hours, and how
 // many hours it has had to dry since the last real rain. Wet sandstone is
@@ -3061,7 +3077,7 @@ function wxDayBody(day, showDate = true) {
   const [icon, desc] = wxKind(day.code);
   const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
   const dateLine = showDate
-    ? `<div class="wx-date"><strong>${wxFmt(day.date, { weekday: "short" })}</strong><span>${wxFmt(day.date, { day: "numeric", month: "short" })}</span></div>`
+    ? `<div class="wx-date"><strong>${wxFmt(day.date, { weekday: "short" })}</strong><span>${wxFmt(day.date, { day: "numeric", month: "short" })} <span class="wx-date-summary">&middot; ${wxPunchySummary(day)}</span></span></div>`
     : "";
   return `${dateLine}
     <div class="wx-summary">
