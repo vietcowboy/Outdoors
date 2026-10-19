@@ -807,7 +807,7 @@
   }
   .dual-slider {
     position: relative;
-    height: 44px;
+    height: 60px;
     margin-top: 0.3rem;
   }
   .dual-slider input[type=range] {
@@ -907,7 +907,7 @@
     position: absolute;
     top: 0;
     height: 100%;
-    background: var(--border);
+    background: rgba(8, 8, 8, 0.62);
     border-radius: 3px;
   }
   .grade-ticks {
@@ -934,6 +934,17 @@
     transform: translate(-50%, -50%);
     width: 20px;
     height: 32px;
+  }
+  .grade-tick-labels { position: absolute; top: 40px; left: 0; right: 0; height: 14px; pointer-events: none; }
+  .grade-tick-label {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    font-size: 0.6rem;
+    line-height: 1;
+    color: var(--muted);
+    opacity: 0.55;
+    white-space: nowrap;
   }
   .slider-bubble {
     position: absolute;
@@ -1430,6 +1441,7 @@
               <div class="track"></div>
               <div class="track-fill" id="track-fill"></div>
               <div class="grade-ticks" id="grade-ticks"></div>
+              <div class="grade-tick-labels" id="grade-tick-labels"></div>
               <div class="slider-bubble" id="min-bubble">3</div>
               <div class="slider-bubble" id="max-bubble">14</div>
               <input type="range" id="min-grade" min="0" max="17" value="3" step="1">
@@ -2556,19 +2568,26 @@ function gradeTextColor(grade) {
 
 // One vertical ruler-tick per selectable V-grade, positioned to match the
 // thumbs' own math — colored to match the exact gradient color at its spot
-// while inside the currently selected range, gray otherwise.
-const TICK_MIN_W = 3, TICK_MAX_W = 6, TICK_MIN_H = 8, TICK_MAX_H = 24;
+// while inside the currently selected range, gray otherwise. All ticks are
+// the same size; a faint "V0"..."V17" label sits below each one.
+const TICK_W = 4, TICK_H = 16;
 const gradeTicksEl = document.getElementById("grade-ticks");
+const gradeLabelsEl = document.getElementById("grade-tick-labels");
 for (let g = GRADE_MIN; g <= GRADE_MAX; g++) {
   const tick = document.createElement("div");
   tick.className = "grade-tick";
   tick.dataset.grade = g;
   tick.dataset.color = gradeColor(g);
   tick.style.left = sliderPos((g - GRADE_MIN) / (GRADE_MAX - GRADE_MIN));
-  const growth = (g - GRADE_MIN) / (GRADE_MAX - GRADE_MIN);
-  tick.style.width = `${TICK_MIN_W + (TICK_MAX_W - TICK_MIN_W) * growth}px`;
-  tick.style.height = `${TICK_MIN_H + (TICK_MAX_H - TICK_MIN_H) * growth}px`;
+  tick.style.width = `${TICK_W}px`;
+  tick.style.height = `${TICK_H}px`;
   gradeTicksEl.appendChild(tick);
+
+  const label = document.createElement("span");
+  label.className = "grade-tick-label";
+  label.style.left = sliderPos((g - GRADE_MIN) / (GRADE_MAX - GRADE_MIN));
+  label.textContent = "V" + g;
+  gradeLabelsEl.appendChild(label);
 }
 const gradeTicks = [...gradeTicksEl.children];
 
