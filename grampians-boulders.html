@@ -53,6 +53,7 @@
     --grade-vivid-purple-dark: #5b3f7a;
     --on-vivid: #1a1a1a;
     --link: #1d6fd6;
+    --link-bg: #dbe9fa;
     --climb-link: #3f7a43;
     --on-accent: #fff;
     --warning-bg: #fff3cd;
@@ -88,6 +89,7 @@
       --grade-purple: #c1a3ea;
       --grade-purple-bg: #2f2438;
       --link: #6fb1f7;
+      --link-bg: #203247;
       --climb-link: #9ed6a2;
       --on-accent: #14231a;
       --warning-bg: #3a3320;
@@ -123,6 +125,7 @@
     --grade-purple: #c1a3ea;
     --grade-purple-bg: #2f2438;
     --link: #6fb1f7;
+    --link-bg: #203247;
     --climb-link: #9ed6a2;
     --on-accent: #14231a;
     --warning-bg: #3a3320;
@@ -610,8 +613,9 @@
   .wx-temp { display: flex; align-items: center; gap: 0.3rem; line-height: 1.3; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
   .wx-temp-range { display: flex; align-items: center; gap: 0.3rem; }
   .wx-tsep { color: var(--muted); font-weight: 400; }
-  .wx-tmin { color: var(--link); }
-  .wx-tmax { color: var(--grade-red); }
+  .wx-tmin, .wx-tmax { padding: 0.1rem 0.4rem; border-radius: 999px; }
+  .wx-tmin { color: var(--link); background: var(--link-bg); }
+  .wx-tmax { color: var(--grade-red); background: var(--grade-red-bg); }
   .wx-day-chip-row { width: 100%; margin-bottom: 0.5rem; }
   .wx-day-chip { display: inline-flex; width: auto; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 0.7rem; line-height: 1; padding: 0.3rem 0.55rem; border-radius: 999px; }
   .wx-day-chip-muted { background: var(--border); color: var(--muted); }
