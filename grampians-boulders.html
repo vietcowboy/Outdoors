@@ -26,10 +26,10 @@
     --temp-color: #f59e42;
     /* Lo/hi temp chips: always a light fill with dark text, same in both
        themes, rather than inverting to a dark fill in dark mode. */
-    --tmin-chip-bg: #dbe9fa;
-    --tmin-chip-text: #1d6fd6;
-    --tmax-chip-bg: #f8dede;
-    --tmax-chip-text: #b23b3b;
+    --tmin-chip-bg: #c3dcf5;
+    --tmin-chip-text: #13529e;
+    --tmax-chip-bg: #f0c9c9;
+    --tmax-chip-text: #8c2626;
     /* Brighter, and the middle step pushed to yellow so it reads clearly against the
        red step — the old orange and red were too close to tell apart at low opacity. */
     --wash-green: #72e39d;
@@ -616,7 +616,7 @@
   .wx-temp { display: flex; align-items: center; gap: 0.3rem; line-height: 1.3; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
   .wx-temp-range { display: flex; align-items: center; gap: 0.3rem; }
   .wx-tsep { color: var(--muted); font-weight: 400; }
-  .wx-tmin, .wx-tmax { padding: 0.1rem 0.4rem; border-radius: 999px; }
+  .wx-tmin, .wx-tmax { padding: 0.1rem 0.4rem; border-radius: 5px; }
   .wx-tmin { color: var(--tmin-chip-text); background: var(--tmin-chip-bg); }
   .wx-tmax { color: var(--tmax-chip-text); background: var(--tmax-chip-bg); }
   .wx-day-chip-row { width: 100%; margin-bottom: 0.5rem; }
