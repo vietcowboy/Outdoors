@@ -3366,6 +3366,14 @@ window.addEventListener("scroll", () => {
 backToTop.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
+
+// --- Service worker: caches the weather API response so a return visit with
+// bad reception shows last-known weather instantly instead of stalling. ---
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => { /* non-critical */ });
+  });
+}
 </script>
 </body>
 </html>
