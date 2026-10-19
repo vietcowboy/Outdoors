@@ -24,6 +24,12 @@
     /* Bright enough for the dark label text to read against it, and still clearly
        orange next to the yellow conditions wash behind it. */
     --temp-color: #f59e42;
+    /* Lo/hi temp chips: always a light fill with dark text, same in both
+       themes, rather than inverting to a dark fill in dark mode. */
+    --tmin-chip-bg: #dbe9fa;
+    --tmin-chip-text: #1d6fd6;
+    --tmax-chip-bg: #f8dede;
+    --tmax-chip-text: #b23b3b;
     /* Brighter, and the middle step pushed to yellow so it reads clearly against the
        red step — the old orange and red were too close to tell apart at low opacity. */
     --wash-green: #72e39d;
@@ -53,7 +59,6 @@
     --grade-vivid-purple-dark: #5b3f7a;
     --on-vivid: #1a1a1a;
     --link: #1d6fd6;
-    --link-bg: #dbe9fa;
     --climb-link: #3f7a43;
     --on-accent: #fff;
     --warning-bg: #fff3cd;
@@ -89,7 +94,6 @@
       --grade-purple: #c1a3ea;
       --grade-purple-bg: #2f2438;
       --link: #6fb1f7;
-      --link-bg: #203247;
       --climb-link: #9ed6a2;
       --on-accent: #14231a;
       --warning-bg: #3a3320;
@@ -125,7 +129,6 @@
     --grade-purple: #c1a3ea;
     --grade-purple-bg: #2f2438;
     --link: #6fb1f7;
-    --link-bg: #203247;
     --climb-link: #9ed6a2;
     --on-accent: #14231a;
     --warning-bg: #3a3320;
@@ -614,8 +617,8 @@
   .wx-temp-range { display: flex; align-items: center; gap: 0.3rem; }
   .wx-tsep { color: var(--muted); font-weight: 400; }
   .wx-tmin, .wx-tmax { padding: 0.1rem 0.4rem; border-radius: 999px; }
-  .wx-tmin { color: var(--link); background: var(--link-bg); }
-  .wx-tmax { color: var(--grade-red); background: var(--grade-red-bg); }
+  .wx-tmin { color: var(--tmin-chip-text); background: var(--tmin-chip-bg); }
+  .wx-tmax { color: var(--tmax-chip-text); background: var(--tmax-chip-bg); }
   .wx-day-chip-row { width: 100%; margin-bottom: 0.5rem; }
   .wx-day-chip { display: inline-flex; width: auto; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 0.7rem; line-height: 1; padding: 0.3rem 0.55rem; border-radius: 999px; }
   .wx-day-chip-muted { background: var(--border); color: var(--muted); }
