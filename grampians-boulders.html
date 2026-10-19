@@ -924,9 +924,11 @@
     transform: translate(-50%, -50%);
     border-radius: 1px;
     background: var(--border);
-    transition: background 0.15s ease;
+    opacity: 0.45;
+    transition: background 0.15s ease, opacity 0.15s ease;
     cursor: pointer;
   }
+  .grade-tick.in-range { opacity: 1; }
   .grade-tick::before {
     content: "";
     position: absolute;
@@ -945,6 +947,7 @@
     opacity: 0.55;
     white-space: nowrap;
   }
+  .grade-tick-label.is-selected { font-weight: 700; opacity: 1; }
   .slider-bubble {
     position: absolute;
     top: 50%;
@@ -2584,6 +2587,7 @@ for (let g = GRADE_MIN; g <= GRADE_MAX; g++) {
 
   const label = document.createElement("span");
   label.className = "grade-tick-label";
+  label.dataset.grade = g;
   label.style.left = sliderPos((g - GRADE_MIN) / (GRADE_MAX - GRADE_MIN));
   if ((g - GRADE_MIN) % 2 === 0) label.style.top = "0";
   else label.style.bottom = "0";
@@ -2591,6 +2595,7 @@ for (let g = GRADE_MIN; g <= GRADE_MAX; g++) {
   gradeLabelsEl.appendChild(label);
 }
 const gradeTicks = [...gradeTicksEl.children];
+const gradeLabels = [...gradeLabelsEl.children];
 
 // Tapping/clicking a tick filters the table to that exact grade (min = max).
 gradeTicksEl.addEventListener("click", (e) => {
@@ -2636,7 +2641,13 @@ function updateTrackFill() {
     const g = parseInt(tick.dataset.grade);
     const inRange = g >= min && g <= max;
     tick.classList.toggle("in-range", inRange);
-    tick.style.background = inRange ? tick.dataset.color : "";
+    tick.style.background = tick.dataset.color;
+  });
+  gradeLabels.forEach(label => {
+    const g = parseInt(label.dataset.grade);
+    const isSelected = g === min || g === max;
+    label.classList.toggle("is-selected", isSelected);
+    label.style.color = isSelected ? gradeColor(g) : "";
   });
 }
 
