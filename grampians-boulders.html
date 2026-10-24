@@ -21,7 +21,7 @@
     --bg: #f7f5f2;
     --panel: #ffffff;
     --card: #faf9f6;
-    --date-chip-bg: #2a2d28;
+    --date-chip-bg: #5c6058;
     --date-chip-text: #f7f5f2;
     /* Bright enough for the dark label text to read against it, and still clearly
        orange next to the yellow conditions wash behind it. */
@@ -631,6 +631,7 @@
     cursor: pointer;
   }
   .wx-conds { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; margin-top: 0.6rem; }
+  .wx-conds-icon { color: var(--muted); flex-shrink: 0; margin-right: 0.1rem; }
   .wx-cond { white-space: nowrap; }
   .wx-cond.good { color: var(--grade-green); background: var(--grade-green-bg); }
   .wx-cond.average { color: var(--grade-orange); background: var(--grade-orange-bg); }
@@ -648,7 +649,7 @@
     width: 100%;
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0;
     border: none;
     background: none;
     color: var(--muted);
@@ -657,6 +658,7 @@
     cursor: pointer;
     text-align: left;
   }
+  .wx-yesterday-toggle .wx-day-chip { margin-right: 0.3rem; }
   .wx-yesterday-date { flex: 1; font-size: 0.78rem; }
   .wx-chevron { flex-shrink: 0; transition: transform 0.15s ease; }
   .wx-yesterday-toggle[aria-expanded="true"] .wx-chevron { transform: rotate(180deg); }
@@ -3110,7 +3112,7 @@ function wxDayBody(day, showDate = true, dayChip = "") {
       </div>
       </div>
       <div class="wx-hourly">${wxHourly(day)}</div>
-      <div class="wx-conds">${day.cond.length === 1
+      <div class="wx-conds"><svg class="wx-conds-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="15" cy="4" r="2" fill="currentColor"/><path d="M13 7l-3 3-4 1M13 7l2 4 3 1M13 7l-1 5-3 6M13 7l3 3-1 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>${day.cond.length === 1
         ? `<span class="wx-cond ${day.cond[0].level}" title="${day.cond[0].label} all day: ${day.cond[0].why}">${day.cond[0].label} all day</span>`
         : day.cond.map(c => `<span class="wx-cond ${c.level}" title="${c.label} ${wxHourLabel(c.from)}–${wxHourLabel(c.to)}: ${c.why}">${c.label}: ${wxHourLabel(c.from)}–${wxHourLabel(c.to)}</span>`).join("")}</div>`;
 }
