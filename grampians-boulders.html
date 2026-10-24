@@ -622,8 +622,7 @@
   .wx-tmin, .wx-tmax { padding: 0.1rem 0.4rem; border-radius: 5px; }
   .wx-tmin { color: var(--tmin-chip-text); background: var(--tmin-chip-bg); }
   .wx-tmax { color: var(--tmax-chip-text); background: var(--tmax-chip-bg); }
-  .wx-day-chip-row { width: 100%; margin-bottom: 0.5rem; }
-  .wx-day-chip { display: inline-flex; width: auto; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 0.7rem; line-height: 1; padding: 0.3rem 0.55rem; border-radius: 999px; }
+  .wx-day-chip { display: inline-flex; width: auto; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 0.7rem; line-height: 1; padding: 0.3rem 0.55rem; border-radius: 999px; margin-right: 0.4rem; }
   .wx-day-chip-muted { background: var(--border); color: var(--muted); }
   .wx-yesterday-card { padding: 0; opacity: 0.85; }
   .wx-yesterday-toggle {
@@ -3071,12 +3070,12 @@ const wxFmt = (iso, opts) => new Date(iso + "T12:00:00").toLocaleDateString("en-
 const wxDayOfWeek = iso => new Date(iso + "T12:00:00").getDay();
 
 // showDate is false for the Yesterday card, whose collapsed header already names the day.
-function wxDayBody(day, showDate = true) {
+function wxDayBody(day, showDate = true, dayChip = "") {
   const [icon, desc] = wxKind(day.code);
   const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
   const iconHtml = `<div class="wx-icon" title="${desc}"><svg width="18" height="18" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div>`;
   const dateLine = showDate
-    ? `<div class="wx-date"><span class="wx-date-chip"><span class="wx-date-day">${wxFmt(day.date, { weekday: "short" })}</span> <span class="wx-date-dot">&middot;</span> ${wxFmt(day.date, { day: "numeric", month: "short" })}</span>${iconHtml}<span class="wx-date-summary">${wxPunchySummary(day)}</span></div>`
+    ? `<div class="wx-date">${dayChip}<span class="wx-date-chip"><span class="wx-date-day">${wxFmt(day.date, { weekday: "short" })}</span> <span class="wx-date-dot">&middot;</span> ${wxFmt(day.date, { day: "numeric", month: "short" })}</span>${iconHtml}<span class="wx-date-summary">${wxPunchySummary(day)}</span></div>`
     : "";
   return `${dateLine}
     <div class="wx-summary">
@@ -3137,10 +3136,9 @@ function renderWeather() {
   wxBody.innerHTML = '<ul class="wx-days">' + yesterdayCard + days.map((day, k) => {
     const idx = start + k;
     const overall = idx - WX_PAST_DAYS;
-    const chipRow = overall === 0 ? `<div class="wx-day-chip-row"><span class="wx-day-chip">Today</span></div>` : overall === 1 ? `<div class="wx-day-chip-row"><span class="wx-day-chip">Tomorrow</span></div>` : "";
+    const dayChip = overall === 0 ? `<span class="wx-day-chip">Today</span>` : overall === 1 ? `<span class="wx-day-chip">Tomorrow</span>` : "";
     return `<li class="wx-day">
-      ${chipRow}
-      ${wxDayBody(day)}
+      ${wxDayBody(day, true, dayChip)}
     </li>`;
   }).join("") + "</ul>" + '<p class="wx-note">Weather forecast provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>';
 }
