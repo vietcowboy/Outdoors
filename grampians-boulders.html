@@ -593,6 +593,8 @@
   /* Own line above the summary: bold all-caps weekday, then a low-emphasis date. */
   .wx-date { display: flex; align-items: baseline; gap: 0.4rem; line-height: 1.25; margin-bottom: 0.5rem; }
   .wx-date strong { color: var(--text); font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .wx-date-dot { color: var(--muted); }
+  .wx-date-chip { background: #ffffff; color: #1f2320; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 5px; }
   .wx-date-summary { font-weight: 400; color: var(--muted); }
   .wx-icon { color: var(--text); display: flex; margin-right: 0.15rem; }
   .wx-rain { display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; color: var(--text); }
@@ -3075,7 +3077,7 @@ function wxDayBody(day, showDate = true) {
   const [icon, desc] = wxKind(day.code);
   const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
   const dateLine = showDate
-    ? `<div class="wx-date"><strong>${wxFmt(day.date, { weekday: "short" })}</strong><span>${wxFmt(day.date, { day: "numeric", month: "short" })} <span class="wx-date-summary">&middot; ${wxPunchySummary(day)}</span></span></div>`
+    ? `<div class="wx-date"><strong>${wxFmt(day.date, { weekday: "short" })}</strong><span class="wx-date-dot">&middot;</span><span class="wx-date-chip">${wxFmt(day.date, { day: "numeric", month: "short" })}</span><span class="wx-date-summary">${wxPunchySummary(day)}</span></div>`
     : "";
   return `${dateLine}
     <div class="wx-summary">
