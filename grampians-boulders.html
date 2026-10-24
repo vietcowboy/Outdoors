@@ -597,7 +597,7 @@
   .wx-date-summary { font-weight: 400; color: var(--muted); }
   .wx-icon { color: var(--text); display: flex; margin-right: 0.15rem; }
   .wx-rain { display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; color: var(--text); }
-  .wx-rain-text { display: flex; align-items: baseline; gap: 0.3rem; line-height: 1.2; }
+  .wx-rain-text { display: flex; align-items: baseline; gap: 2px; line-height: 1.2; }
   .wx-rain-text strong { font-size: 0.95rem; color: var(--text); }
   .wx-rain-text span { font-size: 0.72rem; color: var(--muted); }
   .wx-rain.is-wet .wx-rain-text strong { color: var(--link); }
@@ -3084,7 +3084,7 @@ function wxDayBody(day, showDate = true) {
       <div class="wx-temp">${showDate ? "" : iconHtml}<span class="wx-temp-range"><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-tsep">-</span><span class="wx-tmax">${Math.round(day.tmax)}°</span></span></div>
       <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}${day.rain > 0 ? " has-rain" : ""}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5s7 7.8 7 12.5a7 7 0 1 1-14 0C5 10.3 12 2.5 12 2.5Z" fill="currentColor"/></svg>
-        <span class="wx-rain-text"><strong>${rainMm} mm</strong><span>${Math.round(day.prob)}%</span></span>
+        <span class="wx-rain-text"><strong>${rainMm} mm</strong><span>(${Math.round(day.prob)}%)</span></span>
       </div>
       <div class="wx-wind">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8h11a2.5 2.5 0 1 0-2.1-3.9M3 12h14a2.5 2.5 0 1 1-2.1 3.9M3 16h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
