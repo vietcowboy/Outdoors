@@ -544,8 +544,7 @@
   .wx-spot:hover { color: var(--text); }
   .wx-spot[aria-pressed="true"] { border-bottom-color: var(--accent); color: var(--text); font-weight: 600; }
   .wx-week-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
-  .wx-band-key { margin: 0 0 0.9rem; font-size: 0.7rem; color: var(--muted); }
-  .wx-band-bar { position: relative; display: flex; border-radius: 8px; overflow: hidden; height: 32px; }
+  .wx-band-bar { position: relative; display: flex; border-radius: 8px; overflow: hidden; height: 32px; margin-top: 0.3rem; }
   .wx-band-gradient { position: absolute; inset: 0; background: linear-gradient(to right, var(--wash-red) 0%, var(--wash-red) 22%, var(--wash-orange) 39%, var(--wash-orange) 61%, var(--wash-green) 78%, var(--wash-green) 100%); opacity: 0.36; }
   .wx-band-seg { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
   .wx-band-seg .wx-cond { font-size: 0.64rem; white-space: nowrap; }
@@ -609,7 +608,7 @@
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
     text-align: center;
-    cursor: help;
+    cursor: pointer;
   }
   .wx-conds { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; margin-top: 0.6rem; }
   .wx-cond { white-space: nowrap; }
@@ -1372,6 +1371,21 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="conditions-modal" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <strong>Climbing conditions</strong>
+        <button class="icon-btn" id="conditions-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="wx-band-bar">
+        <div class="wx-band-gradient" aria-hidden="true"></div>
+        <span class="wx-band-seg"><span class="wx-cond bad">Bad climbing</span></span>
+        <span class="wx-band-seg"><span class="wx-cond average">Check conditions</span></span>
+        <span class="wx-band-seg"><span class="wx-cond good">Good climbing</span></span>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="location-modal" hidden>
     <div class="modal-box modal-wide">
       <div class="modal-header">
@@ -1438,14 +1452,6 @@
     <div class="weather-only" id="weather-panel">
       <div class="wx-spots" id="wx-spots" role="group" aria-label="Forecast location"></div>
       <p class="wx-covers" id="wx-covers"></p>
-      <div class="wx-band-key">
-        <div class="wx-band-bar">
-          <div class="wx-band-gradient" aria-hidden="true"></div>
-          <span class="wx-band-seg"><span class="wx-cond bad">Bad climbing</span></span>
-          <span class="wx-band-seg"><span class="wx-cond average">Check conditions</span></span>
-          <span class="wx-band-seg"><span class="wx-cond good">Good climbing</span></span>
-        </div>
-      </div>
       <div class="wx-week-nav">
         <button class="icon-btn wx-arrow" id="wx-prev" type="button" aria-label="Previous week">‹</button>
         <div class="wx-week-label" id="wx-week-label" aria-live="polite"></div>
@@ -3203,11 +3209,21 @@ resultsBody.addEventListener("click", (e) => {
 accessClose.addEventListener("click", () => { accessModal.hidden = true; });
 accessModal.addEventListener("click", (e) => { if (e.target === accessModal) accessModal.hidden = true; });
 
+// --- Climbing-conditions legend modal (opened by tapping any condition chip) ---
+const conditionsModal = document.getElementById("conditions-modal");
+const conditionsClose = document.getElementById("conditions-close");
+wxBody.addEventListener("click", (e) => {
+  if (e.target.closest(".wx-cond")) conditionsModal.hidden = false;
+});
+conditionsClose.addEventListener("click", () => { conditionsModal.hidden = true; });
+conditionsModal.addEventListener("click", (e) => { if (e.target === conditionsModal) conditionsModal.hidden = true; });
+
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     attributionModal.hidden = true;
     accessModal.hidden = true;
     locationModal.hidden = true;
+    conditionsModal.hidden = true;
   }
 });
 
