@@ -544,6 +544,18 @@
   .wx-spot:hover { color: var(--text); }
   .wx-spot[aria-pressed="true"] { border-bottom-color: var(--accent); color: var(--text); font-weight: 600; }
   .wx-week-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
+  .wx-band-popover {
+    position: absolute;
+    z-index: 600;
+    width: 260px;
+    max-width: calc(100vw - 32px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+    padding: 10px;
+  }
+  .wx-band-popover .wx-band-bar { margin-top: 0; }
   .wx-band-bar { position: relative; display: flex; border-radius: 8px; overflow: hidden; height: 32px; margin-top: 0.3rem; }
   .wx-band-gradient { position: absolute; inset: 0; background: linear-gradient(to right, var(--wash-red) 0%, var(--wash-red) 22%, var(--wash-orange) 39%, var(--wash-orange) 61%, var(--wash-green) 78%, var(--wash-green) 100%); opacity: 0.36; }
   .wx-band-seg { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
@@ -1371,18 +1383,12 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="conditions-modal" hidden>
-    <div class="modal-box">
-      <div class="modal-header">
-        <strong>Climbing conditions</strong>
-        <button class="icon-btn" id="conditions-close" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="wx-band-bar">
-        <div class="wx-band-gradient" aria-hidden="true"></div>
-        <span class="wx-band-seg"><span class="wx-cond bad">Bad climbing</span></span>
-        <span class="wx-band-seg"><span class="wx-cond average">Check conditions</span></span>
-        <span class="wx-band-seg"><span class="wx-cond good">Good climbing</span></span>
-      </div>
+  <div class="wx-band-popover" id="conditions-popover" hidden>
+    <div class="wx-band-bar">
+      <div class="wx-band-gradient" aria-hidden="true"></div>
+      <span class="wx-band-seg"><span class="wx-cond bad">Bad climbing</span></span>
+      <span class="wx-band-seg"><span class="wx-cond average">Check conditions</span></span>
+      <span class="wx-band-seg"><span class="wx-cond good">Good climbing</span></span>
     </div>
   </div>
 
@@ -3209,21 +3215,32 @@ resultsBody.addEventListener("click", (e) => {
 accessClose.addEventListener("click", () => { accessModal.hidden = true; });
 accessModal.addEventListener("click", (e) => { if (e.target === accessModal) accessModal.hidden = true; });
 
-// --- Climbing-conditions legend modal (opened by tapping any condition chip) ---
-const conditionsModal = document.getElementById("conditions-modal");
-const conditionsClose = document.getElementById("conditions-close");
+// --- Climbing-conditions legend popover (opened by tapping any condition chip,
+// positioned just below whichever chip was tapped) ---
+const conditionsPopover = document.getElementById("conditions-popover");
+function closeConditionsPopover() { conditionsPopover.hidden = true; }
 wxBody.addEventListener("click", (e) => {
-  if (e.target.closest(".wx-cond")) conditionsModal.hidden = false;
+  const chip = e.target.closest(".wx-cond");
+  if (!chip) return;
+  const rect = chip.getBoundingClientRect();
+  conditionsPopover.hidden = false;
+  const maxLeft = window.scrollX + window.innerWidth - conditionsPopover.offsetWidth - 8;
+  const left = Math.max(window.scrollX + 8, Math.min(window.scrollX + rect.left, maxLeft));
+  conditionsPopover.style.top = `${window.scrollY + rect.bottom + 6}px`;
+  conditionsPopover.style.left = `${left}px`;
 });
-conditionsClose.addEventListener("click", () => { conditionsModal.hidden = true; });
-conditionsModal.addEventListener("click", (e) => { if (e.target === conditionsModal) conditionsModal.hidden = true; });
+document.addEventListener("click", (e) => {
+  if (conditionsPopover.hidden) return;
+  if (e.target.closest(".wx-cond") || e.target.closest("#conditions-popover")) return;
+  closeConditionsPopover();
+});
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     attributionModal.hidden = true;
     accessModal.hidden = true;
     locationModal.hidden = true;
-    conditionsModal.hidden = true;
+    closeConditionsPopover();
   }
 });
 
