@@ -632,7 +632,7 @@
     cursor: pointer;
   }
   .wx-conds { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; margin-top: 0.6rem; }
-  .wx-conds-icon { display: block; flex-shrink: 0; margin-right: 0.1rem; color: var(--muted); }
+  .wx-conds-icon { display: block; flex-shrink: 0; margin-right: 0.1rem; color: var(--muted); cursor: pointer; }
   .wx-cond { white-space: nowrap; }
   .wx-cond.good { color: var(--grade-green); background: var(--grade-green-bg); }
   .wx-cond.average { color: var(--grade-orange); background: var(--grade-orange-bg); }
@@ -3240,24 +3240,25 @@ function openConditionsPopoverFor(chip) {
   conditionsPopover.style.top = `${window.scrollY + rect.bottom + 6}px`;
   conditionsPopover.style.left = `${left}px`;
 }
+const WX_CONDS_TRIGGER = ".wx-cond, .wx-conds-icon";
 wxBody.addEventListener("click", (e) => {
-  const chip = e.target.closest(".wx-cond");
+  const chip = e.target.closest(WX_CONDS_TRIGGER);
   if (!chip) return;
   openConditionsPopoverFor(chip);
 });
 if (supportsHover) {
   wxBody.addEventListener("mouseover", (e) => {
-    const chip = e.target.closest(".wx-cond");
+    const chip = e.target.closest(WX_CONDS_TRIGGER);
     if (chip) openConditionsPopoverFor(chip);
   });
   wxBody.addEventListener("mouseout", (e) => {
-    const chip = e.target.closest(".wx-cond");
+    const chip = e.target.closest(WX_CONDS_TRIGGER);
     if (chip && !chip.contains(e.relatedTarget)) closeConditionsPopover();
   });
 }
 document.addEventListener("click", (e) => {
   if (conditionsPopover.hidden) return;
-  if (e.target.closest(".wx-cond") || e.target.closest("#conditions-popover")) return;
+  if (e.target.closest(WX_CONDS_TRIGGER) || e.target.closest("#conditions-popover")) return;
   closeConditionsPopover();
 });
 
