@@ -21,6 +21,8 @@
     --bg: #f7f5f2;
     --panel: #ffffff;
     --card: #faf9f6;
+    --date-chip-bg: #2a2d28;
+    --date-chip-text: #f7f5f2;
     /* Bright enough for the dark label text to read against it, and still clearly
        orange next to the yellow conditions wash behind it. */
     --temp-color: #f59e42;
@@ -76,6 +78,8 @@
       --bg: #1b1d1a;
       --panel: #24261f;
       --card: #2d2f27;
+      --date-chip-bg: #ffffff;
+      --date-chip-text: #1f2320;
       --text: #eae7df;
       --muted: #a3a79c;
       --border: #3a3d34;
@@ -111,6 +115,8 @@
     --bg: #1b1d1a;
     --panel: #24261f;
     --card: #2d2f27;
+    --date-chip-bg: #ffffff;
+    --date-chip-text: #1f2320;
     --text: #eae7df;
     --muted: #a3a79c;
     --border: #3a3d34;
@@ -547,7 +553,7 @@
   .wx-band-popover {
     position: absolute;
     z-index: 600;
-    width: 260px;
+    width: 300px;
     max-width: calc(100vw - 32px);
     background: var(--card);
     border: 1px solid var(--border);
@@ -555,7 +561,9 @@
     box-shadow: 0 6px 18px rgba(0,0,0,0.3);
     padding: 10px;
   }
-  .wx-band-popover .wx-band-bar { margin-top: 0; }
+  .wx-band-popover .wx-band-bar { margin-top: 0; height: auto; min-height: 32px; }
+  .wx-band-popover .wx-band-seg { padding: 6px 3px; }
+  .wx-band-popover .wx-band-seg .wx-cond { white-space: normal; text-align: center; line-height: 1.2; }
   .wx-band-bar { position: relative; display: flex; border-radius: 8px; overflow: hidden; height: 32px; margin-top: 0.3rem; }
   .wx-band-gradient { position: absolute; inset: 0; background: linear-gradient(to right, var(--wash-red) 0%, var(--wash-red) 22%, var(--wash-orange) 39%, var(--wash-orange) 61%, var(--wash-green) 78%, var(--wash-green) 100%); opacity: 0.36; }
   .wx-band-seg { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
@@ -603,7 +611,7 @@
   .modal-box p.wx-hourly-empty { font-size: 0.72rem; margin: 0.35rem 0 0; color: var(--muted); }
   .wx-date { display: flex; align-items: center; gap: 0; line-height: 1.25; margin-bottom: 0.5rem; }
   .wx-date-dot { opacity: 0.5; }
-  .wx-date-chip { background: #ffffff; color: #1f2320; font-weight: 400; padding: 0.15rem 0.5rem; border-radius: 5px; margin-right: 0.5rem; }
+  .wx-date-chip { background: var(--date-chip-bg); color: var(--date-chip-text); font-weight: 400; padding: 0.15rem 0.5rem; border-radius: 5px; margin-right: 0.5rem; }
   .wx-date-day { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
   .wx-date-summary { font-weight: 400; color: var(--muted); }
   .wx-icon { color: var(--text); display: flex; margin-right: 0.15rem; }
@@ -3215,20 +3223,34 @@ resultsBody.addEventListener("click", (e) => {
 accessClose.addEventListener("click", () => { accessModal.hidden = true; });
 accessModal.addEventListener("click", (e) => { if (e.target === accessModal) accessModal.hidden = true; });
 
-// --- Climbing-conditions legend popover (opened by tapping any condition chip,
-// positioned just below whichever chip was tapped) ---
+// --- Climbing-conditions legend popover (opened below whichever condition chip
+// triggered it — hover on devices with a real pointer, tap/click everywhere else) ---
 const conditionsPopover = document.getElementById("conditions-popover");
+const supportsHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 function closeConditionsPopover() { conditionsPopover.hidden = true; }
-wxBody.addEventListener("click", (e) => {
-  const chip = e.target.closest(".wx-cond");
-  if (!chip) return;
+function openConditionsPopoverFor(chip) {
   const rect = chip.getBoundingClientRect();
   conditionsPopover.hidden = false;
   const maxLeft = window.scrollX + window.innerWidth - conditionsPopover.offsetWidth - 8;
   const left = Math.max(window.scrollX + 8, Math.min(window.scrollX + rect.left, maxLeft));
   conditionsPopover.style.top = `${window.scrollY + rect.bottom + 6}px`;
   conditionsPopover.style.left = `${left}px`;
+}
+wxBody.addEventListener("click", (e) => {
+  const chip = e.target.closest(".wx-cond");
+  if (!chip) return;
+  openConditionsPopoverFor(chip);
 });
+if (supportsHover) {
+  wxBody.addEventListener("mouseover", (e) => {
+    const chip = e.target.closest(".wx-cond");
+    if (chip) openConditionsPopoverFor(chip);
+  });
+  wxBody.addEventListener("mouseout", (e) => {
+    const chip = e.target.closest(".wx-cond");
+    if (chip && !chip.contains(e.relatedTarget)) closeConditionsPopover();
+  });
+}
 document.addEventListener("click", (e) => {
   if (conditionsPopover.hidden) return;
   if (e.target.closest(".wx-cond") || e.target.closest("#conditions-popover")) return;
