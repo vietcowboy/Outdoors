@@ -951,11 +951,11 @@
     transform: translate(-50%, -50%);
     border-radius: 1px;
     background: var(--border);
-    filter: brightness(0.7) saturate(0.85);
-    transition: background 0.15s ease, filter 0.15s ease;
+    opacity: 0.4;
+    transition: background 0.15s ease, opacity 0.15s ease;
     cursor: pointer;
   }
-  .grade-tick.in-range { filter: none; }
+  .grade-tick.in-range { opacity: 1; }
   .grade-tick::before {
     content: "";
     position: absolute;
