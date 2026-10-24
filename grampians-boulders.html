@@ -3103,7 +3103,7 @@ function wxYesterdayCard(all) {
   return `<li class="wx-day wx-yesterday-card">
     <button class="wx-yesterday-toggle" type="button" aria-expanded="${wxYesterdayOpen}">
       <span class="wx-day-chip wx-day-chip-muted">Yesterday</span>
-      <span class="wx-yesterday-date">${wxFmt(day.date, { weekday: "short", day: "numeric", month: "short" })}</span>
+      <span class="wx-yesterday-date"><span class="wx-date-day">${wxFmt(day.date, { weekday: "short" })}</span> <span class="wx-date-dot">&middot;</span> ${wxFmt(day.date, { day: "numeric", month: "short" })}</span>
       <svg class="wx-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <div class="wx-yesterday-body"${wxYesterdayOpen ? "" : " hidden"}>${wxDayBody(day, false)}</div>
