@@ -549,7 +549,9 @@
   }
   .wx-spot:hover { color: var(--text); }
   .wx-spot[aria-pressed="true"] { border-bottom-color: var(--accent); color: var(--text); font-weight: 600; }
-  .wx-week-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
+  .wx-week-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+  .wx-week-arrows { display: flex; align-items: center; gap: 8px; }
+  .wx-refresh-row { display: flex; align-items: center; gap: 8px; }
   .wx-band-popover {
     position: absolute;
     z-index: 600;
@@ -569,7 +571,7 @@
   .wx-band-gradient { position: absolute; inset: 0; background: linear-gradient(to right, var(--wash-red) 0%, var(--wash-red) 22%, var(--wash-orange) 39%, var(--wash-orange) 61%, var(--wash-green) 78%, var(--wash-green) 100%); opacity: 0.36; }
   .wx-band-seg { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
   .wx-band-seg .wx-cond { font-size: 0.64rem; white-space: nowrap; }
-  .wx-week-label { font-size: 0.88rem; font-weight: 600; color: var(--text); text-align: center; white-space: nowrap; }
+  .wx-last-updated { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
   .wx-arrow { width: 2rem; height: 2rem; font-size: 1rem; }
   .wx-arrow:not(:disabled) { background: var(--grade-green-bg); color: var(--grade-green); font-weight: 700; }
   .wx-arrow:not(:disabled):hover { background: var(--accent); color: var(--on-accent); }
@@ -1472,9 +1474,16 @@
       <div class="wx-spots" id="wx-spots" role="group" aria-label="Forecast location"></div>
       <p class="wx-covers" id="wx-covers"></p>
       <div class="wx-week-nav">
-        <button class="icon-btn wx-arrow" id="wx-prev" type="button" aria-label="Previous week">‹</button>
-        <div class="wx-week-label" id="wx-week-label" aria-live="polite"></div>
-        <button class="icon-btn wx-arrow" id="wx-next" type="button" aria-label="Next week">›</button>
+        <div class="wx-week-arrows">
+          <button class="icon-btn wx-arrow" id="wx-prev" type="button" aria-label="Previous week">‹</button>
+          <button class="icon-btn wx-arrow" id="wx-next" type="button" aria-label="Next week">›</button>
+        </div>
+        <div class="wx-refresh-row">
+          <button class="icon-btn wx-arrow" id="wx-refresh" type="button" aria-label="Refresh weather">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 11V5M20 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="wx-last-updated" id="wx-last-updated" aria-live="polite"></span>
+        </div>
       </div>
       <div id="wx-body"><p class="wx-status">Loading forecast…</p></div>
     </div>
@@ -2849,7 +2858,8 @@ const WX_DAYS_PER_PAGE = 7, WX_PAGES = 2, WX_PAST_DAYS = 2;
 const wxBody = document.getElementById("wx-body");
 const wxPrev = document.getElementById("wx-prev");
 const wxNext = document.getElementById("wx-next");
-const wxWeekLabel = document.getElementById("wx-week-label");
+const wxRefreshBtn = document.getElementById("wx-refresh");
+const wxLastUpdatedEl = document.getElementById("wx-last-updated");
 const wxSpots = document.getElementById("wx-spots");
 const wxCovers = document.getElementById("wx-covers");
 let wxData = null, wxLoading = false, wxSpot = 0, wxPage = 0;
@@ -3061,12 +3071,25 @@ async function fetchWeather() {
   });
 }
 
+let wxLastUpdated = null;
+function wxUpdateLastUpdatedText() {
+  if (!wxLastUpdated) { wxLastUpdatedEl.textContent = ""; return; }
+  const mins = Math.max(0, Math.round((Date.now() - wxLastUpdated.getTime()) / 60000));
+  wxLastUpdatedEl.textContent = mins < 1 ? "Last updated just now" : `Last updated ${mins} minute${mins === 1 ? "" : "s"} ago`;
+}
+function wxMarkUpdatedNow() {
+  wxLastUpdated = new Date();
+  wxUpdateLastUpdatedText();
+}
+setInterval(wxUpdateLastUpdatedText, 30000);
+
 async function loadWeather() {
   if (wxData || wxLoading) return;
   wxLoading = true;
   wxBody.innerHTML = '<p class="wx-status">Loading forecast…</p>';
   try {
     wxData = await fetchWeather();
+    wxMarkUpdatedNow();
   } catch (err) {
     wxBody.innerHTML = '<p class="wx-status">Couldn’t load the forecast. Check your connection and try again.</p>';
   } finally {
@@ -3085,10 +3108,27 @@ if ("serviceWorker" in navigator) {
     try {
       const fresh = await fetchWeather();
       wxData = fresh;
+      wxMarkUpdatedNow();
       renderWeather();
     } catch (err) { /* keep showing what's already on screen */ }
   });
 }
+
+// Manual refresh button: force a fresh fetch regardless of what's cached.
+wxRefreshBtn.addEventListener("click", async () => {
+  if (wxLoading) return;
+  wxLoading = true;
+  wxRefreshBtn.disabled = true;
+  try {
+    wxData = await fetchWeather();
+    wxMarkUpdatedNow();
+    renderWeather();
+  } catch (err) { /* keep showing what's already on screen */ }
+  finally {
+    wxLoading = false;
+    wxRefreshBtn.disabled = false;
+  }
+});
 
 const wxFmt = (iso, opts) => new Date(iso + "T12:00:00").toLocaleDateString("en-AU", opts);
 // 0 = Sunday … 6 = Saturday, in the browser's local time (midday avoids DST edges).
@@ -3155,8 +3195,6 @@ function renderWeather() {
     if (!spill) break;
     days.push(spill);
   }
-  const range = { weekday: "short", day: "numeric", month: "short" };
-  wxWeekLabel.textContent = `${wxFmt(days[0].date, range)} – ${wxFmt(days[days.length - 1].date, range)}`;
   const yesterdayCard = wxPage === 0 ? wxYesterdayCard(all) : "";
   wxBody.innerHTML = '<ul class="wx-days">' + yesterdayCard + days.map((day, k) => {
     const idx = start + k;
