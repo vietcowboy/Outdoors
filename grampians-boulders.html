@@ -1270,6 +1270,9 @@
     body.view-weather .wrap,
     body.view-weather .main-layout,
     body.view-weather .filters-panel { flex: 1; }
+    /* .wrap centres itself with auto side margins, which as a flex item would shrink
+       it to its content width rather than stretching it. */
+    body.view-weather .wrap { width: 100%; }
     body.view-weather #weather-panel { flex: 1; }
     body.view-weather #wx-body { flex: 1; min-height: 0; max-height: none; }
   }
