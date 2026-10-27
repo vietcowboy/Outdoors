@@ -577,6 +577,9 @@
   }
   .wx-days { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
   .wx-note { font-size: 0.72rem; color: var(--muted); margin: 12px 0 0; text-align: center; }
+  /* Week break: a full-width rule with the week's name set into the middle of it. */
+  .wx-week-divider { display: flex; align-items: center; gap: 12px; margin: 4px 0; font-size: 0.8rem; font-weight: 700; color: var(--text); }
+  .wx-week-divider::before, .wx-week-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
   .wx-day {
     padding: 0.9rem;
     border-radius: 10px;
@@ -1252,29 +1255,29 @@
   }
   .check-access-tag:hover { text-decoration: underline; }
   .empty { text-align: center; color: var(--muted); padding: 2rem 0; }
-  .site-footer { text-align: left; color: var(--muted); font-size: 0.78rem; padding: 0 0 0.5rem; }
-  /* Weather mode: the visitor count sits 16px below the panel (the .main-layout gap)
+  /* Either view: the visitor count sits 16px below the panel (the .main-layout gap)
      with 32px of page padding beneath it. On desktop the page itself doesn't scroll,
      so the panel has to flex to whatever height is left over rather than take a fixed
      slice of the viewport — otherwise the footer falls off the bottom edge. */
-  body.view-weather { padding-bottom: 32px; }
-  body.view-weather .filters-panel { margin-bottom: 0; }
+  body { padding-bottom: 32px; }
+  .filters-panel { margin-bottom: 0; }
   /* Flex, so the inline image's baseline leading doesn't pad the 16/32px out. */
-  body.view-weather .site-footer { padding: 0; display: flex; }
+  .site-footer { display: flex; padding: 0; color: var(--muted); font-size: 0.78rem; }
   @media (min-width: 961px) {
-    body.view-weather { height: 100%; display: flex; flex-direction: column; }
-    body.view-weather .wrap,
-    body.view-weather .main-layout,
-    body.view-weather .filters-panel,
-    body.view-weather #weather-panel { display: flex; flex-direction: column; min-height: 0; }
-    body.view-weather .wrap,
-    body.view-weather .main-layout,
-    body.view-weather .filters-panel { flex: 1; }
+    body { height: 100%; display: flex; flex-direction: column; }
+    .wrap, .main-layout, .filters-panel { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+    /* Scoped to the visible view: an unscoped #weather-panel rule would outrank
+       .weather-only[hidden] { display: none } and show the panel in climbs mode. */
+    body.view-weather #weather-panel { display: flex; flex-direction: column; min-height: 0; flex: 1; }
     /* .wrap centres itself with auto side margins, which as a flex item would shrink
        it to its content width rather than stretching it. */
-    body.view-weather .wrap { width: 100%; }
-    body.view-weather #weather-panel { flex: 1; }
-    body.view-weather #wx-body { flex: 1; min-height: 0; max-height: none; }
+    .wrap { width: 100%; }
+    /* Each view's scroller takes the leftover height. */
+    #wx-body { flex: 1; min-height: 0; max-height: none; }
+    /* The climbs grid stretches its columns to the panel, so the results table
+       scrolls inside the full height rather than stopping short of it. */
+    body.view-climbs .climbs-layout { flex: 1; min-height: 0; align-items: stretch; }
+    body.view-climbs #climbs-results { height: 100%; min-height: 0; max-height: none; }
   }
   .back-to-top {
     display: none;
@@ -1490,7 +1493,6 @@
 
     <div class="weather-only" id="weather-panel">
       <div class="wx-spots" id="wx-spots" role="group" aria-label="Forecast location"></div>
-      <p class="wx-covers" id="wx-covers"></p>
       <div id="wx-body"><p class="wx-status">Loading forecast…</p></div>
     </div>
 
@@ -2866,7 +2868,6 @@ const WX_SPOTS = [
 const WX_DAYS_PER_BATCH = 7, WX_FORECAST_DAYS = 16, WX_PAST_DAYS = 2;
 const wxBody = document.getElementById("wx-body");
 const wxSpots = document.getElementById("wx-spots");
-const wxCovers = document.getElementById("wx-covers");
 let wxData = null, wxLoading = false, wxSpot = 0, wxShown = WX_DAYS_PER_BATCH;
 
 wxSpots.innerHTML = WX_SPOTS.map((sp, i) =>
@@ -3161,7 +3162,6 @@ function wxWholeWeekends(all, count) {
 }
 
 function renderWeather() {
-  wxCovers.textContent = `Covers ${WX_SPOTS[wxSpot].covers}.`;
   if (!wxData) return;
   const all = wxData[wxSpot];
   const count = wxWholeWeekends(all, Math.min(wxShown, all.length - WX_PAST_DAYS));
@@ -3171,9 +3171,18 @@ function renderWeather() {
   // Re-rendering replaces the whole list, which would otherwise jump the reader back
   // to the top — including when a scroll appends the next batch.
   const scroll = wxBody.scrollTop;
-  wxBody.innerHTML = '<ul class="wx-days">' + wxYesterdayCard(all) + days.map((day, overall) => {
+  // The covers line sits inside the scroller, so it scrolls away with the days
+  // rather than holding height above them.
+  let weekBreaks = 0;
+  wxBody.innerHTML = `<p class="wx-covers">Covers ${WX_SPOTS[wxSpot].covers}.</p>`
+    + '<ul class="wx-days">' + wxYesterdayCard(all) + days.map((day, overall) => {
     const dayChip = overall === 0 ? `<span class="wx-day-chip">Today</span>` : overall === 1 ? `<span class="wx-day-chip">Tomorrow</span>` : "";
-    return `<li class="wx-day">
+    // Each Monday after the first card starts a new week. The first break is the
+    // familiar "Next week"; later ones are dated, since "next" stops being true.
+    const divider = overall > 0 && wxDayOfWeek(day.date) === 1
+      ? `<li class="wx-week-divider"><span>${++weekBreaks === 1 ? "Next week" : `Week of ${wxFmt(day.date, { day: "numeric", month: "short" })}`}</span></li>`
+      : "";
+    return `${divider}<li class="wx-day">
       ${wxDayBody(day, true, dayChip)}
     </li>`;
   }).join("") + "</ul>"
