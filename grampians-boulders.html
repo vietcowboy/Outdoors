@@ -549,9 +549,6 @@
   }
   .wx-spot:hover { color: var(--text); }
   .wx-spot[aria-pressed="true"] { border-bottom-color: var(--accent); color: var(--text); font-weight: 600; }
-  .wx-week-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
-  .wx-week-arrows { display: flex; align-items: center; gap: 8px; }
-  .wx-refresh-row { display: flex; align-items: center; gap: 8px; }
   .wx-band-popover {
     position: absolute;
     z-index: 600;
@@ -571,12 +568,10 @@
   .wx-band-gradient { position: absolute; inset: 0; background: linear-gradient(to right, var(--wash-red) 0%, var(--wash-red) 22%, var(--wash-orange) 39%, var(--wash-orange) 61%, var(--wash-green) 78%, var(--wash-green) 100%); opacity: 0.36; }
   .wx-band-seg { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
   .wx-band-seg .wx-cond { font-size: 0.64rem; white-space: nowrap; }
-  .wx-last-updated { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
-  .wx-arrow { width: 2rem; height: 2rem; font-size: 1rem; }
-  .wx-arrow:not(:disabled) { background: var(--grade-green-bg); color: var(--grade-green); font-weight: 700; }
-  .wx-arrow:not(:disabled):hover { background: var(--accent); color: var(--on-accent); }
-  .wx-arrow:disabled { opacity: 0.35; cursor: default; background: none; }
-  #wx-body { max-height: 70vh; overflow-y: auto; }
+  /* Weather is a single scrolling feed, so give it more of the viewport than the
+     climbs panel gets — the extra height is what makes infinite scroll worth it. */
+  #wx-body { max-height: 85vh; overflow-y: auto; }
+  .wx-more { font-size: 0.72rem; color: var(--muted); margin: 12px 0 0; text-align: center; }
   @media (min-width: 961px) {
     #wx-body { padding-right: 16px; }
   }
@@ -1473,18 +1468,6 @@
     <div class="weather-only" id="weather-panel">
       <div class="wx-spots" id="wx-spots" role="group" aria-label="Forecast location"></div>
       <p class="wx-covers" id="wx-covers"></p>
-      <div class="wx-week-nav">
-        <div class="wx-week-arrows">
-          <button class="icon-btn wx-arrow" id="wx-prev" type="button" aria-label="Previous week">‹</button>
-          <button class="icon-btn wx-arrow" id="wx-next" type="button" aria-label="Next week">›</button>
-        </div>
-        <div class="wx-refresh-row">
-          <span class="wx-last-updated" id="wx-last-updated" aria-live="polite"></span>
-          <button class="icon-btn wx-arrow" id="wx-refresh" type="button" aria-label="Refresh weather">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 11V5M20 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-      </div>
       <div id="wx-body"><p class="wx-status">Loading forecast…</p></div>
     </div>
 
@@ -2854,15 +2837,14 @@ const WX_SPOTS = [
   { name: "Northern Grampians", lat: -36.97, lng: 142.44, covers: "Andersens, Trackside, the Citadel and surrounds" },
   { name: "Central Grampians", lat: -37.14, lng: 142.52, covers: "Bleachers, Venus Baths and surrounds" },
 ];
-const WX_DAYS_PER_PAGE = 7, WX_PAGES = 2, WX_PAST_DAYS = 2;
+// The forecast is one scrolling feed: WX_DAYS_PER_BATCH days are shown to start, and
+// another batch is appended each time the reader nears the bottom, up to the
+// WX_FORECAST_DAYS the API gives us.
+const WX_DAYS_PER_BATCH = 7, WX_FORECAST_DAYS = 16, WX_PAST_DAYS = 2;
 const wxBody = document.getElementById("wx-body");
-const wxPrev = document.getElementById("wx-prev");
-const wxNext = document.getElementById("wx-next");
-const wxRefreshBtn = document.getElementById("wx-refresh");
-const wxLastUpdatedEl = document.getElementById("wx-last-updated");
 const wxSpots = document.getElementById("wx-spots");
 const wxCovers = document.getElementById("wx-covers");
-let wxData = null, wxLoading = false, wxSpot = 0, wxPage = 0;
+let wxData = null, wxLoading = false, wxSpot = 0, wxShown = WX_DAYS_PER_BATCH;
 
 wxSpots.innerHTML = WX_SPOTS.map((sp, i) =>
   `<button type="button" class="wx-spot" data-i="${i}" aria-pressed="${i === 0}">${sp.name}</button>`).join("");
@@ -3042,9 +3024,7 @@ function wxForecastUrl() {
     daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max",
     hourly: "precipitation,precipitation_probability,temperature_2m",
     timezone: "Australia/Melbourne",
-    // Two days past the last page, so a Friday- or Saturday-ending final page can
-    // still reach into the weekend day(s) after it.
-    forecast_days: WX_DAYS_PER_PAGE * WX_PAGES + 2,
+    forecast_days: WX_FORECAST_DAYS,
     past_days: WX_PAST_DAYS,
   });
   return `https://api.open-meteo.com/v1/forecast?${params}`;
@@ -3071,17 +3051,6 @@ async function fetchWeather() {
   });
 }
 
-let wxLastUpdated = null;
-function wxUpdateLastUpdatedText() {
-  if (!wxLastUpdated) { wxLastUpdatedEl.textContent = ""; return; }
-  const mins = Math.max(0, Math.round((Date.now() - wxLastUpdated.getTime()) / 60000));
-  wxLastUpdatedEl.textContent = mins < 1 ? "Last updated just now" : `Last updated ${mins} minute${mins === 1 ? "" : "s"} ago`;
-}
-function wxMarkUpdatedNow() {
-  wxLastUpdated = new Date();
-  wxUpdateLastUpdatedText();
-}
-setInterval(wxUpdateLastUpdatedText, 30000);
 
 async function loadWeather() {
   if (wxData || wxLoading) return;
@@ -3089,7 +3058,6 @@ async function loadWeather() {
   wxBody.innerHTML = '<p class="wx-status">Loading forecast…</p>';
   try {
     wxData = await fetchWeather();
-    wxMarkUpdatedNow();
   } catch (err) {
     wxBody.innerHTML = '<p class="wx-status">Couldn’t load the forecast. Check your connection and try again.</p>';
   } finally {
@@ -3108,27 +3076,10 @@ if ("serviceWorker" in navigator) {
     try {
       const fresh = await fetchWeather();
       wxData = fresh;
-      wxMarkUpdatedNow();
       renderWeather();
     } catch (err) { /* keep showing what's already on screen */ }
   });
 }
-
-// Manual refresh button: force a fresh fetch regardless of what's cached.
-wxRefreshBtn.addEventListener("click", async () => {
-  if (wxLoading) return;
-  wxLoading = true;
-  wxRefreshBtn.disabled = true;
-  try {
-    wxData = await fetchWeather();
-    wxMarkUpdatedNow();
-    renderWeather();
-  } catch (err) { /* keep showing what's already on screen */ }
-  finally {
-    wxLoading = false;
-    wxRefreshBtn.disabled = false;
-  }
-});
 
 const wxFmt = (iso, opts) => new Date(iso + "T12:00:00").toLocaleDateString("en-AU", opts);
 // 0 = Sunday … 6 = Saturday, in the browser's local time (midday avoids DST edges).
@@ -3175,35 +3126,37 @@ function wxYesterdayCard(all) {
   </li>`;
 }
 
+// Most people climb on the weekend, so never stop the feed mid-weekend: round the
+// count up so Saturday and Sunday are always on screen together — one extra day when
+// it would end on a Saturday, two when it would end on a Friday.
+function wxWholeWeekends(all, count) {
+  const last = all[WX_PAST_DAYS + count - 1];
+  if (!last) return count;
+  const dow = wxDayOfWeek(last.date);
+  const extra = dow === 5 ? 2 : dow === 6 ? 1 : 0;
+  return Math.min(count + extra, all.length - WX_PAST_DAYS);
+}
+
 function renderWeather() {
   wxCovers.textContent = `Covers ${WX_SPOTS[wxSpot].covers}.`;
-  wxPrev.disabled = wxPage === 0;
-  wxNext.disabled = wxPage === WX_PAGES - 1;
   if (!wxData) return;
   const all = wxData[wxSpot];
-  const start = WX_PAST_DAYS + wxPage * WX_DAYS_PER_PAGE;
-  const days = all.slice(start, start + WX_DAYS_PER_PAGE);
+  const count = wxWholeWeekends(all, Math.min(wxShown, all.length - WX_PAST_DAYS));
+  const days = all.slice(WX_PAST_DAYS, WX_PAST_DAYS + count);
   if (!days.length) return;
-  // Most people climb on the weekend, so never end a page mid-weekend: pull in
-  // whichever weekend day(s) follow so Saturday and Sunday are always shown
-  // together — one extra day for a Saturday-ending page, two for a Friday-ending one.
-  const last = days[days.length - 1];
-  const lastDow = wxDayOfWeek(last.date);
-  const spillCount = lastDow === 5 ? 2 : lastDow === 6 ? 1 : 0;
-  for (let i = 0; i < spillCount; i++) {
-    const spill = all[start + days.length];
-    if (!spill) break;
-    days.push(spill);
-  }
-  const yesterdayCard = wxPage === 0 ? wxYesterdayCard(all) : "";
-  wxBody.innerHTML = '<ul class="wx-days">' + yesterdayCard + days.map((day, k) => {
-    const idx = start + k;
-    const overall = idx - WX_PAST_DAYS;
+  const more = count < all.length - WX_PAST_DAYS;
+  // Re-rendering replaces the whole list, which would otherwise jump the reader back
+  // to the top — including when a scroll appends the next batch.
+  const scroll = wxBody.scrollTop;
+  wxBody.innerHTML = '<ul class="wx-days">' + wxYesterdayCard(all) + days.map((day, overall) => {
     const dayChip = overall === 0 ? `<span class="wx-day-chip">Today</span>` : overall === 1 ? `<span class="wx-day-chip">Tomorrow</span>` : "";
     return `<li class="wx-day">
       ${wxDayBody(day, true, dayChip)}
     </li>`;
-  }).join("") + "</ul>" + '<p class="wx-note">Weather forecast provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>';
+  }).join("") + "</ul>"
+    + (more ? '<p class="wx-more">Keep scrolling for more days…</p>' : "")
+    + '<p class="wx-note">Weather forecast provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>';
+  wxBody.scrollTop = scroll;
 }
 
 wxBody.addEventListener("click", (e) => {
@@ -3213,8 +3166,15 @@ wxBody.addEventListener("click", (e) => {
   renderWeather();
 });
 
-wxPrev.addEventListener("click", () => { if (wxPage > 0) { wxPage--; renderWeather(); } });
-wxNext.addEventListener("click", () => { if (wxPage < WX_PAGES - 1) { wxPage++; renderWeather(); } });
+// Infinite scroll: append the next batch of days as the reader nears the bottom.
+wxBody.addEventListener("scroll", () => {
+  if (!wxData) return;
+  const total = wxData[wxSpot].length - WX_PAST_DAYS;
+  if (wxShown >= total) return;
+  if (wxBody.scrollTop + wxBody.clientHeight < wxBody.scrollHeight - 240) return;
+  wxShown = Math.min(wxShown + WX_DAYS_PER_BATCH, total);
+  renderWeather();
+});
 
 // --- Weather / Find climbs tab switcher ---
 const weatherTabs = [document.getElementById("tab-weather"), document.getElementById("tab-weather-wide")];
