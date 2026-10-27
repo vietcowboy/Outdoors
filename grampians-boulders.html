@@ -578,7 +578,9 @@
   .wx-days { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
   .wx-note { font-size: 0.72rem; color: var(--muted); margin: 12px 0 0; text-align: center; }
   /* Week break: a full-width rule with the week's name set into the middle of it. */
-  .wx-week-divider { display: flex; align-items: center; gap: 12px; margin: 4px 0; font-size: 0.8rem; font-weight: 700; color: var(--text); }
+  /* 20px of padding, not 32: the day list's own 12px flex gap sits outside it, so
+     this is what leaves 32px of clear space between the rule and the cards. */
+  .wx-week-divider { display: flex; align-items: center; gap: 12px; margin: 0; padding: 20px 0; font-size: 0.8rem; font-weight: 700; color: var(--text); }
   .wx-week-divider::before, .wx-week-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
   .wx-day {
     padding: 0.9rem;
