@@ -647,6 +647,21 @@
   .wx-tmax { color: var(--tmax-chip-text); background: var(--tmax-chip-bg); }
   .wx-day-chip { display: inline-flex; width: auto; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 0.7rem; line-height: 1; padding: 0.3rem 0.55rem; border-radius: 999px; margin-right: 0.4rem; }
   .wx-day-chip-muted { background: var(--border); color: var(--muted); }
+  /* Outlined, so a long weekend reads as a note on the date rather than competing
+     with the filled Today/Tomorrow chip beside it. */
+  .wx-holiday-chip {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.68rem;
+    line-height: 1;
+    padding: 0.28rem 0.5rem;
+    border-radius: 999px;
+    margin-right: 0.5rem;
+    white-space: nowrap;
+  }
   .wx-yesterday-card { padding: 0; opacity: 0.85; }
   .wx-yesterday-toggle {
     width: 100%;
@@ -3107,9 +3122,88 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+// --- Victorian public holidays ---
+// The Grampians are in Victoria, so these are Victoria's dates, which differ from
+// other states: Easter Saturday and Sunday are holidays here, ANZAC Day is never
+// moved off the 25th, and Melbourne Cup Day is Victoria's alone. Computed per year
+// from the rules rather than kept in a table that would expire without warning.
+//
+// One holiday is deliberately missing: the Friday before the AFL Grand Final. Its
+// date is declared by the government each year and can't be derived from a rule.
+const wxIsoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+// Anonymous Gregorian computus — Easter Sunday for a given year.
+function wxEasterSunday(year) {
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  return new Date(year, month - 1, ((h + l - 7 * m + 114) % 31) + 1);
+}
+
+// The nth given weekday of a month, e.g. the second Monday in March.
+function wxNthWeekday(year, month, weekday, n) {
+  const first = new Date(year, month, 1);
+  const offset = (weekday - first.getDay() + 7) % 7;
+  return new Date(year, month, 1 + offset + (n - 1) * 7);
+}
+
+const wxHolidayCache = new Map();
+function wxHolidaysFor(year) {
+  if (wxHolidayCache.has(year)) return wxHolidayCache.get(year);
+  const days = new Map();
+  const add = (date, name) => days.set(wxIsoDate(date), name);
+  // Victoria moves a weekend holiday to the following Monday — true of these four,
+  // but not of ANZAC Day, which stays on the 25th whatever day it lands on.
+  const addWithSubstitute = (date, name) => {
+    add(date, name);
+    const dow = date.getDay();
+    if (dow !== 0 && dow !== 6) return;
+    const substitute = new Date(date);
+    substitute.setDate(date.getDate() + (dow === 6 ? 2 : 1));
+    // A weekend Christmas pushes Boxing Day's substitute onto the same Monday, and
+    // Victoria grants both days — so take the next free weekday instead of
+    // overwriting what's already there.
+    while (days.has(wxIsoDate(substitute))) substitute.setDate(substitute.getDate() + 1);
+    add(substitute, `${name} holiday`);
+  };
+
+  addWithSubstitute(new Date(year, 0, 1), "New Year's Day");
+  addWithSubstitute(new Date(year, 0, 26), "Australia Day");
+  add(wxNthWeekday(year, 2, 1, 2), "Labour Day");
+  const easter = wxEasterSunday(year);
+  const easterOffset = (n, name) => {
+    const d = new Date(easter);
+    d.setDate(easter.getDate() + n);
+    add(d, name);
+  };
+  easterOffset(-2, "Good Friday");
+  easterOffset(-1, "Easter Saturday");
+  easterOffset(0, "Easter Sunday");
+  easterOffset(1, "Easter Monday");
+  add(new Date(year, 3, 25), "ANZAC Day");
+  add(wxNthWeekday(year, 5, 1, 2), "King's Birthday");
+  add(wxNthWeekday(year, 10, 2, 1), "Melbourne Cup Day");
+  addWithSubstitute(new Date(year, 11, 25), "Christmas Day");
+  addWithSubstitute(new Date(year, 11, 26), "Boxing Day");
+
+  wxHolidayCache.set(year, days);
+  return days;
+}
+
+const wxHoliday = iso => wxHolidaysFor(+iso.slice(0, 4)).get(iso) || "";
+
 const wxFmt = (iso, opts) => new Date(iso + "T12:00:00").toLocaleDateString("en-AU", opts);
 // 0 = Sunday … 6 = Saturday, in the browser's local time (midday avoids DST edges).
 const wxDayOfWeek = iso => new Date(iso + "T12:00:00").getDay();
+
+function wxHolidayChip(iso) {
+  const name = wxHoliday(iso);
+  return name ? `<span class="wx-holiday-chip" title="${name} — Victorian public holiday">${name}</span>` : "";
+}
 
 // showDate is false for the Yesterday card, whose collapsed header already names the day.
 function wxDayBody(day, showDate = true, dayChip = "") {
@@ -3117,7 +3211,7 @@ function wxDayBody(day, showDate = true, dayChip = "") {
   const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
   const iconHtml = `<div class="wx-icon" title="${desc}"><svg width="18" height="18" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div>`;
   const dateLine = showDate
-    ? `<div class="wx-date">${dayChip}<span class="wx-date-chip"><span class="wx-date-day">${wxFmt(day.date, { weekday: "short" })}</span> <span class="wx-date-dot">&middot;</span> ${wxFmt(day.date, { day: "numeric", month: "short" })}</span>${iconHtml}<span class="wx-date-summary">${wxPunchySummary(day)}</span></div>`
+    ? `<div class="wx-date">${dayChip}${wxHolidayChip(day.date)}<span class="wx-date-chip"><span class="wx-date-day">${wxFmt(day.date, { weekday: "short" })}</span> <span class="wx-date-dot">&middot;</span> ${wxFmt(day.date, { day: "numeric", month: "short" })}</span>${iconHtml}<span class="wx-date-summary">${wxPunchySummary(day)}</span></div>`
     : "";
   return `${dateLine}
     <div class="wx-summary">
