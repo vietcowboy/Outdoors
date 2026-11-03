@@ -42,6 +42,10 @@
     --border: #e2ddd5;
     --accent: #4a6b4f;
     --accent-light: #dce8dd;
+    /* The conditions popover: a lighter tint of the brand green, so it reads as a
+       layer above the near-white weather cards rather than another card. */
+    --popover-bg: #e4efe4;
+    --popover-border: #bfd6c2;
     --star-toggle-active-bg: #c3e8c6;
     --star: #f2b705;
     --closed: #b5493c;
@@ -85,6 +89,8 @@
       --border: #3a3d34;
       --accent: #8fbf95;
       --accent-light: #2c3a2b;
+      --popover-bg: #3c4f3e;
+      --popover-border: #55694f;
       --star-toggle-active-bg: #3e5a3c;
       --star: #e0b45a;
       --closed: #e08579;
@@ -122,6 +128,8 @@
     --border: #3a3d34;
     --accent: #8fbf95;
     --accent-light: #2c3a2b;
+    --popover-bg: #3c4f3e;
+    --popover-border: #55694f;
     --star-toggle-active-bg: #3e5a3c;
     --star: #e0b45a;
     --closed: #e08579;
@@ -554,12 +562,14 @@
     z-index: 600;
     width: 300px;
     max-width: calc(100vw - 32px);
-    background: var(--card);
-    border: 1px solid var(--border);
+    background: var(--popover-bg);
+    border: 1px solid var(--popover-border);
     border-radius: 10px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.3);
     padding: 10px;
   }
+  /* While it's tracking the cursor it sits under it, so it has to be click-through. */
+  .wx-band-popover.is-following { pointer-events: none; }
   .wx-band-popover-title { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
   /* One row per run of same-level hours through the climbing day. */
   .wx-cond-rows { display: flex; flex-direction: column; gap: 0.45rem; }
@@ -3370,7 +3380,7 @@ function rebindConditionsPopover() {
   const chart = document.querySelector(`.wx-hourly[data-wx-date="${date}"]`);
   if (!chart) return closeConditionsPopover();
   conditionsPopoverFor = chart;
-  positionConditionsPopover(chart);
+  if (!conditionsPopover.classList.contains("is-following")) positionConditionsPopover(chart);
 }
 
 function wxCondRowsHtml(day) {
@@ -3382,25 +3392,41 @@ function wxCondRowsHtml(day) {
   }).join("");
 }
 
-// The chart is tall, so sit the popover below it when there's room and above it
-// when there isn't, rather than running off the bottom of the screen.
-function positionConditionsPopover(chart) {
-  const rect = chart.getBoundingClientRect();
-  const h = conditionsPopover.offsetHeight;
-  const maxLeft = window.scrollX + window.innerWidth - conditionsPopover.offsetWidth - 8;
-  const left = Math.max(window.scrollX + 8, Math.min(window.scrollX + rect.left, maxLeft));
-  const below = rect.bottom + 6 + h <= window.innerHeight - 8;
-  const top = below ? rect.bottom + 6 : Math.max(8, rect.top - 6 - h);
+// Place the popover at viewport point (x, y), nudged clear of it and flipped to
+// whichever side keeps it fully on screen.
+function placeConditionsPopover(x, y, gapX, gapY) {
+  const w = conditionsPopover.offsetWidth, h = conditionsPopover.offsetHeight;
+  const fitsRight = x + gapX + w <= window.innerWidth - 8;
+  const left = Math.max(8, fitsRight ? x + gapX : Math.min(x - gapX - w, window.innerWidth - 8 - w));
+  const below = y + gapY + h <= window.innerHeight - 8;
+  const top = below ? y + gapY : Math.max(8, y - gapY - h);
+  conditionsPopover.style.left = `${window.scrollX + left}px`;
   conditionsPopover.style.top = `${window.scrollY + top}px`;
-  conditionsPopover.style.left = `${left}px`;
 }
 
-function openConditionsPopoverFor(chart) {
+// Touch: anchored to the chart, which is tall, so it goes below when there's room
+// and above when there isn't rather than running off the bottom of the screen.
+function positionConditionsPopover(chart) {
+  const rect = chart.getBoundingClientRect();
+  placeConditionsPopover(rect.left, rect.top + rect.height, 0, 6);
+}
+
+// Pointer: tracks the cursor, offset so it never sits under it.
+const WX_CURSOR_GAP_X = 16, WX_CURSOR_GAP_Y = 18;
+function positionConditionsPopoverAtCursor(e) {
+  placeConditionsPopover(e.clientX, e.clientY, WX_CURSOR_GAP_X, WX_CURSOR_GAP_Y);
+}
+
+function openConditionsPopoverFor(chart, e) {
   const day = wxData?.[wxSpot]?.find(d => d.date === chart.dataset.wxDate);
   if (!day) return;
   conditionsPopoverBody.innerHTML = wxCondRowsHtml(day);
   conditionsPopover.hidden = false;
-  positionConditionsPopover(chart);
+  // Following the cursor means the popover can land under it, so it must not
+  // intercept the pointer — that would fire mouseout on the chart and flicker.
+  conditionsPopover.classList.toggle("is-following", !!e);
+  if (e) positionConditionsPopoverAtCursor(e);
+  else positionConditionsPopover(chart);
   conditionsPopoverFor = chart;
 }
 const WX_CONDS_TRIGGER = ".wx-hourly";
@@ -3415,24 +3441,30 @@ wxBody.addEventListener("click", (e) => {
   else openConditionsPopoverFor(chart);
 });
 if (supportsHover) {
-  wxBody.addEventListener("mouseover", (e) => {
+  // One mousemove handler does both jobs: open on entering a chart, and follow the
+  // cursor while it's over one.
+  wxBody.addEventListener("mousemove", (e) => {
     const chart = e.target.closest(WX_CONDS_TRIGGER);
-    if (chart) openConditionsPopoverFor(chart);
+    if (!chart) return;
+    if (conditionsPopoverFor === chart) positionConditionsPopoverAtCursor(e);
+    else openConditionsPopoverFor(chart, e);
   });
   wxBody.addEventListener("mouseout", (e) => {
     const chart = e.target.closest(WX_CONDS_TRIGGER);
     if (chart && !chart.contains(e.relatedTarget)) closeConditionsPopover();
   });
+  wxBody.addEventListener("mouseleave", closeConditionsPopover);
 }
-// The popover is positioned against its chart, so it has to follow it as the feed
-// scrolls — and give up once that chart has scrolled out of the feed's viewport.
+// A chart-anchored popover has to follow its chart as the feed scrolls, and give up
+// once that chart has scrolled out of the feed's viewport. A cursor-following one
+// stays where the cursor is, and mouseout closes it when the content slides away.
 wxBody.addEventListener("scroll", () => {
   const chart = conditionsPopoverFor;
   if (!chart) return;
   if (!chart.isConnected) return closeConditionsPopover();
   const rect = chart.getBoundingClientRect(), panel = wxBody.getBoundingClientRect();
   if (rect.bottom < panel.top || rect.top > panel.bottom) return closeConditionsPopover();
-  positionConditionsPopover(chart);
+  if (!conditionsPopover.classList.contains("is-following")) positionConditionsPopover(chart);
 });
 document.addEventListener("click", (e) => {
   if (conditionsPopover.hidden) return;
