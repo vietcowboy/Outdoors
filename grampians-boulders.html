@@ -2887,7 +2887,7 @@ const WX_SPOTS = [
 const WX_DAYS_PER_BATCH = 7, WX_FORECAST_DAYS = 16, WX_PAST_DAYS = 2;
 const wxBody = document.getElementById("wx-body");
 const wxSpots = document.getElementById("wx-spots");
-let wxData = null, wxLoading = false, wxSpot = 0, wxShown = WX_DAYS_PER_BATCH;
+let wxData = null, wxLoading = false, wxSpot = 0, wxShown = WX_DAYS_PER_BATCH, wxLoadedFor = null;
 
 wxSpots.innerHTML = WX_SPOTS.map((sp, i) =>
   `<button type="button" class="wx-spot" data-i="${i}" aria-pressed="${i === 0}">${sp.name}</button>`).join("");
@@ -3095,34 +3095,30 @@ async function fetchWeather() {
 }
 
 
-async function loadWeather() {
-  if (wxData || wxLoading) return;
+async function loadWeather(force = false) {
+  if ((wxData && !force) || wxLoading) return;
   wxLoading = true;
-  wxBody.innerHTML = '<p class="wx-status">Loading forecast…</p>';
+  if (!wxData) wxBody.innerHTML = '<p class="wx-status">Loading forecast…</p>';
   try {
     wxData = await fetchWeather();
+    wxLoadedFor = wxIsoDate(new Date());
   } catch (err) {
-    wxBody.innerHTML = '<p class="wx-status">Couldn’t load the forecast. Check your connection and try again.</p>';
+    if (!wxData) wxBody.innerHTML = '<p class="wx-status">Couldn’t load the forecast. Check your connection and try again.</p>';
   } finally {
     wxLoading = false;
   }
   if (wxData) renderWeather();
 }
 
-// The service worker caches this same request and, once it has a fresh copy
-// (e.g. reception recovers mid-session), tells the page via postMessage —
-// re-fetch (now served from the just-updated cache) and redraw in place,
-// rather than making the visitor reload to see current weather.
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.addEventListener("message", async (e) => {
-    if (e.data?.type !== "weather-updated" || wxLoading) return;
-    try {
-      const fresh = await fetchWeather();
-      wxData = fresh;
-      renderWeather();
-    } catch (err) { /* keep showing what's already on screen */ }
-  });
-}
+// Everything downstream reads today's forecast as index WX_PAST_DAYS, which is
+// only true of a response fetched today. A tab left open overnight — or woken
+// from a phone's back pocket days later — would otherwise keep labelling an old
+// forecast as the week ahead, so re-fetch whenever the page comes back to the
+// foreground on a different date than the one the data was loaded for.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+  if (wxData && wxLoadedFor !== wxIsoDate(new Date())) loadWeather(true);
+});
 
 // --- Victorian public holidays ---
 // The Grampians are in Victoria, so these are Victoria's dates, which differ from
