@@ -690,6 +690,11 @@
   .wx-yesterday-body { padding: 0 0.9rem 0.9rem; }
   .wx-yesterday-body[hidden] { display: none; }
   .wx-status { padding: 1.2rem 0; text-align: center; }
+  .wx-stale { font-size: 0.72rem; line-height: 1.45; margin: 8px 0 0; padding: 0.5rem 0.6rem;
+    border: 1px solid var(--border); border-left: 3px solid #d98b2b; border-radius: 6px;
+    background: var(--panel); color: var(--muted); }
+  .wx-retry { font: inherit; font-size: 0.72rem; color: var(--link); background: none;
+    border: none; padding: 0; cursor: pointer; text-decoration: underline; }
   @media (max-width: 480px) {
     .modal-box.weather-box { padding: 1rem; }
     .wx-day { font-size: 0.74rem; }
@@ -2887,7 +2892,7 @@ const WX_SPOTS = [
 const WX_DAYS_PER_BATCH = 7, WX_FORECAST_DAYS = 16, WX_PAST_DAYS = 2;
 const wxBody = document.getElementById("wx-body");
 const wxSpots = document.getElementById("wx-spots");
-let wxData = null, wxLoading = false, wxSpot = 0, wxShown = WX_DAYS_PER_BATCH, wxLoadedFor = null;
+let wxData = null, wxLoading = false, wxSpot = 0, wxShown = WX_DAYS_PER_BATCH, wxLoadedFor = null, wxStaleSince = null;
 
 wxSpots.innerHTML = WX_SPOTS.map((sp, i) =>
   `<button type="button" class="wx-spot" data-i="${i}" aria-pressed="${i === 0}">${sp.name}</button>`).join("");
@@ -3073,11 +3078,18 @@ function wxForecastUrl() {
   return `https://api.open-meteo.com/v1/forecast?${params}`;
 }
 
-async function fetchWeather() {
-  const res = await fetch(wxForecastUrl());
-  if (!res.ok) throw new Error(res.status);
+// `fresh: true` asks the service worker to skip its cache and go to the network
+// (it watches for this cache mode). Without it the worker answers instantly from
+// whatever it has, which is what the first paint wants.
+async function fetchWeather({ fresh = false } = {}) {
+  const res = await fetch(wxForecastUrl(), fresh ? { cache: "reload" } : undefined);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  // Only the worker's cached copies carry this stamp, so it doubles as "this did
+  // not come from the network just now" — the age the reader needs to be told about.
+  const stamp = Number(res.headers.get("x-cragify-cached-at"));
+  const cachedAt = Number.isFinite(stamp) && stamp > 0 ? stamp : null;
   const json = await res.json();
-  return (Array.isArray(json) ? json : [json]).map(loc => {
+  const spots = (Array.isArray(json) ? json : [json]).map(loc => {
     const d = loc.daily;
     return d.time.map((t, i) => ({
       date: t,
@@ -3092,29 +3104,72 @@ async function fetchWeather() {
       hours: wxHours(loc.hourly, t),
     }));
   });
+  if (!spots.length || !spots[0].length) throw new Error("empty forecast");
+  return { spots, cachedAt };
 }
 
 
+// Accept a response only if it is actually about now: everything downstream
+// reads today's forecast as index WX_PAST_DAYS, which holds only for a response
+// fetched today. A copy from last night would otherwise be relabelled as the
+// week ahead — the exact bug that showed Wednesday's weather on Friday.
+function wxIsCurrent(payload) {
+  return payload.spots[0][WX_PAST_DAYS]?.date === wxIsoDate(new Date());
+}
+
+// Two stages, because this gets read in the field: paint whatever is cached
+// straight away so there is something to look at on bad reception, then go to
+// the network and swap in the current forecast when it lands.
 async function loadWeather(force = false) {
   if ((wxData && !force) || wxLoading) return;
   wxLoading = true;
   if (!wxData) wxBody.innerHTML = '<p class="wx-status">Loading forecast…</p>';
+
+  let failure = null;
+  let needRefresh = true;
   try {
-    wxData = await fetchWeather();
-    wxLoadedFor = wxIsoDate(new Date());
+    const quick = await fetchWeather();
+    // Only worth painting early if it isn't already superseded by the calendar.
+    if (wxIsCurrent(quick)) {
+      wxData = quick.spots;
+      wxStaleSince = quick.cachedAt;
+      wxLoadedFor = wxIsoDate(new Date());
+      renderWeather();
+      // No stamp means the worker had nothing cached and went to the network
+      // itself, so this *is* the current forecast — asking again would just be
+      // a second identical call against a rate-limited free API.
+      needRefresh = quick.cachedAt !== null;
+    } else if (quick.cachedAt) {
+      wxStaleSince = quick.cachedAt;
+    }
   } catch (err) {
-    if (!wxData) wxBody.innerHTML = '<p class="wx-status">Couldn’t load the forecast. Check your connection and try again.</p>';
-  } finally {
-    wxLoading = false;
+    failure = err;
   }
+
+  // The refresh runs when the quick pass painted from the worker's cache, since
+  // that copy can be up to a day old.
+  if (needRefresh) try {
+    const current = await fetchWeather({ fresh: true });
+    wxData = current.spots;
+    wxStaleSince = wxIsCurrent(current) ? null : current.cachedAt || Date.now();
+    wxLoadedFor = wxIsoDate(new Date());
+    failure = null;
+  } catch (err) {
+    failure = failure || err;
+  }
+
+  wxLoading = false;
   if (wxData) renderWeather();
+  else wxBody.innerHTML = `<p class="wx-status">Couldn’t load the forecast${failure ? ` (${failure.message})` : ""}. <button type="button" class="wx-retry">Try again</button></p>`;
 }
 
-// Everything downstream reads today's forecast as index WX_PAST_DAYS, which is
-// only true of a response fetched today. A tab left open overnight — or woken
-// from a phone's back pocket days later — would otherwise keep labelling an old
-// forecast as the week ahead, so re-fetch whenever the page comes back to the
-// foreground on a different date than the one the data was loaded for.
+wxBody.addEventListener("click", (e) => {
+  if (e.target.closest(".wx-retry")) loadWeather(true);
+});
+
+// A tab left open overnight — or woken from a phone's back pocket days later —
+// is showing a forecast for a day that has passed, so re-fetch whenever the page
+// returns to the foreground on a different date than the data was loaded for.
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState !== "visible") return;
   if (wxData && wxLoadedFor !== wxIsoDate(new Date())) loadWeather(true);
@@ -3252,6 +3307,17 @@ function wxWholeWeekends(all, count) {
   return Math.min(count + extra, all.length - WX_PAST_DAYS);
 }
 
+// Shown only when the forecast on screen didn't come from the network just now.
+// A saved copy is worth having in a car park with no reception, but it has to
+// announce itself — an out-of-date forecast presented as current is worse than
+// no forecast, because you'd pack for it.
+function wxStaleBanner() {
+  if (!wxStaleSince) return "";
+  const mins = Math.max(1, Math.round((Date.now() - wxStaleSince) / 60000));
+  const when = mins < 60 ? `${mins} min` : mins < 1440 ? `${Math.round(mins / 60)} hr` : `${Math.round(mins / 1440)} day${Math.round(mins / 1440) === 1 ? "" : "s"}`;
+  return `<p class="wx-stale">Saved forecast from ${when} ago — couldn’t reach Open-Meteo. <button type="button" class="wx-retry">Try again</button></p>`;
+}
+
 function renderWeather() {
   if (!wxData) return;
   const all = wxData[wxSpot];
@@ -3265,7 +3331,7 @@ function renderWeather() {
   // The covers line sits inside the scroller, so it scrolls away with the days
   // rather than holding height above them.
   let weekBreaks = 0;
-  wxBody.innerHTML = `<p class="wx-covers">Covers ${WX_SPOTS[wxSpot].covers}.</p>`
+  wxBody.innerHTML = wxStaleBanner() + `<p class="wx-covers">Covers ${WX_SPOTS[wxSpot].covers}.</p>`
     + '<ul class="wx-days">' + wxYesterdayCard(all) + days.map((day, overall) => {
     const dayChip = overall === 0 ? `<span class="wx-day-chip">Today</span>` : overall === 1 ? `<span class="wx-day-chip">Tomorrow</span>` : "";
     // Each Monday after the first card starts a new week. The first break is the
