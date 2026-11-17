@@ -21,6 +21,9 @@ const CACHE_NAME = "cragify-weather-v3";
 const WEATHER_HOST = "api.open-meteo.com";
 const MAX_USEFUL_MS = 24 * 60 * 60 * 1000;
 const CACHED_AT = "x-cragify-cached-at";
+// Kept under the page's own first-pass budget, so the worker gives up and offers
+// what it has before the page stops waiting on it.
+const NETWORK_TIMEOUT_MS = 4000;
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -57,6 +60,17 @@ async function putStamped(cache, key, response) {
   }));
 }
 
+// AbortSignal.timeout is Safari 16+; on anything older, calling it would throw
+// inside the fetch below, get swallowed as "offline", and leave this worker
+// serving nothing but cache forever — which is the stale-forecast bug again.
+function timeoutSignal(ms) {
+  if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) return AbortSignal.timeout(ms);
+  if (typeof AbortController === "undefined") return undefined;
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), ms);
+  return controller.signal;
+}
+
 function ageOf(response) {
   const stamp = Number(response.headers.get(CACHED_AT));
   return Number.isFinite(stamp) && stamp > 0 ? Date.now() - stamp : Infinity;
@@ -83,10 +97,17 @@ async function weatherResponse(event) {
     // browser's own HTTP cache out of the loop, so going to the network really
     // means it, rather than being answered by an equally old HTTP-cache entry
     // for the same unchanging URL.
+    // Bounded, so a stalled connection falls back to the cache below instead of
+    // leaving respondWith() pending and the page stuck on "Loading forecast…".
     let network = null;
     try {
-      network = await fetch(key, { cache: "no-store", mode: "cors", credentials: "omit" });
-    } catch (err) { /* offline, or the request was blocked — fall through */ }
+      network = await fetch(key, {
+        cache: "no-store",
+        mode: "cors",
+        credentials: "omit",
+        signal: timeoutSignal(NETWORK_TIMEOUT_MS),
+      });
+    } catch (err) { /* offline, stalled, or blocked — fall through to the cache */ }
 
     if (network && network.ok) {
       event.waitUntil(putStamped(cache, key, network.clone()));

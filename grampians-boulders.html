@@ -3078,11 +3078,42 @@ function wxForecastUrl() {
   return `https://api.open-meteo.com/v1/forecast?${params}`;
 }
 
+// Every weather request is bounded. A stalled connection — the first HTTPS
+// handshake on weak reception is the usual culprit — otherwise leaves `fetch`
+// pending forever, and a promise that never settles shows up as a panel stuck
+// on "Loading forecast…" with no error to report and no way back.
+// Budgets are deliberately tight and stack to about 15s worst case. The first
+// pass is short because it is usually answered from cache; the refresh gets a
+// little longer because it always goes to the network.
+const WX_TIMEOUT_MS = 5000;
+const WX_REFRESH_TIMEOUT_MS = 7000;
+
+function wxTimeoutSignal(ms) {
+  if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) return AbortSignal.timeout(ms);
+  const c = new AbortController();
+  setTimeout(() => c.abort(), ms);
+  return c.signal;
+}
+
 // `fresh: true` asks the service worker to skip its cache and go to the network
 // (it watches for this cache mode). Without it the worker answers instantly from
 // whatever it has, which is what the first paint wants.
-async function fetchWeather({ fresh = false } = {}) {
-  const res = await fetch(wxForecastUrl(), fresh ? { cache: "reload" } : undefined);
+async function fetchWeather({ fresh = false, timeout = WX_TIMEOUT_MS } = {}) {
+  let res;
+  try {
+    res = await fetch(wxForecastUrl(), {
+      signal: wxTimeoutSignal(timeout),
+      ...(fresh ? { cache: "reload" } : {}),
+    });
+  } catch (err) {
+    // A timeout arrives as an AbortError, which on its own reads like the user
+    // navigated away. Name it for what it was so the panel can say so.
+    throw new Error(err?.name === "AbortError" || err?.name === "TimeoutError"
+      ? "timed out" : "no connection");
+  }
+  // 504 here is the worker's own synthetic response for "network failed and I
+  // had nothing saved", not something Open-Meteo said. Report the cause.
+  if (res.status === 504) throw new Error("couldn’t reach Open-Meteo");
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   // Only the worker's cached copies carry this stamp, so it doubles as "this did
   // not come from the network just now" — the age the reader needs to be told about.
@@ -3148,14 +3179,38 @@ async function loadWeather(force = false) {
 
   // The refresh runs when the quick pass painted from the worker's cache, since
   // that copy can be up to a day old.
-  if (needRefresh) try {
-    const current = await fetchWeather({ fresh: true });
-    wxData = current.spots;
-    wxStaleSince = wxIsCurrent(current) ? null : current.cachedAt || Date.now();
-    wxLoadedFor = wxIsoDate(new Date());
-    failure = null;
-  } catch (err) {
-    failure = failure || err;
+  //
+  // Two attempts, because the failure this guards against is a stalled first
+  // connection: once the handshake finally gives up, a second request on a new
+  // connection usually succeeds straight away. Worth one retry before telling
+  // someone standing at a crag that there's no forecast.
+  if (needRefresh) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      // Nothing to show yet and we're about to spend another several seconds on
+      // the network: say so, rather than leaving "Loading forecast…" sitting
+      // there looking like a hung page. This is what the stall actually looked
+      // like from the outside — frozen, with no sign it was still working.
+      if (!wxData) wxBody.innerHTML = `<p class="wx-status">Still trying to reach Open-Meteo${attempt ? " (last try)" : ""}…</p>`;
+      try {
+        const current = await fetchWeather({ fresh: true, timeout: WX_REFRESH_TIMEOUT_MS });
+        // With the network down the worker answers even a refresh from its
+        // cache, and it doesn't age-check that path — so a copy old enough to
+        // have the wrong day at index WX_PAST_DAYS can come back here. Showing
+        // it would relabel last week as the week ahead.
+        if (!wxIsCurrent(current)) { failure = new Error("forecast out of date"); continue; }
+        wxData = current.spots;
+        // Staleness is about where the bytes came from, not whether their dates
+        // line up: a copy cached this morning still has today at the right index
+        // while being hours old and unrefreshable. A null stamp — and only that
+        // — means this came straight off the network.
+        wxStaleSince = current.cachedAt;
+        wxLoadedFor = wxIsoDate(new Date());
+        failure = null;
+        break;
+      } catch (err) {
+        failure = err;
+      }
+    }
   }
 
   wxLoading = false;
@@ -3746,8 +3801,26 @@ backToTop.addEventListener("click", () => {
 // bad reception shows last-known weather instantly instead of stalling. ---
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => { /* non-critical */ });
+    navigator.serviceWorker.register("sw.js").then(warmWeatherCache).catch(() => { /* non-critical */ });
   });
+}
+
+// On a first visit the forecast is fetched while the page is still parsing,
+// before this worker exists to intercept it — so nothing is cached, and the
+// cache only fills on a second visit. That's the wrong way round for the way
+// this gets used: load it at home on wifi, drive out, lose reception. So once
+// the worker is running, warm the cache if it's empty, while there's still
+// signal to do it with.
+async function warmWeatherCache() {
+  try {
+    if (!("caches" in window)) return;
+    await navigator.serviceWorker.ready;
+    // A global match searches every cache, so the worker's cache name doesn't
+    // have to be repeated here.
+    if (await caches.match(wxForecastUrl())) return;
+    // "reload" tells the worker to go to the network and store what it gets.
+    await fetch(wxForecastUrl(), { cache: "reload", signal: wxTimeoutSignal(WX_TIMEOUT_MS) });
+  } catch (err) { /* best effort: the forecast itself is already on screen */ }
 }
 </script>
 </body>
