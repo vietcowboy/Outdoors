@@ -37,6 +37,33 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Warm the cache on request from the page. The page cannot do this reliably itself: on a
+// first visit its own fetch happens before this worker controls the page, so the request
+// never passes through here and nothing is stored — leaving the cache cold exactly when
+// it is needed most (loaded at home on wifi, then driven out of reception). Fetching from
+// inside the worker sidesteps that race, because a worker's own fetch always lands here.
+self.addEventListener("message", (event) => {
+  const data = event.data;
+  if (!data || data.type !== "warm-weather" || typeof data.url !== "string") return;
+  event.waitUntil(warmCache(data.url));
+});
+
+async function warmCache(url) {
+  try {
+    if (new URL(url).hostname !== WEATHER_HOST) return;
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(url);
+    if (cached && ageOf(cached) < MAX_USEFUL_MS) return;
+    const response = await fetch(url, {
+      cache: "no-store",
+      mode: "cors",
+      credentials: "omit",
+      signal: timeoutSignal(NETWORK_TIMEOUT_MS),
+    });
+    if (response && response.ok) await putStamped(cache, url, response);
+  } catch (err) { /* best effort — the page already has its forecast on screen */ }
+}
+
 self.addEventListener("fetch", (event) => {
   let url;
   try {
