@@ -55,3 +55,23 @@ Three harness bugs produced false failures and cost real time. Don't reintroduce
 Also: Open-Meteo itself went down three times during one day of this work. The suite
 preflights it per scenario and marks data-dependent scenarios SKIP rather than FAIL when
 it is unreachable — otherwise an upstream outage reads as a wall of app bugs.
+
+## Coverage
+
+40 checks, in four groups:
+
+- **Network conditions** — baseline cold/warm; the weather host unreachable and stalled,
+  each with a cold and a warm cache; the Leaflet CDN unreachable and stalled; fonts and
+  map tiles gone; every third party down at once; fully offline after a good visit.
+- **Hostile API responses** — a local HTTPS server impersonates Open-Meteo (self-signed,
+  so these scenarios run with `--ignore-certificate-errors`) and returns garbage,
+  truncated JSON, an empty body, an empty or absent `daily` object, null values, a
+  forecast dated in the past, a 500, and a 429.
+- **Crippled platforms** — no CacheStorage, no service worker, `caches.open` rejecting,
+  `localStorage` throwing on every access, and no `AbortSignal.timeout` (Safari 15),
+  including that last one combined with an unreachable host. None may throw at startup:
+  the app is one script block, so a top-level throw takes the forecast down with it.
+- **Interaction stress** — the retry button mashed, tabs and spots toggled, the panel
+  scroll-loaded, the grade slider swept, every modal cycled, every header sorted, every
+  marker clicked, and a simulated date rollover — then a final check that the page and
+  forecast are still healthy.

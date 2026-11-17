@@ -18,6 +18,8 @@
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import net from "node:net";
+import https from "node:https";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -29,6 +31,7 @@ const HTTP_PORT = 8911;
 let cdpPortCounter = 9311;
 const nextCdpPort = () => ++cdpPortCounter;
 const STALL_PORT = 8912;
+const MOCK_PORT = 8913;
 
 // Unroutable address: connections hang rather than being refused.
 const BLACKHOLE = "10.255.255.1";
@@ -36,6 +39,10 @@ const BLACKHOLE = "10.255.255.1";
 // nastiest real-world case — and the one that actually hung the page — because the
 // connection looks alive, so nothing fails fast.
 const STALL = `127.0.0.1:${STALL_PORT}`;
+// A local HTTPS server impersonating the weather API, so the app can be pointed at
+// deliberately hostile responses. Needs --ignore-certificate-errors in the browser,
+// since the cert is self-signed.
+const MOCK = `127.0.0.1:${MOCK_PORT}`;
 
 const WEATHER_HOST = "api.open-meteo.com";
 const LEAFLET_HOST = "unpkg.com";
@@ -118,6 +125,61 @@ const SCENARIOS = [
     name: "every third party stalls at once",
     rules: [WEATHER_HOST, LEAFLET_HOST, TILE_HOST, ...FONTS_HOSTS].map((h) => `MAP ${h} ${STALL}`),
     expect: { weather: "error", table: true },
+  },
+  // Hostile API responses. Each must land on a clear failure with a retry — never a
+  // crash, never a stuck spinner, and never stale dates presented as this week.
+  ...[
+    "garbage", "truncated", "empty-body", "empty-daily", "no-daily",
+    "null-values", "stale-dates", "http-500", "http-429",
+  ].map((mode) => ({
+    name: `API returns ${mode}`,
+    rules: [`MAP ${WEATHER_HOST} ${MOCK}`],
+    chromeFlags: ["--ignore-certificate-errors"],
+    mock: mode,
+    // null-values is a well-formed forecast for today, so the panel legitimately renders
+    // it; everything else is unusable and must surface as an error.
+    expect: { weather: mode === "null-values" ? "any" : "error", map: true },
+  })),
+  // Crippled platforms. None of these may throw during startup: the whole app is one
+  // script block, so a top-level throw takes the forecast down with it.
+  {
+    name: "no CacheStorage (private browsing)",
+    rules: [],
+    injectBefore: `Object.defineProperty(navigator, "serviceWorker", { get: () => undefined });
+                   delete window.caches;`,
+    expect: { weather: "data", map: true },
+  },
+  {
+    name: "no service worker support",
+    rules: [],
+    injectBefore: `Object.defineProperty(navigator, "serviceWorker", { get: () => undefined });`,
+    expect: { weather: "data", map: true },
+  },
+  {
+    name: "caches.open throws (quota / locked down)",
+    rules: [],
+    injectBefore: `if (window.caches) { caches.open = () => Promise.reject(new Error("QuotaExceededError"));
+                   caches.match = () => Promise.reject(new Error("QuotaExceededError")); }`,
+    expect: { weather: "data", map: true },
+  },
+  {
+    name: "localStorage throws on every access",
+    rules: [],
+    injectBefore: `Object.defineProperty(window, "localStorage", {
+                     get() { throw new Error("SecurityError: localStorage disabled"); } });`,
+    expect: { weather: "data", map: true },
+  },
+  {
+    name: "no AbortSignal.timeout (Safari 15)",
+    rules: [],
+    injectBefore: `Object.defineProperty(AbortSignal, "timeout", { value: undefined, configurable: true });`,
+    expect: { weather: "data", map: true },
+  },
+  {
+    name: "no AbortSignal.timeout, and the weather host is unreachable",
+    rules: [`MAP ${WEATHER_HOST} ${BLACKHOLE}`],
+    injectBefore: `Object.defineProperty(AbortSignal, "timeout", { value: undefined, configurable: true });`,
+    expect: { weather: "error", map: true },
   },
   {
     name: "fully offline after a good visit (the drive-to-the-crag case)",
@@ -253,8 +315,53 @@ function startStallServer() {
   return new Promise((r) => stallServer.listen(STALL_PORT, "127.0.0.1", r));
 }
 
+// What the fake API should answer with. Set before launching a scenario.
+let mockMode = "garbage";
+
+function mockBody(mode) {
+  const valid = {
+    latitude: -36.94, longitude: 142.41, timezone: "Australia/Melbourne",
+    daily: { time: ["2020-01-01", "2020-01-02", "2020-01-03"], weather_code: [1, 1, 1],
+             temperature_2m_max: [20, 21, 22], temperature_2m_min: [8, 9, 10],
+             precipitation_sum: [0, 0, 0], precipitation_probability_max: [0, 0, 0],
+             wind_speed_10m_max: [10, 10, 10], wind_gusts_10m_max: [15, 15, 15] },
+    hourly: { time: [], precipitation: [], precipitation_probability: [], temperature_2m: [] },
+  };
+  switch (mode) {
+    case "garbage": return { status: 200, body: "this is not JSON at all <html>" };
+    case "truncated": return { status: 200, body: JSON.stringify([valid]).slice(0, 400) };
+    case "empty-daily": return { status: 200, body: JSON.stringify([{ ...valid, daily: { time: [] } }]) };
+    case "no-daily": return { status: 200, body: JSON.stringify([{ latitude: -36.94 }]) };
+    case "null-values": return { status: 200, body: JSON.stringify([{ ...valid,
+      daily: { ...valid.daily, temperature_2m_max: [null, null, null], precipitation_sum: [null, null, null] } }]) };
+    case "stale-dates": return { status: 200, body: JSON.stringify([valid, valid]) };
+    case "http-500": return { status: 500, body: '{"error":true,"reason":"server error"}' };
+    case "http-429": return { status: 429, body: '{"error":true,"reason":"rate limited"}' };
+    case "empty-body": return { status: 200, body: "" };
+    default: return { status: 200, body: "{}" };
+  }
+}
+
+let mockServer;
+function startMockApi() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cragify-qa-cert-"));
+  const key = path.join(dir, "key.pem"), cert = path.join(dir, "cert.pem");
+  execFileSync("openssl", ["req", "-x509", "-newkey", "rsa:2048", "-keyout", key, "-out", cert,
+    "-days", "365", "-nodes", "-subj", "/CN=api.open-meteo.com"], { stdio: "ignore" });
+  mockServer = https.createServer({ key: fs.readFileSync(key), cert: fs.readFileSync(cert) }, (req, res) => {
+    const { status, body } = mockBody(mockMode);
+    res.writeHead(status, {
+      "content-type": "application/json",
+      "access-control-allow-origin": "*",
+      "cache-control": "no-store",
+    });
+    res.end(body);
+  });
+  return new Promise((r) => mockServer.listen(MOCK_PORT, "127.0.0.1", r));
+}
+
 class Chrome {
-  static async launch(rules, profileDir) {
+  static async launch(rules, profileDir, extraFlags = []) {
     const port = nextCdpPort();
     const args = [
       "--headless=new",
@@ -265,6 +372,7 @@ class Chrome {
       "--disable-features=Translate,OptimizationHints",
     ];
     if (rules.length) args.push(`--host-resolver-rules=${[...rules, "EXCLUDE 127.0.0.1"].join(",")}`);
+    args.push(...extraFlags);
     const proc = spawn(CHROME, args, { stdio: "ignore", detached: false });
     // Wait for the debugging endpoint rather than sleeping a fixed amount.
     for (let i = 0; i < 100; i++) {
@@ -280,10 +388,10 @@ class Chrome {
 
   constructor(proc, port) { this.proc = proc; this.port = port; }
 
-  async openPage(url) {
+  async openPage(url, injectBefore) {
     const made = await fetch(`http://127.0.0.1:${this.port}/json/new?${encodeURIComponent("about:blank")}`, { method: "PUT" });
     const target = await made.json();
-    return Session.attach(target.webSocketDebuggerUrl, url);
+    return Session.attach(target.webSocketDebuggerUrl, url, injectBefore);
   }
 
   // SIGTERM, not SIGKILL: CacheStorage writes are flushed to disk asynchronously, and
@@ -298,12 +406,15 @@ class Chrome {
 }
 
 class Session {
-  static async attach(wsUrl, navigateTo) {
+  static async attach(wsUrl, navigateTo, injectBefore) {
     const s = new Session(wsUrl);
     await s.ready;
     await s.send("Runtime.enable");
     await s.send("Log.enable");
     await s.send("Page.enable");
+    if (injectBefore) {
+      await s.send("Page.addScriptToEvaluateOnNewDocument", { source: injectBefore });
+    }
     if (navigateTo) await s.send("Page.navigate", { url: navigateTo });
     return s;
   }
@@ -410,7 +521,7 @@ function checkScenario(sc, panel, structure, session, tookMs) {
   if (!panel || panel.state === "missing") fails.push("weather panel element missing");
   else if (panel.busy) fails.push(`still showing a loading message after ${(tookMs / 1000).toFixed(1)}s ("${panel.text}")`);
 
-  if (panel && want.weather) {
+  if (panel && want.weather && want.weather !== "any") {
     if (want.weather === "data" && panel.state !== "data") {
       fails.push(`expected a live forecast, got "${panel.state}" ("${panel.text}")`);
     }
@@ -454,10 +565,11 @@ async function waitForWarmCache(session, ms) {
 }
 
 async function runScenario(sc, profileDir) {
-  const chrome = await Chrome.launch(sc.rules, profileDir);
+  mockMode = sc.mock || "garbage";
+  const chrome = await Chrome.launch(sc.rules, profileDir, sc.chromeFlags || []);
   let session;
   try {
-    session = await chrome.openPage(`http://127.0.0.1:${HTTP_PORT}/${PAGE}`);
+    session = await chrome.openPage(`http://127.0.0.1:${HTTP_PORT}/${PAGE}`, sc.injectBefore);
     // Generous: more than double the app's own ~15s worst case, so a failure here means
     // genuinely stuck rather than merely slow.
     const { panel, tookMs } = await settle(session, sc.deadlineMs || 40000);
@@ -538,6 +650,7 @@ async function main() {
 
   await startFileServer();
   await startStallServer();
+  await startMockApi();
   const upstream = await upstreamReachable();
   console.log(`Cragify QA — serving ${REPO} on 127.0.0.1:${HTTP_PORT}`);
   console.log(upstream
@@ -600,7 +713,7 @@ async function main() {
     failed.forEach((r) => console.log(`  ✗ ${r.name}\n      ${r.fails.join("\n      ")}`));
   }
 
-  httpServer.close(); stallServer.close();
+  httpServer.close(); stallServer.close(); mockServer.close();
   if (!process.env.KEEP) fs.rmSync(profileRoot, { recursive: true, force: true });
   else console.log(`\nProfiles kept in ${profileRoot}`);
   process.exit(failed.length ? 1 : 0);
