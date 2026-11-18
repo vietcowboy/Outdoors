@@ -1,0 +1,84 @@
+# Builds and deploys the site to GitHub Pages — with a fresh Open-Meteo forecast snapshot
+# published next to the page as data/forecast.json.
+#
+# Runs on every push to main (replacing Pages' old "deploy from a branch" build, with the
+# same Jekyll output: this is GitHub's own Jekyll starter workflow plus one step), and
+# every half hour, which is what keeps the snapshot current.
+#
+# Why the snapshot exists: Open-Meteo picks its server by GeoDNS, and the one it gives
+# Australian visitors has repeatedly accepted connections and never answered. This runs in
+# the US, and scripts/fetch-forecast.mjs can reach Open-Meteo's other servers directly if
+# it has to. The page reads the snapshot first and treats Open-Meteo live as an upgrade.
+#
+# A forecast failure never fails the deploy: the script carries the last published
+# snapshot forward (the page shows its age), or publishes none and the page goes to
+# Open-Meteo directly.
+#
+# Scheduled runs: GitHub disables schedules in a public repo after 60 days without
+# activity, and emails the owner first. Any push re-arms it; so does "Enable workflow" on
+# the Actions tab. While it's off, the page still works — it just leans on Open-Meteo
+# live and labels the snapshot's age.
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Off the hour on purpose: GitHub delays scheduled runs most around :00.
+    - cron: "13,43 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time. Queued runs are superseded by the newest, but a deployment
+# already under way is allowed to finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Fetch forecast snapshot
+        # Written into the source tree before the build, so Jekyll publishes it like any
+        # other static file. Not committed: it's in .gitignore.
+        run: >
+          node scripts/fetch-forecast.mjs
+          --html grampians-boulders.html
+          --out data/forecast.json
+          --carry-forward https://vietcowboy.github.io/Outdoors/data/forecast.json
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Report the snapshot
+        run: |
+          if [ -f _site/data/forecast.json ]; then
+            echo "Published data/forecast.json ($(wc -c < _site/data/forecast.json) bytes)"
+          else
+            echo "::warning::No forecast snapshot in this deploy; the page will use Open-Meteo directly."
+          fi
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
