@@ -720,20 +720,21 @@ async function pool(items, jobs, fn) {
 // stalled (the real-world outage) and with everything third-party down.
 async function runTarget(target, profileRoot) {
   const cases = [
-    ["deployed page, network as it is", []],
-    ["deployed page, Open-Meteo stalled (the outage)", [`MAP ${WEATHER_HOST} ${STALL}`]],
-    ["deployed page, every third party stalled", THIRD_PARTIES.map((h) => `MAP ${h} ${STALL}`)],
+    ["deployed page, network as it is", [], {}],
+    ["deployed page, Open-Meteo's main API stalled (the outage)", [`MAP ${WEATHER_HOST} ${STALL}`], {}],
+    ["deployed page, all of Open-Meteo stalled: the snapshot alone", [WEATHER_HOST, BACKUP_HOST].map((h) => `MAP ${h} ${STALL}`), { source: "snapshot" }],
+    ["deployed page, every third party stalled", THIRD_PARTIES.map((h) => `MAP ${h} ${STALL}`), { source: "snapshot" }],
   ];
   const results = [];
-  for (const [name, rules] of cases) {
+  for (const [name, rules, extra] of cases) {
     const chrome = await Chrome.launch(fs.mkdtempSync(path.join(profileRoot, "t-")), rules, []);
     let s;
     try {
       s = await chrome.open();
       await s.send("Page.navigate", { url: target });
       const { panel, settledMs, firstPaint, timedOut } = await watch(s, 30000);
-      const fails = check({ expect: { weather: "data", today: true, firstPaintMs: 4000 } }, panel,
-        JSON.parse((await s.eval(STRUCTURE_PROBE)).value || "{}"), s, { settledMs, firstPaint, timedOut });
+      const fails = check({ expect: { weather: "data", today: true, firstPaintMs: 4000, ...extra } }, panel,
+        JSON.parse((await s.eval(STRUCTURE_PROBE)).value || "{}"), s, { settledMs, firstPaint, timedOut, offset: 0 });
       results.push({ name, fails, panel, settledMs, firstPaint });
     } finally {
       s?.close();
