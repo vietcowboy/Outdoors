@@ -1,722 +1,787 @@
 // Cragify live QA harness.
 //
-// Drives the real page in real Chrome over the DevTools protocol and asserts that it
-// cannot end up blank, frozen, or stuck on a loading message — under every network
-// condition the app actually meets in the field.
+// Drives the real page in real Chrome over the DevTools protocol and asserts that the
+// weather loads — fast, showing the right day — under every condition the app meets in
+// the field, and that the page can never end up blank, frozen, or stuck on a loading
+// message.
 //
-// The weather panel has broken on the user three separate times, each time in a way that
-// only showed up in a browser on a bad network. So the conditions here are produced at
-// the Chrome process level with --host-resolver-rules, which applies to the service
-// worker's own requests too (CDP's Fetch/Network interception does not).
+//   node qa/qa.mjs                    run everything
+//   node qa/qa.mjs midnight           run scenarios whose name matches "midnight"
+//   node qa/qa.mjs --target <url>     smoke-test a deployed copy of the page instead
+//   KEEP=1 node qa/qa.mjs             keep browser profiles for inspection
+//   JOBS=2 node qa/qa.mjs             run fewer browsers at once (default 4)
 //
-//   node qa/qa.mjs            run every scenario
-//   node qa/qa.mjs weather    run scenarios whose name matches "weather"
-//   KEEP=1 node qa/qa.mjs     leave the browser profile behind for inspection
+// Requires Google Chrome and Node 22+ (global WebSocket and fetch).
 //
-// Requires: Google Chrome, and Node 18+ (for a global WebSocket and fetch).
+// How conditions are produced — see README.md for why each matters:
+//  - Network failures at the Chrome process level (--host-resolver-rules), which apply to
+//    the service worker's own requests too. CDP's Fetch/Network interception does not.
+//  - Open-Meteo is impersonated by a local HTTPS server per scenario, so the forecast is
+//    deterministic. A couple of scenarios use the real API, routed to a server that
+//    answers (Open-Meteo's Australian server has been intermittently dead).
+//  - The forecast snapshot (data/forecast.json) is generated per scenario.
+//  - Each scenario chain is served under its own path (/s/<id>/), which gives it its own
+//    service worker scope and lets chains run in parallel without sharing state.
 
-import { spawn } from "node:child_process";
+import { spawn, execFileSync } from "node:child_process";
 import { createServer } from "node:http";
-import net from "node:net";
 import https from "node:https";
-import { execFileSync } from "node:child_process";
+import net from "node:net";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { promises as dns } from "node:dns";
+import { requestFromPage, melbourneToday, serversElsewhere, viaIp } from "../scripts/fetch-forecast.mjs";
 
 const REPO = path.resolve(import.meta.dirname, "..");
 const PAGE = "grampians-boulders.html";
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const HTTP_PORT = 8911;
-let cdpPortCounter = 9311;
-const nextCdpPort = () => ++cdpPortCounter;
-const STALL_PORT = 8912;
-const MOCK_PORT = 8913;
+// Every port is assigned by the OS (listen on 0; Chrome on --remote-debugging-port=0), so
+// several copies of this suite — and its parallel chains — can never collide.
+let HTTP_PORT = 0, STALL_PORT = 0;
+const listen = (server) => new Promise((r) => server.listen(0, "127.0.0.1", () => r(server.address().port)));
 
-// Unroutable address: connections hang rather than being refused.
-const BLACKHOLE = "10.255.255.1";
-// A local socket that completes the TCP handshake and then says nothing. This is the
-// nastiest real-world case — and the one that actually hung the page — because the
-// connection looks alive, so nothing fails fast.
-const STALL = `127.0.0.1:${STALL_PORT}`;
-// A local HTTPS server impersonating the weather API, so the app can be pointed at
-// deliberately hostile responses. Needs --ignore-certificate-errors in the browser,
-// since the cert is self-signed.
-const MOCK = `127.0.0.1:${MOCK_PORT}`;
-
+const BLACKHOLE = "10.255.255.1";          // unroutable: connections never complete
+let STALL = "";                            // accepts, then says nothing, forever (set at startup)
 const WEATHER_HOST = "api.open-meteo.com";
-const LEAFLET_HOST = "unpkg.com";
+// Open-Meteo's previous-runs API: the same forecast from another server — the page's backup.
+const BACKUP_HOST = "previous-runs-api.open-meteo.com";
 const FONTS_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 const TILE_HOST = "tile.thunderforest.com";
+const UNPKG_HOST = "unpkg.com";
+const THIRD_PARTIES = [WEATHER_HOST, BACKUP_HOST, TILE_HOST, UNPKG_HOST, ...FONTS_HOSTS];
 
-// ---------------------------------------------------------------- scenarios
-
-// `rules` are --host-resolver-rules MAP entries. EXCLUDE 127.0.0.1 is appended always so
-// the local web server stays reachable.
-// `deadlineMs` is how long the page gets to reach a settled state.
-const SCENARIOS = [
-  {
-    name: "baseline: everything reachable",
-    rules: [],
-    reuseProfile: true,
-    leaveWarm: true,
-    expect: { weather: "data", map: true },
-  },
-  {
-    name: "baseline: second visit (warm worker cache)",
-    rules: [],
-    reuseProfile: true,
-    leaveWarm: true,
-    expect: { weather: "data", map: true },
-  },
-  {
-    name: "weather host unreachable, cold cache",
-    rules: [`MAP ${WEATHER_HOST} ${BLACKHOLE}`],
-    expect: { weather: "error", map: true },
-  },
-  {
-    name: "weather host unreachable, warm cache",
-    rules: [`MAP ${WEATHER_HOST} ${BLACKHOLE}`],
-    reuseProfile: true,
-    expect: { weather: "stale", map: true },
-  },
-  {
-    name: "weather connection stalls (accepts, never replies), cold cache",
-    rules: [`MAP ${WEATHER_HOST} ${STALL}`],
-    expect: { weather: "error", map: true },
-  },
-  {
-    name: "weather connection stalls, warm cache",
-    rules: [`MAP ${WEATHER_HOST} ${STALL}`],
-    reuseProfile: true,
-    expect: { weather: "stale", map: true },
-  },
-  {
-    name: "Leaflet CDN unreachable (the cascade case)",
-    rules: [`MAP ${LEAFLET_HOST} ${BLACKHOLE}`],
-    expect: { weather: "data", table: true },
-  },
-  {
-    name: "Leaflet CDN stalls",
-    rules: [`MAP ${LEAFLET_HOST} ${STALL}`],
-    expect: { weather: "data", table: true },
-  },
-  {
-    name: "Google Fonts unreachable",
-    rules: FONTS_HOSTS.map((h) => `MAP ${h} ${BLACKHOLE}`),
-    expect: { weather: "data", map: true },
-  },
-  {
-    name: "Google Fonts stalls",
-    rules: FONTS_HOSTS.map((h) => `MAP ${h} ${STALL}`),
-    expect: { weather: "data", map: true },
-  },
-  {
-    name: "map tiles unreachable",
-    rules: [`MAP ${TILE_HOST} ${BLACKHOLE}`],
-    expect: { weather: "data", map: true },
-  },
-  {
-    name: "every third party unreachable at once",
-    rules: [WEATHER_HOST, LEAFLET_HOST, TILE_HOST, ...FONTS_HOSTS].map((h) => `MAP ${h} ${BLACKHOLE}`),
-    expect: { weather: "error", table: true },
-  },
-  {
-    name: "every third party stalls at once",
-    rules: [WEATHER_HOST, LEAFLET_HOST, TILE_HOST, ...FONTS_HOSTS].map((h) => `MAP ${h} ${STALL}`),
-    expect: { weather: "error", table: true },
-  },
-  // Hostile API responses. Each must land on a clear failure with a retry — never a
-  // crash, never a stuck spinner, and never stale dates presented as this week.
-  ...[
-    "garbage", "truncated", "empty-body", "empty-daily", "no-daily",
-    "null-values", "stale-dates", "http-500", "http-429",
-  ].map((mode) => ({
-    name: `API returns ${mode}`,
-    rules: [`MAP ${WEATHER_HOST} ${MOCK}`],
-    chromeFlags: ["--ignore-certificate-errors"],
-    mock: mode,
-    // null-values is a well-formed forecast for today, so the panel legitimately renders
-    // it; everything else is unusable and must surface as an error.
-    expect: { weather: mode === "null-values" ? "any" : "error", map: true },
-  })),
-  // Crippled platforms. None of these may throw during startup: the whole app is one
-  // script block, so a top-level throw takes the forecast down with it.
-  {
-    name: "no CacheStorage (private browsing)",
-    rules: [],
-    injectBefore: `Object.defineProperty(navigator, "serviceWorker", { get: () => undefined });
-                   delete window.caches;`,
-    expect: { weather: "data", map: true },
-  },
-  {
-    name: "no service worker support",
-    rules: [],
-    injectBefore: `Object.defineProperty(navigator, "serviceWorker", { get: () => undefined });`,
-    expect: { weather: "data", map: true },
-  },
-  {
-    name: "caches.open throws (quota / locked down)",
-    rules: [],
-    injectBefore: `if (window.caches) { caches.open = () => Promise.reject(new Error("QuotaExceededError"));
-                   caches.match = () => Promise.reject(new Error("QuotaExceededError")); }`,
-    expect: { weather: "data", map: true },
-  },
-  {
-    name: "localStorage throws on every access",
-    rules: [],
-    injectBefore: `Object.defineProperty(window, "localStorage", {
-                     get() { throw new Error("SecurityError: localStorage disabled"); } });`,
-    expect: { weather: "data", map: true },
-  },
-  {
-    name: "no AbortSignal.timeout (Safari 15)",
-    rules: [],
-    injectBefore: `Object.defineProperty(AbortSignal, "timeout", { value: undefined, configurable: true });`,
-    expect: { weather: "data", map: true },
-  },
-  {
-    name: "no AbortSignal.timeout, and the weather host is unreachable",
-    rules: [`MAP ${WEATHER_HOST} ${BLACKHOLE}`],
-    injectBefore: `Object.defineProperty(AbortSignal, "timeout", { value: undefined, configurable: true });`,
-    expect: { weather: "error", map: true },
-  },
-  {
-    name: "fully offline after a good visit (the drive-to-the-crag case)",
-    rules: [WEATHER_HOST, LEAFLET_HOST, TILE_HOST, ...FONTS_HOSTS].map((h) => `MAP ${h} ${BLACKHOLE}`),
-    reuseProfile: true,
-    expect: { weather: "stale", table: true },
-  },
-];
-
-// Interaction probes, run in the baseline browser once the page has settled. Each must
-// leave the page functional and raise no uncaught exception.
-const INTERACTIONS = [
-  {
-    name: "retry button mashed 10x",
-    script: `(async () => {
-      for (let i = 0; i < 10; i++) document.querySelector(".wx-retry")?.click();
-      return "clicked";
-    })()`,
-  },
-  {
-    name: "weather/climbs tabs toggled 20x",
-    script: `(() => {
-      for (let i = 0; i < 20; i++) {
-        document.getElementById("tab-climbs")?.click();
-        document.getElementById("tab-weather")?.click();
-      }
-      return "toggled";
-    })()`,
-  },
-  {
-    name: "weather panel scrolled to the bottom repeatedly (infinite scroll)",
-    script: `(async () => {
-      const b = document.getElementById("wx-body");
-      for (let i = 0; i < 25; i++) { b.scrollTop = b.scrollHeight; await new Promise(r => setTimeout(r, 40)); }
-      return "days=" + b.querySelectorAll(".wx-day").length;
-    })()`,
-  },
-  {
-    name: "spot switched back and forth 20x",
-    script: `(() => {
-      const btns = document.querySelectorAll("#wx-spots button");
-      for (let i = 0; i < 20; i++) btns[i % btns.length]?.click();
-      return "spots=" + btns.length;
-    })()`,
-  },
-  {
-    name: "grade slider swept across its range",
-    script: `(() => {
-      const lo = document.getElementById("min-grade"), hi = document.getElementById("max-grade");
-      if (!lo || !hi) return "no slider";
-      for (let v = 0; v <= 17; v++) {
-        lo.value = String(v); lo.dispatchEvent(new Event("input", {bubbles:true}));
-        hi.value = String(17 - (v % 18)); hi.dispatchEvent(new Event("input", {bubbles:true}));
-      }
-      return "rows=" + document.querySelectorAll("#results-body tr").length;
-    })()`,
-  },
-  {
-    name: "theme toggled 20x",
-    script: `(() => {
-      for (let i = 0; i < 20; i++) document.getElementById("theme-toggle")?.click();
-      return document.documentElement.dataset.theme || "ok";
-    })()`,
-  },
-  {
-    name: "every modal opened and closed",
-    script: `(() => {
-      const pairs = [["attribution-btn","attribution-close"],["access-link","access-close"],["location-swap-btn","location-close"]];
-      for (const [open, close] of pairs) {
-        document.getElementById(open)?.click();
-        document.getElementById(close)?.click();
-      }
-      return "cycled";
-    })()`,
-  },
-  {
-    name: "all table headers clicked (sort) twice over",
-    script: `(() => {
-      const ths = document.querySelectorAll("th");
-      for (let i = 0; i < 2; i++) ths.forEach(th => th.click());
-      return "rows=" + document.querySelectorAll("#results-body tr").length;
-    })()`,
-  },
-  {
-    name: "clock advanced a day, then page refocused (date rollover)",
-    script: `(() => {
-      // The panel refetches when it returns to the foreground on a later date. Fake the
-      // date the page thinks it loaded for, then fire the event it listens on.
-      if (typeof wxLoadedFor === "undefined") return "no wxLoadedFor";
-      wxLoadedFor = "2000-01-01";
-      document.dispatchEvent(new Event("visibilitychange"));
-      return "fired";
-    })()`,
-  },
-  {
-    name: "every map marker clicked",
-    script: `(() => {
-      const pins = document.querySelectorAll(".leaflet-marker-icon");
-      pins.forEach(p => p.click());
-      return "pins=" + pins.length;
-    })()`,
-  },
-];
-
-// ---------------------------------------------------------------- plumbing
-
+const HTML = fs.readFileSync(path.join(REPO, PAGE), "utf8");
+const { url: FORECAST_URL } = requestFromPage(HTML);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-let httpServer, stallServer;
+const HOUR = 3600e3;
 
-function startFileServer() {
-  const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css",
-                  ".json": "application/json", ".md": "text/markdown" };
-  httpServer = createServer((req, res) => {
-    const rel = decodeURIComponent(req.url.split("?")[0]).replace(/^\/+/, "") || PAGE;
-    const file = path.join(REPO, rel);
-    // Keep the served tree inside the repo.
-    if (!file.startsWith(REPO) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
-      res.writeHead(404); res.end("not found"); return;
+// ---------------------------------------------------------------- time
+
+function melbourneWall(t) {
+  const p = {};
+  for (const x of new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", hourCycle: "h23",
+    year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    .formatToParts(new Date(t))) p[x.type] = x.value;
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}`;
+}
+// The instant at which Melbourne's wall clock reads `wall` ("YYYY-MM-DDTHH:MM:SS").
+function melbourneInstant(wall) {
+  for (const off of [11, 10]) {
+    const t = Date.parse(`${wall}Z`) - off * HOUR;
+    if (melbourneWall(t) === wall) return t;
+  }
+  throw new Error(`no such Melbourne time: ${wall}`);
+}
+const addDays = (iso, n) => new Date(Date.parse(`${iso}T00:00:00Z`) + n * 864e5).toISOString().slice(0, 10);
+
+// Replace Date in the page with one running `offset` ms ahead (or behind), still ticking.
+const clockShim = (offset) => `(() => {
+  const R = Date, OFFSET = ${offset};
+  function D(...a) { if (!new.target) return new R(R.now() + OFFSET).toString(); return a.length ? new R(...a) : new R(R.now() + OFFSET); }
+  D.prototype = R.prototype; D.now = () => R.now() + OFFSET; D.parse = R.parse; D.UTC = R.UTC;
+  Object.setPrototypeOf(D, R); window.Date = D;
+})();`;
+
+// ---------------------------------------------------------------- forecasts
+
+// A structurally faithful Open-Meteo response for every spot, around a given Melbourne day.
+function synthPayload({ today, pastDays = 2, days = 18, nulls = {} }) {
+  const spots = [[-36.94, 142.41], [-37.13, 142.52]];
+  return spots.map(([lat, lng]) => {
+    const dates = Array.from({ length: days }, (_, i) => addDays(today, i - pastDays));
+    const pick = (arr) => dates.map((d, i) => arr[i % arr.length]);
+    const daily = {
+      time: dates,
+      weather_code: pick([1, 3, 61, 0, 2, 80, 95]),
+      temperature_2m_max: pick([21.4, 24.1, 17.8, 19.2, 26.5, 15.1, 22.3]),
+      temperature_2m_min: pick([8.2, 10.4, 7.1, 6.5, 12.0, 5.8, 9.9]),
+      precipitation_sum: pick([0, 0.4, 6.2, 0, 0, 12.5, 2.1]),
+      precipitation_probability_max: pick([5, 20, 80, 0, 10, 95, 60]),
+      wind_speed_10m_max: pick([14.2, 22.0, 31.5, 9.8, 18.4, 40.1, 25.0]),
+      wind_gusts_10m_max: pick([30.1, 45.0, 60.2, 20.3, 35.5, 75.0, 50.4]),
+    };
+    const hourly = { time: [], precipitation: [], precipitation_probability: [], temperature_2m: [] };
+    for (const d of dates) for (let h = 0; h < 24; h++) {
+      hourly.time.push(`${d}T${String(h).padStart(2, "0")}:00`);
+      hourly.precipitation.push(h % 7 === 3 ? 0.6 : 0);
+      hourly.precipitation_probability.push((h * 7) % 100);
+      hourly.temperature_2m.push(10 + 8 * Math.sin((h - 6) / 24 * 2 * Math.PI));
     }
-    res.writeHead(200, {
-      "content-type": types[path.extname(file)] || "application/octet-stream",
-      // The service worker must be revalidated every load or scenarios bleed together.
-      "cache-control": "no-store",
-    });
-    fs.createReadStream(file).pipe(res);
+    const ti = dates.indexOf(today);
+    if (nulls.today && ti >= 0) for (const k of Object.keys(daily)) if (k !== "time") daily[k][ti] = null;
+    if (nulls.tail) for (let i = days - nulls.tail; i < days; i++) for (const k of Object.keys(daily)) if (k !== "time") daily[k][i] = null;
+    if (nulls.hourly) hourly.precipitation = hourly.precipitation.map((v, i) => (i % 5 ? v : null));
+    if (nulls.noHourly) return { latitude: lat, longitude: lng, timezone: "Australia/Melbourne", daily };
+    return { latitude: lat, longitude: lng, timezone: "Australia/Melbourne", utc_offset_seconds: 39600, daily, hourly };
   });
-  return new Promise((r) => httpServer.listen(HTTP_PORT, "127.0.0.1", r));
 }
 
-function startStallServer() {
-  // Accept and hold. Never write a byte, never close.
-  stallServer = net.createServer((sock) => { sock.on("error", () => {}); });
-  return new Promise((r) => stallServer.listen(STALL_PORT, "127.0.0.1", r));
-}
+const snapshotOf = (payload, fetchedAt, url = FORECAST_URL) =>
+  JSON.stringify({ v: 1, fetchedAt: new Date(fetchedAt).toISOString(), url, source: "open-meteo", via: "qa", payload });
 
-// What the fake API should answer with. Set before launching a scenario.
-let mockMode = "garbage";
-
-function mockBody(mode) {
-  const valid = {
-    latitude: -36.94, longitude: 142.41, timezone: "Australia/Melbourne",
-    daily: { time: ["2020-01-01", "2020-01-02", "2020-01-03"], weather_code: [1, 1, 1],
-             temperature_2m_max: [20, 21, 22], temperature_2m_min: [8, 9, 10],
-             precipitation_sum: [0, 0, 0], precipitation_probability_max: [0, 0, 0],
-             wind_speed_10m_max: [10, 10, 10], wind_gusts_10m_max: [15, 15, 15] },
-    hourly: { time: [], precipitation: [], precipitation_probability: [], temperature_2m: [] },
-  };
-  switch (mode) {
-    case "garbage": return { status: 200, body: "this is not JSON at all <html>" };
-    case "truncated": return { status: 200, body: JSON.stringify([valid]).slice(0, 400) };
-    case "empty-daily": return { status: 200, body: JSON.stringify([{ ...valid, daily: { time: [] } }]) };
-    case "no-daily": return { status: 200, body: JSON.stringify([{ latitude: -36.94 }]) };
-    case "null-values": return { status: 200, body: JSON.stringify([{ ...valid,
-      daily: { ...valid.daily, temperature_2m_max: [null, null, null], precipitation_sum: [null, null, null] } }]) };
-    case "stale-dates": return { status: 200, body: JSON.stringify([valid, valid]) };
-    case "http-500": return { status: 500, body: '{"error":true,"reason":"server error"}' };
-    case "http-429": return { status: 429, body: '{"error":true,"reason":"rate limited"}' };
-    case "empty-body": return { status: 200, body: "" };
-    default: return { status: 200, body: "{}" };
+// The real forecast, fetched once at startup with the same script the deploy runs (it
+// routes around a dead Open-Meteo server), plus a server IP known to answer — Chrome's
+// live requests are pointed at it in the scenarios that use the real API.
+let REAL = null, GOOD_IP = null;
+async function fetchReal() {
+  const out = path.join(os.tmpdir(), `cragify-qa-real-${process.pid}.json`);
+  try {
+    execFileSync(process.execPath, [path.join(REPO, "scripts/fetch-forecast.mjs"), "--html", path.join(REPO, PAGE), "--out", out, "--strict"],
+      { stdio: "ignore", timeout: 150000 });
+    const snap = JSON.parse(fs.readFileSync(out, "utf8"));
+    REAL = { payload: snap.payload, fetchedAt: Date.parse(snap.fetchedAt) };
+    // A main-API server that answers right now — not just whatever DNS says, which from
+    // Australia is the server that keeps going dead.
+    const probe = `https://${WEATHER_HOST}/v1/forecast?latitude=-36.97&longitude=142.44&daily=weather_code`;
+    const candidates = [...new Set([...(await dns.resolve4(WEATHER_HOST).catch(() => [])), ...(await serversElsewhere(WEATHER_HOST))])];
+    for (const ip of candidates) {
+      try { await viaIp(probe, ip); GOOD_IP = ip; break; } catch { /* next */ }
+    }
+  } catch (err) {
+    REAL = null;
+  } finally {
+    fs.rmSync(out, { force: true });
   }
 }
 
-let mockServer;
-function startMockApi() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cragify-qa-cert-"));
-  const key = path.join(dir, "key.pem"), cert = path.join(dir, "cert.pem");
-  execFileSync("openssl", ["req", "-x509", "-newkey", "rsa:2048", "-keyout", key, "-out", cert,
-    "-days", "365", "-nodes", "-subj", "/CN=api.open-meteo.com"], { stdio: "ignore" });
-  mockServer = https.createServer({ key: fs.readFileSync(key), cert: fs.readFileSync(cert) }, (req, res) => {
-    const { status, body } = mockBody(mockMode);
-    res.writeHead(status, {
-      "content-type": "application/json",
-      "access-control-allow-origin": "*",
-      "cache-control": "no-store",
-    });
-    res.end(body);
-  });
-  return new Promise((r) => mockServer.listen(MOCK_PORT, "127.0.0.1", r));
+// ---------------------------------------------------------------- scenarios
+//
+// A chain is a list of steps run in order in ONE browser profile and one URL prefix (so
+// one service worker and one cache), which is how "warm" scenarios get a cache warmed by
+// a genuine earlier visit. Chains run in parallel.
+//
+// Step fields:
+//   snapshot  "fresh" | "missing" | "garbage" | "mismatch" | "stall" | {age: hours} |
+//             {payload: {...synth options}, age: hours} | "real"
+//   live      "ok" | "stall" | "down" | "real" | {mock: "<hostile mode>"} | {synth: {...}}
+//   clock     a Melbourne wall time "YYYY-MM-DDTHH:MM:SS" for the page's clock
+//   tz        IANA zone for the device (Emulation.setTimezoneOverride)
+//   rules     extra --host-resolver-rules MAP entries
+//   serverDown  the site itself unreachable (offline)
+//   rev       serve the page and worker from this git revision instead of the working tree
+//   leaflet   "missing" | "stall"
+//   inject    script run in the page before anything else
+//   expect    { weather: "data"|"stale"|"error"|"any", source, today: true, firstPaintMs,
+//               table: false, map: true, settledMs }
+//   then      async (session, ctx) => [failures]   extra checks after settling
+
+const fresh = { snapshot: "fresh", live: "ok" };
+const chains = [];
+const chain = (name, ...steps) => chains.push({ name, steps: steps.map((s, i) => ({ ...s, label: steps.length > 1 ? `${name} — step ${i + 1}: ${s.label}` : name })) });
+
+// --- The case that has been failing in the field ---
+chain("Open-Meteo's Australian server stalls; snapshot fresh (the real-world outage)",
+  { label: "", snapshot: "fresh", live: "stall", expect: { weather: "data", source: "snapshot", today: true, firstPaintMs: 2500 } });
+chain("Open-Meteo's Australian server stalls; snapshot fresh; warm second visit",
+  { label: "first visit", snapshot: "fresh", live: "stall", expect: { weather: "data", source: "snapshot", today: true } },
+  { label: "second visit", snapshot: "fresh", live: "stall", expect: { weather: "data", today: true, firstPaintMs: 2500 } });
+chain("Open-Meteo refuses connections; snapshot fresh",
+  { label: "", snapshot: "fresh", live: "down", expect: { weather: "data", source: "snapshot", today: true, firstPaintMs: 2500 } });
+
+// --- Open-Meteo's backup host: the same forecast from another server ---
+chain("main API stalls, backup healthy, no snapshot",
+  { label: "", snapshot: "missing", live: "stall", backup: "ok", expect: { weather: "data", source: "live", today: true, firstPaintMs: 5000 } });
+chain("main API refuses connections, backup healthy, no snapshot",
+  { label: "", snapshot: "missing", live: "down", backup: "ok", expect: { weather: "data", source: "live", today: true, firstPaintMs: 2500 } });
+chain("main API returns garbage, backup healthy, no snapshot",
+  { label: "", snapshot: "missing", live: { mock: "garbage" }, backup: "ok", expect: { weather: "data", source: "live", today: true, firstPaintMs: 2500 } });
+chain("main API returns a captive-portal page, backup healthy, no snapshot",
+  { label: "", snapshot: "missing", live: { mock: "html-200" }, backup: "ok", expect: { weather: "data", source: "live", today: true, firstPaintMs: 2500 } });
+chain("main API stalls, backup healthy, snapshot fresh (the backup's fresher answer wins)",
+  { label: "", snapshot: "fresh", live: "stall", backup: "ok", expect: { weather: "data", source: "live", today: true, firstPaintMs: 2500 } });
+chain("main API healthy, backup stalls (the backup is never needed)",
+  { label: "", snapshot: "missing", live: "ok", backup: "stall", expect: { weather: "data", source: "live", today: true, firstPaintMs: 2500, settledMs: 4000 } });
+chain("main API and backup both stall, after a good visit",
+  { label: "online", ...fresh, warm: true, expect: { weather: "data", today: true } },
+  { label: "both stall, no snapshot", snapshot: "missing", live: "stall", expect: { weather: "data", today: true, firstPaintMs: 2500 } });
+chain("real backup API (main stalled), no snapshot",
+  { label: "", snapshot: "missing", live: "stall", backup: "real", needsReal: true, expect: { weather: "data", source: "live", today: true, firstPaintMs: 9000 } });
+
+// --- Sources, singly and together ---
+chain("both sources healthy", { label: "", ...fresh, expect: { weather: "data", today: true, firstPaintMs: 2500 } });
+chain("snapshot missing, Open-Meteo healthy", { label: "", snapshot: "missing", live: "ok", expect: { weather: "data", source: "live", today: true } });
+chain("snapshot garbage, Open-Meteo healthy", { label: "", snapshot: "garbage", live: "ok", expect: { weather: "data", source: "live", today: true } });
+chain("snapshot for a different request (old page version), Open-Meteo healthy",
+  { label: "", snapshot: "mismatch", live: "ok", expect: { weather: "data", source: "live", today: true } });
+chain("snapshot request stalls, Open-Meteo healthy", { label: "", snapshot: "stall", live: "ok", expect: { weather: "data", source: "live", today: true } });
+chain("snapshot missing, Open-Meteo stalls, nothing saved", { label: "", snapshot: "missing", live: "stall", expect: { weather: "error", settledMs: 12000 } });
+chain("snapshot stalls, Open-Meteo stalls, nothing saved", { label: "", snapshot: "stall", live: "stall", expect: { weather: "error", settledMs: 12000 } });
+chain("snapshot 2 hours old, Open-Meteo stalls (no banner yet)",
+  { label: "", snapshot: { age: 2 }, live: "stall", expect: { weather: "data", source: "snapshot", today: true } });
+chain("snapshot 5 hours old, Open-Meteo stalls (age shown)",
+  { label: "", snapshot: { age: 5 }, live: "stall", expect: { weather: "stale", source: "snapshot", today: true } });
+chain("snapshot from yesterday evening, Open-Meteo stalls (lined up by date)",
+  { label: "", snapshot: { yesterday: true }, live: "stall", expect: { weather: "stale", source: "snapshot", today: true } });
+chain("snapshot ran out three weeks ago, Open-Meteo stalls", { label: "", snapshot: { expired: true }, live: "stall", expect: { weather: "error" } });
+chain("snapshot old, Open-Meteo healthy (fresher one wins)",
+  { label: "", snapshot: { age: 6 }, live: "ok", expect: { weather: "data", source: "live", today: true } });
+
+// --- The real API, routed to a server that answers ---
+chain("real Open-Meteo, no snapshot", { label: "", snapshot: "missing", live: "real", needsReal: true, needsGoodIp: true, expect: { weather: "data", source: "live", today: true } });
+chain("real snapshot from the deploy script, Open-Meteo stalls",
+  { label: "", snapshot: "real", live: "stall", needsReal: true, expect: { weather: "data", source: "snapshot", today: true } });
+
+// --- Saved copies ---
+chain("drive to the crag: good visit, then no network at all",
+  { label: "at home", ...fresh, warm: true, expect: { weather: "data", today: true } },
+  { label: "no reception, page reopened", serverDown: true, rules: THIRD_PARTIES.map((h) => `MAP ${h} ${BLACKHOLE}`),
+    expect: { weather: "data", today: true, map: false } });
+chain("good visit; next day the site is reachable but Open-Meteo and the snapshot aren't",
+  { label: "at home", ...fresh, warm: true, expect: { weather: "data", today: true } },
+  { label: "next day, both stalled", snapshot: "stall", live: "stall", clockAhead: 22 * HOUR,
+    expect: { weather: "stale", today: true } });
+
+// --- Time ---
+chain("device timezone Los Angeles (a day behind Melbourne)", { label: "", ...fresh, tz: "America/Los_Angeles", expect: { weather: "data", today: true } });
+chain("device timezone UTC", { label: "", ...fresh, tz: "UTC", expect: { weather: "data", today: true } });
+chain("device timezone Kiritimati (UTC+14, ahead of Melbourne)", { label: "", ...fresh, tz: "Pacific/Kiritimati", expect: { weather: "data", today: true } });
+chain("midnight passes while the page is open", {
+  label: "", ...fresh, clock: "2026-12-01T23:59:52", expect: { weather: "data", today: true },
+  then: async (s, ctx) => {
+    const before = await panelToday(s);
+    await sleep(10000);
+    await s.eval("wxTick()");
+    await sleep(800);
+    const after = await panelToday(s);
+    const want = addDays(before, 1);
+    return after === want ? [] : [`after midnight "Today" was ${after}, expected ${want}`];
+  },
+});
+chain("new year's eve to new year's day", {
+  label: "", ...fresh, clock: "2026-12-31T23:59:54", expect: { weather: "data", today: true },
+  then: async (s) => {
+    await sleep(8000); await s.eval("wxTick()"); await sleep(800);
+    const after = await panelToday(s);
+    return after === "2027-01-01" ? [] : [`after midnight "Today" was ${after}, expected 2027-01-01`];
+  },
+});
+chain("daylight saving starts (Melbourne, first Sunday of October)", { label: "", ...fresh, clock: "2026-10-04T08:00:00", expect: { weather: "data", today: true } });
+chain("daylight saving ends (Melbourne, first Sunday of April)", { label: "", ...fresh, clock: "2027-04-04T08:00:00", expect: { weather: "data", today: true } });
+chain("public holidays in the window: Christmas on a Sunday (2033)", {
+  label: "", ...fresh, clock: "2033-12-20T09:00:00", expect: { weather: "data", today: true },
+  then: async (s) => {
+    const chips = JSON.parse((await s.eval(`(async () => { for (let i = 0; i < 4; i++) { wxShown = 99; wxSafeRender(); } return JSON.stringify([...document.querySelectorAll(".wx-holiday-chip")].map(c => c.closest(".wx-day").querySelector(".wx-hourly").dataset.wxDate + " " + c.textContent)); })()`, true)).value || "[]");
+    const want = ["2033-12-25 Christmas Day", "2033-12-26 Boxing Day", "2033-12-27 Christmas Day holiday"];
+    const missing = want.filter((w) => !chips.includes(w));
+    return missing.length ? [`missing holidays: ${missing.join(", ")} (got ${chips.join("; ")})`] : [];
+  },
+});
+
+// --- Bad data ---
+chain("today has no values at all (nulls)", {
+  label: "", snapshot: { payload: { nulls: { today: true } } }, live: "stall", expect: { weather: "data", today: true },
+  then: async (s) => {
+    const txt = (await s.eval(`document.querySelector(".wx-day:not(.wx-yesterday-card)")?.innerText.replace(/\\s+/g, " ")`)).value || "";
+    const fails = [];
+    if (/\b0°/.test(txt)) fails.push(`a missing temperature rendered as 0°: "${txt.slice(0, 120)}"`);
+    if (/Partly cloudy|Sunny|Cloudy/.test(txt)) fails.push(`a missing weather code rendered as weather: "${txt.slice(0, 120)}"`);
+    if (!/No forecast/.test(txt)) fails.push(`no "No forecast" label: "${txt.slice(0, 120)}"`);
+    return fails;
+  },
+});
+chain("last days padded with nulls (beyond the models' horizon)", {
+  label: "", snapshot: { payload: { nulls: { tail: 4 } } }, live: "stall", expect: { weather: "data", today: true },
+  then: async (s) => {
+    const n = (await s.eval(`(() => { wxShown = 99; wxSafeRender(); return document.querySelectorAll(".wx-day:not(.wx-yesterday-card)").length; })()`)).value;
+    return n === 12 ? [] : [`expected 12 days once the 4 empty ones are dropped, got ${n}`];
+  },
+});
+chain("hourly rainfall with gaps", { label: "", snapshot: { payload: { nulls: { hourly: true } } }, live: "stall", expect: { weather: "data", today: true } });
+chain("no hourly data at all", { label: "", snapshot: { payload: { nulls: { noHourly: true } } }, live: "stall", expect: { weather: "data", today: true } });
+for (const mode of ["garbage", "truncated", "empty-body", "empty-daily", "no-daily", "one-location", "bad-dates", "html-200", "http-500", "http-429"]) {
+  chain(`Open-Meteo returns ${mode}, no snapshot`, { label: "", snapshot: "missing", live: { mock: mode }, expect: { weather: "error" } });
+  chain(`Open-Meteo returns ${mode}, snapshot fresh`, { label: "", snapshot: "fresh", live: { mock: mode }, expect: { weather: "data", source: "snapshot", today: true } });
 }
 
+// --- The rest of the page failing must not take the weather with it ---
+chain("vendored Leaflet missing (404)", { label: "", ...fresh, leaflet: "missing", expect: { weather: "data", today: true } });
+chain("vendored Leaflet stalls (weather must not wait for it)", { label: "", ...fresh, leaflet: "stall", expect: { weather: "data", today: true, table: false } });
+chain("the main script crashes at startup", {
+  label: "", ...fresh, inject: `Object.defineProperty(window, "L", { configurable: true, get() { throw new Error("simulated main-script crash"); } });`,
+  allowExceptions: true, expect: { weather: "data", today: true, table: false },
+});
+chain("Google Fonts stalls", { label: "", ...fresh, rules: FONTS_HOSTS.map((h) => `MAP ${h} ${STALL}`), expect: { weather: "data", today: true, map: true } });
+chain("map tiles unreachable", { label: "", ...fresh, rules: [`MAP ${TILE_HOST} ${BLACKHOLE}`], expect: { weather: "data", today: true, map: true } });
+chain("every third party stalls at once", { label: "", ...fresh, live: "stall", rules: [TILE_HOST, UNPKG_HOST, ...FONTS_HOSTS].map((h) => `MAP ${h} ${STALL}`),
+  expect: { weather: "data", source: "snapshot", today: true } });
+
+// --- Crippled platforms ---
+chain("no service worker or CacheStorage (private browsing)", { label: "", ...fresh,
+  inject: `Object.defineProperty(navigator, "serviceWorker", { get: () => undefined }); delete window.caches;`, expect: { weather: "data", today: true } });
+chain("CacheStorage rejects everything (quota)", { label: "", ...fresh,
+  inject: `if (window.caches) { caches.open = () => Promise.reject(new Error("QuotaExceededError")); caches.match = () => Promise.reject(new Error("QuotaExceededError")); }`,
+  expect: { weather: "data", today: true } });
+chain("localStorage throws", { label: "", ...fresh, inject: `Object.defineProperty(window, "localStorage", { get() { throw new Error("SecurityError"); } });`, expect: { weather: "data", today: true } });
+chain("no AbortSignal.timeout (Safari 15), Open-Meteo stalls", { label: "", snapshot: "missing", live: "stall",
+  inject: `Object.defineProperty(AbortSignal, "timeout", { value: undefined, configurable: true });`, expect: { weather: "error", settledMs: 12000 } });
+chain("no Intl time zone support", { label: "", ...fresh,
+  inject: `const RealDTF = Intl.DateTimeFormat; Intl.DateTimeFormat = function (l, o) { if (o && o.timeZone) throw new RangeError("unsupported"); return new RealDTF(l, o); };`,
+  expect: { weather: "data" } });
+
+// --- Upgrading from every service worker this site has ever shipped ---
+// Two visits on the old version first: before c7d0f5f a worker saved nothing on the visit
+// that installed it, so the second is what leaves an old-format saved forecast behind.
+for (const rev of ["0eb4303", "d21fe7f", "f3ce9af", "7e2aa16", "c7d0f5f"]) {
+  chain(`upgrade from the ${rev} worker`,
+    { label: `first visit on ${rev}`, rev, snapshot: "fresh", live: "ok", expect: { weather: "any" } },
+    // Whether an old worker saved anything is how that version behaved, not what's under
+    // test — so it's noted rather than failed. The upgrade itself is the next two steps.
+    { label: `second visit on ${rev}`, rev, snapshot: "fresh", live: "ok", warm: "note", expect: { weather: "any" } },
+    { label: "visit on the current page", snapshot: "fresh", live: "ok", expect: { weather: "data", today: true } },
+    { label: "and again, Open-Meteo stalled", snapshot: "fresh", live: "stall", expect: { weather: "data", today: true, firstPaintMs: 3000 } });
+}
+
+// Interaction stress, in one healthy page. Each must leave the page working.
+const INTERACTIONS = [
+  ["retry from a failure, mashed 10x", `(async () => { wxData = null; wxShowStatus("Couldn’t load the forecast (test).", true);
+     for (let i = 0; i < 10; i++) document.querySelector(".wx-retry")?.click(); await new Promise(r => setTimeout(r, 3000));
+     return document.querySelectorAll(".wx-day").length ? "recovered" : "NOT RECOVERED: " + document.getElementById("wx-body").innerText.slice(0, 80); })()`],
+  ["tabs toggled 20x", `(() => { for (let i = 0; i < 20; i++) { document.getElementById("tab-climbs")?.click(); document.getElementById("tab-weather")?.click(); } return "ok"; })()`],
+  ["scrolled to the bottom repeatedly", `(async () => { const b = document.getElementById("wx-body"); for (let i = 0; i < 25; i++) { b.scrollTop = b.scrollHeight; await new Promise(r => setTimeout(r, 40)); } return "days=" + b.querySelectorAll(".wx-day").length; })()`],
+  ["spot switched 20x during a reload", `(() => { loadWeather(true); const b = document.querySelectorAll("#wx-spots button"); for (let i = 0; i < 20; i++) b[i % b.length]?.click(); return "spots=" + b.length; })()`],
+  ["yesterday card toggled 10x", `(() => { for (let i = 0; i < 10; i++) document.querySelector(".wx-yesterday-toggle")?.click(); return "ok"; })()`],
+  ["conditions popover opened on every chart", `(() => { const c = document.querySelectorAll(".wx-hourly"); c.forEach(x => x.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 50, clientY: 50 }))); c.forEach(x => x.click()); return "charts=" + c.length; })()`],
+  ["grade slider swept", `(() => { const lo = document.getElementById("min-grade"), hi = document.getElementById("max-grade"); if (!lo || !hi) return "no slider"; for (let v = 0; v <= 17; v++) { lo.value = String(v); lo.dispatchEvent(new Event("input", { bubbles: true })); hi.value = String(17 - v); hi.dispatchEvent(new Event("input", { bubbles: true })); } return "rows=" + document.querySelectorAll("#results-body tr").length; })()`],
+  ["theme toggled 20x", `(() => { for (let i = 0; i < 20; i++) document.getElementById("theme-toggle")?.click(); return "ok"; })()`],
+  ["every modal opened and closed", `(() => { for (const [o, c] of [["attribution-btn", "attribution-close"], ["location-swap-btn", "location-close"]]) { document.getElementById(o)?.click(); document.getElementById(c)?.click(); } return "ok"; })()`],
+  ["every table header clicked twice", `(() => { const t = document.querySelectorAll("th"); for (let i = 0; i < 2; i++) t.forEach(x => x.click()); return "rows=" + document.querySelectorAll("#results-body tr").length; })()`],
+  ["every map marker clicked", `(() => { const p = document.querySelectorAll(".leaflet-marker-icon"); p.forEach(x => x.click()); return "pins=" + p.length; })()`],
+  ["the tab hidden and shown 20x", `(() => { for (let i = 0; i < 20; i++) document.dispatchEvent(new Event("visibilitychange")); return "ok"; })()`],
+  ["reception lost and regained", `(async () => { window.dispatchEvent(new Event("offline")); window.dispatchEvent(new Event("online")); await new Promise(r => setTimeout(r, 2500)); return "ok"; })()`],
+];
+
+// ---------------------------------------------------------------- serving
+
+const chainState = new Map();   // id -> per-chain serving state
+let fileServer, stallServer;
+
+const revCache = new Map();
+function fileAt(rev, rel) {
+  if (!rev) {
+    const p = path.join(REPO, rel);
+    return p.startsWith(REPO) && fs.existsSync(p) && fs.statSync(p).isFile() ? fs.readFileSync(p) : null;
+  }
+  const key = `${rev}:${rel}`;
+  if (!revCache.has(key)) {
+    try { revCache.set(key, execFileSync("git", ["-C", REPO, "show", key], { maxBuffer: 1 << 26 })); }
+    catch { revCache.set(key, null); }
+  }
+  return revCache.get(key);
+}
+
+function snapshotBody(spec, offset) {
+  const now = Date.now() + offset;
+  const today = melbourneToday(new Date(now));
+  if (spec === "fresh") return snapshotOf(synthPayload({ today }), now - 10 * 60e3);
+  if (spec === "real") return REAL ? snapshotOf(REAL.payload, REAL.fetchedAt) : null;
+  if (spec === "garbage") return "<html>not a forecast</html>";
+  if (spec === "mismatch") return snapshotOf(synthPayload({ today }), now - 10 * 60e3, FORECAST_URL.replace("forecast_days=16", "forecast_days=7"));
+  if (spec && typeof spec === "object") {
+    const base = spec.yesterday ? addDays(today, -1) : spec.expired ? addDays(today, -21) : today;
+    const age = spec.yesterday ? 20 : spec.expired ? 21 * 24 : (spec.age ?? 0.2);
+    return snapshotOf(synthPayload({ today: base, ...(spec.payload || {}) }), now - age * HOUR);
+  }
+  return null;
+}
+
+function startFileServer() {
+  const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".json": "application/json" };
+  fileServer = createServer((req, res) => {
+    const m = req.url.match(/^\/s\/([^/]+)\/([^?]*)/);
+    const st = m && chainState.get(m[1]);
+    if (!st) { res.writeHead(404); res.end(); return; }
+    if (st.serverDown) { req.socket.destroy(); return; }
+    const rel = decodeURIComponent(m[2]) || PAGE;
+    const send = (status, body, type) => {
+      res.writeHead(status, { "content-type": type, "cache-control": "no-store" });
+      res.end(body);
+    };
+    if (rel === "data/forecast.json") {
+      if (st.snapshot === "stall") return;                       // hold it open forever
+      const body = snapshotBody(st.snapshot, st.offset);
+      return body == null ? send(404, "not found", "text/plain") : send(200, body, "application/json");
+    }
+    if (rel.startsWith("vendor/leaflet/") && st.leaflet === "missing") return send(404, "not found", "text/plain");
+    if (rel === "vendor/leaflet/leaflet.js" && st.leaflet === "stall") return;
+    const isCore = rel === PAGE || rel === "sw.js";
+    const body = fileAt(isCore ? st.rev : null, rel);
+    if (body == null) return send(404, "not found", "text/plain");
+    send(200, body, types[path.extname(rel)] || "application/octet-stream");
+  });
+  return listen(fileServer).then((p) => { HTTP_PORT = p; });
+}
+
+function startStallServer() {
+  stallServer = net.createServer((sock) => { sock.on("error", () => {}); });
+  return listen(stallServer).then((p) => { STALL_PORT = p; STALL = `127.0.0.1:${p}`; });
+}
+
+// A per-chain HTTPS server impersonating Open-Meteo. Self-signed, so the browser runs
+// with --ignore-certificate-errors.
+let CERT = null;
+function makeCert() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cragify-qa-cert-"));
+  const key = path.join(dir, "key.pem"), cert = path.join(dir, "cert.pem");
+  execFileSync("openssl", ["req", "-x509", "-newkey", "rsa:2048", "-keyout", key, "-out", cert, "-days", "30", "-nodes", "-subj", "/CN=api.open-meteo.com"], { stdio: "ignore" });
+  CERT = { key: fs.readFileSync(key), cert: fs.readFileSync(cert) };
+}
+function liveBody(st, spec) {
+  const now = Date.now() + st.offset;
+  const today = melbourneToday(new Date(now));
+  const valid = synthPayload({ today, ...(spec && spec.synth ? spec.synth : {}) });
+  const mode = spec && spec.mock;
+  switch (mode) {
+    case undefined: return [200, JSON.stringify(valid)];
+    case "garbage": return [200, "this is not JSON"];
+    case "truncated": return [200, JSON.stringify(valid).slice(0, 900)];
+    case "empty-body": return [200, ""];
+    case "empty-daily": return [200, JSON.stringify(valid.map((l) => ({ ...l, daily: { time: [] } })))];
+    case "no-daily": return [200, JSON.stringify(valid.map((l) => ({ latitude: l.latitude })))];
+    case "one-location": return [200, JSON.stringify(valid[0])];
+    case "bad-dates": return [200, JSON.stringify(valid.map((l) => ({ ...l, daily: { ...l.daily, time: l.daily.time.map((t) => `${t}"><img src=x onerror=alert(1)>`) } })))];
+    case "html-200": return [200, "<!doctype html><title>Login to WiFi</title>"];
+    case "http-500": return [500, '{"error":true}'];
+    case "http-429": return [429, '{"error":true,"reason":"rate limited"}'];
+    default: throw new Error(`unknown mock ${mode}`);
+  }
+}
+function startMock(st) {
+  const server = https.createServer(CERT, (req, res) => {
+    const backup = (req.headers.host || "").startsWith(BACKUP_HOST);
+    const [status, body] = liveBody(st, backup ? st.backupLive : st.live);
+    res.writeHead(status, { "content-type": "application/json", "access-control-allow-origin": "*" });
+    res.end(body);
+  });
+  return listen(server).then((port) => ({ server, port }));
+}
+
+// ---------------------------------------------------------------- browser
+
 class Chrome {
-  static async launch(rules, profileDir, extraFlags = []) {
-    const port = nextCdpPort();
-    const args = [
-      "--headless=new",
-      `--remote-debugging-port=${port}`,
-      `--user-data-dir=${profileDir}`,
-      "--no-first-run", "--no-default-browser-check",
-      "--disable-background-networking", "--disable-sync",
-      "--disable-features=Translate,OptimizationHints",
-    ];
+  static async launch(profileDir, rules, flags) {
+    const portFile = path.join(profileDir, "DevToolsActivePort");
+    fs.rmSync(portFile, { force: true });
+    const args = ["--headless=new", "--remote-debugging-port=0", `--user-data-dir=${profileDir}`,
+      "--no-first-run", "--no-default-browser-check", "--disable-background-networking", "--disable-sync",
+      "--disable-features=Translate,OptimizationHints", ...flags];
     if (rules.length) args.push(`--host-resolver-rules=${[...rules, "EXCLUDE 127.0.0.1"].join(",")}`);
-    args.push(...extraFlags);
-    const proc = spawn(CHROME, args, { stdio: "ignore", detached: false });
-    // Wait for the debugging endpoint rather than sleeping a fixed amount.
+    const proc = spawn(CHROME, args, { stdio: "ignore" });
     for (let i = 0; i < 100; i++) {
       try {
-        const r = await fetch(`http://127.0.0.1:${port}/json/version`);
-        if (r.ok) return new Chrome(proc, port);
+        const port = Number(fs.readFileSync(portFile, "utf8").split("\n")[0]);
+        if (port && (await fetch(`http://127.0.0.1:${port}/json/version`)).ok) return new Chrome(proc, port);
       } catch {}
       await sleep(200);
     }
     proc.kill("SIGKILL");
     throw new Error("Chrome did not expose a debugging port");
   }
-
   constructor(proc, port) { this.proc = proc; this.port = port; }
-
-  async openPage(url, injectBefore) {
-    const made = await fetch(`http://127.0.0.1:${this.port}/json/new?${encodeURIComponent("about:blank")}`, { method: "PUT" });
-    const target = await made.json();
-    return Session.attach(target.webSocketDebuggerUrl, url, injectBefore);
+  async open() {
+    const t = await (await fetch(`http://127.0.0.1:${this.port}/json/new?about:blank`, { method: "PUT" })).json();
+    const s = new Session(t.webSocketDebuggerUrl);
+    await s.ready;
+    await s.send("Runtime.enable");
+    await s.send("Page.enable");
+    return s;
   }
-
-  // SIGTERM, not SIGKILL: CacheStorage writes are flushed to disk asynchronously, and
-  // killing Chrome outright loses them — which silently turns every "warm cache"
-  // scenario into a cold one and reports a harness artifact as an app failure.
+  // SIGTERM and wait: CacheStorage is flushed asynchronously, and SIGKILL loses it —
+  // silently turning every warm-cache step into a cold one.
   async kill() {
     try { this.proc.kill("SIGTERM"); } catch { return; }
-    const exited = new Promise((r) => this.proc.once("exit", r));
-    await Promise.race([exited, sleep(4000)]);
+    await Promise.race([new Promise((r) => this.proc.once("exit", r)), sleep(5000)]);
     try { this.proc.kill("SIGKILL"); } catch {}
   }
 }
 
 class Session {
-  static async attach(wsUrl, navigateTo, injectBefore) {
-    const s = new Session(wsUrl);
-    await s.ready;
-    await s.send("Runtime.enable");
-    await s.send("Log.enable");
-    await s.send("Page.enable");
-    if (injectBefore) {
-      await s.send("Page.addScriptToEvaluateOnNewDocument", { source: injectBefore });
-    }
-    if (navigateTo) await s.send("Page.navigate", { url: navigateTo });
-    return s;
-  }
-
   constructor(wsUrl) {
     this.ws = new WebSocket(wsUrl);
-    this.id = 0;
-    this.pending = new Map();
-    this.exceptions = [];
-    this.consoleErrors = [];
+    this.id = 0; this.pending = new Map(); this.exceptions = [];
     this.ws.addEventListener("message", (e) => {
       const m = JSON.parse(e.data);
       if (m.id && this.pending.has(m.id)) { this.pending.get(m.id)(m); this.pending.delete(m.id); return; }
       if (m.method === "Runtime.exceptionThrown") {
         const d = m.params.exceptionDetails;
-        this.exceptions.push(d.exception?.description || d.text || "unknown exception");
+        this.exceptions.push((d.exception?.description || d.text || "exception").split("\n")[0]);
       }
-      if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") {
-        this.consoleErrors.push(m.params.args.map((a) => a.value ?? a.description ?? a.type).join(" "));
-      }
-      // Network 404s etc. are noise for this suite; only script-level failures matter.
     });
-    this.ready = new Promise((res, rej) => {
-      this.ws.addEventListener("open", res);
-      this.ws.addEventListener("error", rej);
-    });
+    this.ready = new Promise((res, rej) => { this.ws.addEventListener("open", res); this.ws.addEventListener("error", rej); });
   }
-
   send(method, params = {}) {
-    return new Promise((res) => {
-      const i = ++this.id;
-      this.pending.set(i, res);
-      this.ws.send(JSON.stringify({ id: i, method, params }));
-    });
+    return new Promise((res) => { const i = ++this.id; this.pending.set(i, res); this.ws.send(JSON.stringify({ id: i, method, params })); });
   }
-
   async eval(expression, awaitPromise = false) {
     const r = await this.send("Runtime.evaluate", { expression, awaitPromise, returnByValue: true, timeout: 30000 });
-    if (r.result?.exceptionDetails) {
-      return { error: r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text };
-    }
+    if (r.result?.exceptionDetails) return { error: r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text };
     return { value: r.result?.result?.value };
   }
-
   close() { try { this.ws.close(); } catch {} }
 }
 
-// What state has the weather panel settled into?
 const PANEL_PROBE = `(() => {
   const b = document.getElementById("wx-body");
   if (!b) return JSON.stringify({ state: "missing" });
   const text = b.innerText.replace(/\\s+/g, " ").trim();
-  const days = b.querySelectorAll(".wx-day").length;
+  const days = b.querySelectorAll(".wx-day:not(.wx-yesterday-card)").length;
+  const todayCard = [...b.querySelectorAll(".wx-day-chip")].find(c => c.textContent === "Today");
+  const busyText = /Loading forecast|checking for a newer/i.test(text);
+  const loading = typeof wxLoading !== "undefined" ? wxLoading : false;
+  const failed = /Couldn.t (load|show) the forecast/i.test(text);
   const stale = !!b.querySelector(".wx-stale");
-  const retry = !!b.querySelector(".wx-retry");
-  // A staleness banner marked data-updating is mid-refresh, not a settled state.
-  const updating = !!b.querySelector(".wx-stale[data-updating]");
-  const busy = updating || /Loading forecast|Still trying|checking for a newer/i.test(text);
-  const failed = /Couldn.t load the forecast/i.test(text);
   let state = "unknown";
-  if (busy) state = "busy";
-  else if (days > 0) state = stale ? "stale" : "data";
+  if (days > 0) state = stale ? "stale" : "data";
+  else if (busyText) state = "busy";
   else if (failed) state = "error";
-  return JSON.stringify({ state, days, stale, retry, busy, failed, text: text.slice(0, 110) });
+  return JSON.stringify({ state, days, stale, loading, busyText, failed,
+    retry: !!b.querySelector(".wx-retry"),
+    today: todayCard ? todayCard.closest(".wx-day").querySelector(".wx-hourly")?.dataset.wxDate : null,
+    source: typeof wxSource !== "undefined" ? wxSource : null,
+    text: text.slice(0, 120) });
 })()`;
+const STRUCTURE_PROBE = `JSON.stringify({ rows: document.querySelectorAll("#results-body tr").length,
+  header: !!document.getElementById("site-header"),
+  map: !!document.querySelector("#map .leaflet-pane") })`;
+const panelToday = async (s) => JSON.parse((await s.eval(PANEL_PROBE)).value).today;
 
-const STRUCTURE_PROBE = `(() => {
-  const rows = document.querySelectorAll("#results-body tr").length;
-  const mapEl = document.getElementById("map");
-  return JSON.stringify({
-    tableRows: rows,
-    mapPresent: !!mapEl,
-    mapRendered: !!mapEl && mapEl.querySelectorAll(".leaflet-tile-pane, .leaflet-pane").length > 0,
-    leafletLoaded: typeof window.L !== "undefined",
-    bodyText: (document.body.innerText || "").trim().length,
-    headerPresent: !!document.getElementById("site-header"),
-  });
-})()`;
+async function probe(s) {
+  const r = await s.eval(PANEL_PROBE);
+  return r.value ? JSON.parse(r.value) : null;
+}
 
-// Wait until the panel leaves its busy state, or the deadline passes.
-async function settle(session, deadlineMs) {
-  const started = Date.now();
-  let last = null;
-  while (Date.now() - started < deadlineMs) {
-    const r = await session.eval(PANEL_PROBE);
-    if (r.value) {
-      last = JSON.parse(r.value);
-      if (last.state !== "busy" && last.state !== "missing") {
-        return { panel: last, tookMs: Date.now() - started };
+// Watch the panel until it has settled: not busy, and no load in flight. Records when
+// the first forecast appeared.
+async function watch(s, deadlineMs) {
+  const t0 = Date.now();
+  let firstPaint = null, last = null;
+  while (Date.now() - t0 < deadlineMs) {
+    last = await probe(s);
+    if (last && last.days > 0 && firstPaint == null) firstPaint = Date.now() - t0;
+    if (last && last.state !== "busy" && last.state !== "missing" && last.state !== "unknown" && !last.loading) {
+      return { panel: last, settledMs: Date.now() - t0, firstPaint };
+    }
+    await sleep(100);
+  }
+  return { panel: last, settledMs: Date.now() - t0, firstPaint, timedOut: true };
+}
+
+// ---------------------------------------------------------------- running
+
+async function runChain(c, idx, profileRoot) {
+  const id = `c${idx}`;
+  const profile = fs.mkdtempSync(path.join(profileRoot, `${id}-`));
+  const st = { snapshot: "fresh", live: "ok", offset: 0 };
+  chainState.set(id, st);
+  const mock = await startMock(st);
+  const results = [];
+  try {
+    for (const step of c.steps) {
+      if (step.needsReal && !REAL) { results.push({ name: step.label, skipped: "needs the real Open-Meteo API" }); continue; }
+      if (step.needsGoodIp && !GOOD_IP) { results.push({ name: step.label, skipped: "no Open-Meteo main-API server answering" }); continue; }
+      Object.assign(st, { snapshot: step.snapshot ?? "fresh", live: step.live ?? "ok", serverDown: !!step.serverDown,
+        rev: step.rev || null, leaflet: step.leaflet || null,
+        offset: step.clock ? melbourneInstant(step.clock) - Date.now() : (step.clockAhead || 0) });
+      const rules = [...(step.rules || [])];
+      // How each Open-Meteo host behaves this step. The backup follows the main host unless
+      // the step says otherwise, so "Open-Meteo stalls" means all of Open-Meteo stalls.
+      st.backupLive = step.backup ?? st.live;
+      const mapHost = (host, mode) => {
+        if (mode === "stall") return `MAP ${host} ${STALL}`;
+        if (mode === "down") return `MAP ${host} 127.0.0.1:1`;
+        if (mode === "real") return host === WEATHER_HOST ? `MAP ${host} ${GOOD_IP}` : null;  // backup: real DNS
+        return `MAP ${host} 127.0.0.1:${mock.port}`;                                         // healthy or a mock mode
+      };
+      for (const [host, mode] of [[WEATHER_HOST, st.live], [BACKUP_HOST, st.backupLive]]) {
+        const rule = mapHost(host, mode);
+        if (rule) rules.push(rule);
+      }
+      const chrome = await Chrome.launch(profile, rules, ["--ignore-certificate-errors"]);
+      let s;
+      try {
+        s = await chrome.open();
+        if (step.tz) await s.send("Emulation.setTimezoneOverride", { timezoneId: step.tz });
+        const inject = [st.offset ? clockShim(st.offset) : "", step.inject || ""].filter(Boolean).join("\n");
+        if (inject) await s.send("Page.addScriptToEvaluateOnNewDocument", { source: inject });
+        await s.send("Page.navigate", { url: `http://127.0.0.1:${HTTP_PORT}/s/${id}/${PAGE}` });
+        const { panel, settledMs, firstPaint, timedOut } = await watch(s, step.expect?.settledMs ? step.expect.settledMs + 4000 : 30000);
+        const structure = JSON.parse((await s.eval(STRUCTURE_PROBE)).value || "{}");
+        const fails = check(step, panel, structure, s, { settledMs, firstPaint, timedOut, offset: st.offset });
+        if (step.then && !fails.length) fails.push(...(await step.then(s, { st })));
+        let note = "";
+        if (step.warm) {
+          const ok = await waitWarm(s, step.rev ? 1 : 2);
+          if (!ok && step.warm === "note") note = "old worker saved nothing (as that version did)";
+          else if (!ok) fails.push("the worker didn't save a forecast within 20s (later steps would be invalid)");
+        }
+        results.push({ name: step.label, fails, panel, settledMs, firstPaint, note });
+      } finally {
+        s?.close();
+        await chrome.kill();
       }
     }
-    await sleep(500);
+  } finally {
+    mock.server.close();
+    chainState.delete(id);
   }
-  return { panel: last, tookMs: Date.now() - started, timedOut: true };
+  return results;
 }
 
-// ---------------------------------------------------------------- assertions
-
-function checkScenario(sc, panel, structure, session, tookMs) {
-  const fails = [];
-  const want = sc.expect || {};
-
-  // The one inviolable rule: it must never be left looking like it is still working.
-  if (!panel || panel.state === "missing") fails.push("weather panel element missing");
-  else if (panel.busy) fails.push(`still showing a loading message after ${(tookMs / 1000).toFixed(1)}s ("${panel.text}")`);
-
-  if (panel && want.weather && want.weather !== "any") {
-    if (want.weather === "data" && panel.state !== "data") {
-      fails.push(`expected a live forecast, got "${panel.state}" ("${panel.text}")`);
-    }
-    if (want.weather === "stale" && panel.state !== "stale") {
-      fails.push(`expected the saved forecast with a staleness banner, got "${panel.state}" ("${panel.text}")`);
-    }
-    if (want.weather === "error") {
-      if (panel.state !== "error") fails.push(`expected a clear failure message, got "${panel.state}" ("${panel.text}")`);
-      else if (!panel.retry) fails.push("failure message offers no retry");
-    }
-    // Showing days is only acceptable if their staleness is disclosed.
-    if (panel.state === "data" && want.weather === "stale") fails.push("cached forecast shown with no staleness banner");
-  }
-
-  // The page as a whole must survive, whatever the network did.
-  if (structure) {
-    // "Alive" is structural, not a word count: the header chrome is present and the
-    // climbs table — which needs no network at all — actually rendered.
-    if (!structure.headerPresent) fails.push("site header missing");
-    if (structure.tableRows === 0) fails.push("climbs table rendered no rows (script likely died before render)");
-    if (want.map && !structure.mapRendered) fails.push("map did not render");
-  }
-
-  // A thrown exception in this monolithic script kills everything after it.
-  if (session.exceptions.length) {
-    fails.push(`uncaught exception(s): ${session.exceptions.slice(0, 3).join(" | ")}`);
-  }
-  return fails;
-}
-
-// ---------------------------------------------------------------- runner
-
-async function waitForWarmCache(session, ms) {
-  const started = Date.now();
-  while (Date.now() - started < ms) {
-    const r = await session.eval(`caches.match(wxForecastUrl()).then(h => !!h).catch(() => false)`, true);
+// Has the worker saved at least `n` forecasts, in any of the caches this site has used?
+// (Earlier workers saved only Open-Meteo's response, under other cache names.)
+async function waitWarm(s, n) {
+  for (let i = 0; i < 40; i++) {
+    const r = await s.eval(`(async () => { try { let k = 0; for (const name of await caches.keys()) if (name.startsWith("cragify-weather")) k += (await (await caches.open(name)).keys()).length; return k >= ${n}; } catch { return false; } })()`, true);
     if (r.value === true) return true;
     await sleep(500);
   }
   return false;
 }
 
-async function runScenario(sc, profileDir) {
-  mockMode = sc.mock || "garbage";
-  const chrome = await Chrome.launch(sc.rules, profileDir, sc.chromeFlags || []);
-  let session;
-  try {
-    session = await chrome.openPage(`http://127.0.0.1:${HTTP_PORT}/${PAGE}`, sc.injectBefore);
-    // Generous: more than double the app's own ~15s worst case, so a failure here means
-    // genuinely stuck rather than merely slow.
-    const { panel, tookMs } = await settle(session, sc.deadlineMs || 40000);
-    const structRaw = await session.eval(STRUCTURE_PROBE);
-    const structure = structRaw.value ? JSON.parse(structRaw.value) : null;
-    const fails = checkScenario(sc, panel, structure, session, tookMs);
-    if (sc.leaveWarm && !(await waitForWarmCache(session, 15000))) {
-      fails.push("worker cache was not warmed within 15s (later warm-cache scenarios would be invalid)");
+function check(step, panel, structure, s, t) {
+  const want = step.expect || {};
+  const fails = [];
+  if (!panel || panel.state === "missing") return ["weather panel missing"];
+  if (t.timedOut) fails.push(`never settled: still "${panel.state}"${panel.loading ? " (load in flight)" : ""} after ${(t.settledMs / 1000).toFixed(1)}s — "${panel.text}"`);
+  if (want.weather && want.weather !== "any") {
+    if (want.weather === "error") {
+      if (panel.state !== "error") fails.push(`expected a clear failure, got "${panel.state}" — "${panel.text}"`);
+      else if (!panel.retry) fails.push("failure offers no retry");
+    } else if (panel.state !== want.weather) {
+      fails.push(`expected "${want.weather}", got "${panel.state}" — "${panel.text}"`);
     }
-    return { fails, panel, structure, tookMs, exceptions: [...session.exceptions] };
-  } finally {
-    session?.close();
-    await chrome.kill();
-    await sleep(300);
   }
+  if (want.source && panel.source !== want.source && panel.state !== "error") fails.push(`expected the forecast from "${want.source}", got "${panel.source}"`);
+  if (want.today && panel.days > 0) {
+    // The page's clock runs `offset` ahead of ours (and keeps ticking), so "today" is
+    // judged by the page's clock, in Melbourne.
+    const expected = melbourneToday(new Date(Date.now() + t.offset));
+    if (panel.today !== expected) fails.push(`"Today" is ${panel.today}, expected ${expected} (Melbourne)`);
+  }
+  if (want.firstPaintMs && (t.firstPaint == null || t.firstPaint > want.firstPaintMs)) {
+    fails.push(`first forecast took ${t.firstPaint == null ? "forever" : `${(t.firstPaint / 1000).toFixed(1)}s`}, limit ${(want.firstPaintMs / 1000).toFixed(1)}s`);
+  }
+  if (want.settledMs && t.settledMs > want.settledMs) fails.push(`took ${(t.settledMs / 1000).toFixed(1)}s to settle, limit ${(want.settledMs / 1000).toFixed(1)}s`);
+  if (!structure.header) fails.push("site header missing");
+  if (want.table !== false && !structure.rows) fails.push("climbs table rendered no rows");
+  if (want.map && !structure.map) fails.push("map did not render");
+  if (!step.allowExceptions && s.exceptions.length) fails.push(`uncaught: ${[...new Set(s.exceptions)].slice(0, 3).join(" | ")}`);
+  return fails;
 }
 
-async function runInteractions(profileDir) {
-  const chrome = await Chrome.launch([], profileDir);
+async function runInteractions(profileRoot) {
+  const id = "ix";
+  const st = { snapshot: "fresh", live: "ok", offset: 0 };
+  chainState.set(id, st);
+  const mock = await startMock(st);
+  const chrome = await Chrome.launch(fs.mkdtempSync(path.join(profileRoot, "ix-")),
+    [`MAP ${WEATHER_HOST} 127.0.0.1:${mock.port}`, `MAP ${BACKUP_HOST} 127.0.0.1:${mock.port}`], ["--ignore-certificate-errors"]);
   const results = [];
-  let session;
+  let s;
   try {
-    session = await chrome.openPage(`http://127.0.0.1:${HTTP_PORT}/${PAGE}`);
-    await settle(session, 40000);
-    for (const probe of INTERACTIONS) {
-      const before = session.exceptions.length;
-      const out = await session.eval(probe.script, true);
-      await sleep(1200);
-      const raised = session.exceptions.slice(before);
-      const panelRaw = await session.eval(PANEL_PROBE);
-      const panel = panelRaw.value ? JSON.parse(panelRaw.value) : null;
-      const structRaw = await session.eval(STRUCTURE_PROBE);
-      const structure = structRaw.value ? JSON.parse(structRaw.value) : null;
+    s = await chrome.open();
+    await s.send("Page.navigate", { url: `http://127.0.0.1:${HTTP_PORT}/s/${id}/${PAGE}` });
+    await watch(s, 30000);
+    for (const [name, script] of INTERACTIONS) {
+      const before = s.exceptions.length;
+      const out = await s.eval(script, true);
+      const settled = await watch(s, 15000);
+      const structure = JSON.parse((await s.eval(STRUCTURE_PROBE)).value || "{}");
       const fails = [];
-      if (out.error) fails.push(`threw: ${out.error}`);
+      if (out.error) fails.push(`threw: ${out.error.split("\n")[0]}`);
+      if (typeof out.value === "string" && out.value.startsWith("NOT RECOVERED")) fails.push(out.value);
+      const raised = s.exceptions.slice(before);
       if (raised.length) fails.push(`uncaught: ${raised.slice(0, 2).join(" | ")}`);
-      if (structure && structure.tableRows === 0) fails.push("climbs table lost its rows");
-      if (structure && !structure.headerPresent) fails.push("site header disappeared");
-      if (panel && panel.busy) fails.push(`panel left loading ("${panel.text}")`);
-      results.push({ name: probe.name, fails, value: out.value });
+      if (settled.timedOut) fails.push(`panel never settled — "${settled.panel?.text}"`);
+      if (!structure.rows) fails.push("climbs table lost its rows");
+      results.push({ name: `interaction: ${name}`, fails, note: out.value });
     }
-    // After all that abuse, the page must still be alive and the forecast still shown.
-    const finalRaw = await session.eval(PANEL_PROBE);
-    const final = finalRaw.value ? JSON.parse(finalRaw.value) : null;
-    const structRaw = await session.eval(STRUCTURE_PROBE);
-    const structure = structRaw.value ? JSON.parse(structRaw.value) : null;
-    const fails = [];
-    if (!final || (final.state !== "data" && final.state !== "stale")) {
-      fails.push(`forecast not healthy after the interaction run: "${final?.state}" ("${final?.text}")`);
-    }
-    if (structure && structure.tableRows === 0) fails.push("climbs table empty after the interaction run");
-    results.push({ name: "page still healthy after all interactions", fails, value: final?.state });
-    return results;
+    const final = await probe(s);
+    results.push({ name: "interaction: page still healthy afterwards", fails: final?.state === "data" ? [] : [`ended "${final?.state}" — "${final?.text}"`] });
   } finally {
-    session?.close();
+    s?.close();
     await chrome.kill();
+    mock.server.close();
+    chainState.delete(id);
   }
+  return results;
 }
 
-// Open-Meteo has been observed accepting TCP and then never answering, twice in one day.
-// Without this check an upstream outage reports as a wall of app failures, which is how
-// you end up distrusting your own test suite.
-async function upstreamReachable() {
-  const url = "https://api.open-meteo.com/v1/forecast?latitude=-36.97&longitude=142.44&daily=weather_code";
-  for (let attempt = 0; attempt < 2; attempt++) {
+async function pool(items, jobs, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(jobs, items.length) }, async () => {
+    while (next < items.length) { const i = next++; out[i] = await fn(items[i], i); }
+  }));
+  return out;
+}
+
+// --- Smoke test of a deployed copy: the page as served, with Open-Meteo's live API
+// stalled (the real-world outage) and with everything third-party down.
+async function runTarget(target, profileRoot) {
+  const cases = [
+    ["deployed page, network as it is", []],
+    ["deployed page, Open-Meteo stalled (the outage)", [`MAP ${WEATHER_HOST} ${STALL}`]],
+    ["deployed page, every third party stalled", THIRD_PARTIES.map((h) => `MAP ${h} ${STALL}`)],
+  ];
+  const results = [];
+  for (const [name, rules] of cases) {
+    const chrome = await Chrome.launch(fs.mkdtempSync(path.join(profileRoot, "t-")), rules, []);
+    let s;
     try {
-      const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
-      if (r.ok) return true;
-    } catch {}
+      s = await chrome.open();
+      await s.send("Page.navigate", { url: target });
+      const { panel, settledMs, firstPaint, timedOut } = await watch(s, 30000);
+      const fails = check({ expect: { weather: "data", today: true, firstPaintMs: 4000 } }, panel,
+        JSON.parse((await s.eval(STRUCTURE_PROBE)).value || "{}"), s, { settledMs, firstPaint, timedOut });
+      results.push({ name, fails, panel, settledMs, firstPaint });
+    } finally {
+      s?.close();
+      await chrome.kill();
+    }
   }
-  return false;
+  return results;
+}
+
+function report(results) {
+  let pass = 0, fail = 0, skip = 0;
+  for (const r of results) {
+    if (r.skipped) { skip++; console.log(`  SKIP  ${r.name} (${r.skipped})`); continue; }
+    const timing = r.firstPaint != null ? ` [forecast at ${(r.firstPaint / 1000).toFixed(1)}s]` : r.settledMs != null ? ` [settled ${(r.settledMs / 1000).toFixed(1)}s]` : "";
+    if (!r.fails.length) { pass++; console.log(`  PASS  ${r.name}${timing}${r.note ? ` → ${r.note}` : ""}`); }
+    else { fail++; console.log(`  FAIL  ${r.name}${timing}`); for (const f of r.fails) console.log(`          ↳ ${f}`); }
+  }
+  console.log(`\n${pass}/${pass + fail} passed${skip ? `, ${skip} skipped` : ""}`);
+  return fail;
 }
 
 async function main() {
-  const filter = process.argv[2];
-  const profileRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cragify-qa-"));
   if (!fs.existsSync(CHROME)) { console.error(`Chrome not found at ${CHROME}`); process.exit(2); }
-
-  await startFileServer();
+  const argv = process.argv.slice(2);
+  const ti = argv.indexOf("--target");
+  const profileRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cragify-qa-"));
   await startStallServer();
-  await startMockApi();
-  const upstream = await upstreamReachable();
-  console.log(`Cragify QA — serving ${REPO} on 127.0.0.1:${HTTP_PORT}`);
-  console.log(upstream
-    ? `Open-Meteo reachable — all scenarios valid\n`
-    : `Open-Meteo UNREACHABLE — scenarios needing live data will be skipped, not failed\n`);
-
-  const scenarios = SCENARIOS.filter((s) => !filter || s.name.toLowerCase().includes(filter.toLowerCase()));
-  // Scenarios that want a warm worker cache reuse the profile of the baseline run, so
-  // "warm" means genuinely warmed by a previous visit rather than hand-seeded.
-  const sharedProfile = path.join(profileRoot, "shared");
-  const results = [];
-
-  for (const sc of scenarios) {
-    const needsUpstream = sc.expect?.weather === "data" || sc.expect?.weather === "stale";
-    // Re-checked per scenario, not once at startup: Open-Meteo has degraded mid-run
-    // before, which turns a healthy app into a page of red crosses.
-    if (needsUpstream && !(upstream && await upstreamReachable())) {
-      console.log(`• ${sc.name} … SKIP  (needs a reachable Open-Meteo)`);
-      results.push({ name: sc.name, fails: [], skipped: true, panel: null, structure: null, tookMs: 0 });
-      continue;
-    }
-    const profile = sc.reuseProfile ? sharedProfile : fs.mkdtempSync(path.join(profileRoot, "p-"));
-    process.stdout.write(`• ${sc.name} … `);
-    let r;
-    try {
-      r = await runScenario(sc, profile);
-    } catch (err) {
-      r = { fails: [`harness error: ${err.message}`], panel: null, structure: null, tookMs: 0 };
-    }
-    results.push({ name: sc.name, ...r });
-    if (r.fails.length === 0) {
-      console.log(`PASS  (${(r.tookMs / 1000).toFixed(1)}s, ${r.panel?.state}${r.panel?.days ? `, ${r.panel.days} days` : ""})`);
-    } else {
-      console.log(`FAIL  (${(r.tookMs / 1000).toFixed(1)}s)`);
-      r.fails.forEach((f) => console.log(`        ↳ ${f}`));
-    }
+  let failures;
+  if (ti >= 0) {
+    console.log(`Cragify QA — smoke-testing ${argv[ti + 1]}\n`);
+    failures = report(await runTarget(argv[ti + 1], profileRoot));
+  } else {
+    const filter = argv.find((a) => !a.startsWith("--"));
+    makeCert();
+    await startFileServer();
+    await fetchReal();
+    console.log(`Cragify QA — ${REAL ? `real forecast fetched; main-API server answering: ${GOOD_IP || "none"}` : "real Open-Meteo unreachable: real-API steps skipped"}\n`);
+    const selected = chains.filter((c) => !filter || c.name.toLowerCase().includes(filter.toLowerCase()));
+    const jobs = Number(process.env.JOBS || 4);
+    const all = (await pool(selected, jobs, (c, i) => runChain(c, i, profileRoot))).flat();
+    if (!filter || "interactions".includes(filter.toLowerCase())) all.push(...(await runInteractions(profileRoot)));
+    failures = report(all);
+    fileServer.close();
   }
-
-  let interactions = [];
-  if (!filter || "interactions".includes(filter.toLowerCase())) {
-    console.log(`\n• interaction stress (shared profile)`);
-    try {
-      interactions = await runInteractions(fs.mkdtempSync(path.join(profileRoot, "ix-")));
-    } catch (err) {
-      interactions = [{ name: "interaction run", fails: [`harness error: ${err.message}`] }];
-    }
-    for (const r of interactions) {
-      if (r.fails.length === 0) console.log(`    PASS  ${r.name}${r.value ? ` → ${r.value}` : ""}`);
-      else { console.log(`    FAIL  ${r.name}`); r.fails.forEach((f) => console.log(`            ↳ ${f}`)); }
-    }
-  }
-
-  const all = [...results, ...interactions];
-  const failed = all.filter((r) => r.fails.length);
-  const skipped = all.filter((r) => r.skipped);
-  console.log(`\n${all.length - failed.length - skipped.length}/${all.length - skipped.length} passed`
-    + (skipped.length ? `, ${skipped.length} skipped (upstream down)` : ""));
-  if (failed.length) {
-    console.log(`\nFailures:`);
-    failed.forEach((r) => console.log(`  ✗ ${r.name}\n      ${r.fails.join("\n      ")}`));
-  }
-
-  httpServer.close(); stallServer.close(); mockServer.close();
+  stallServer.close();
   if (!process.env.KEEP) fs.rmSync(profileRoot, { recursive: true, force: true });
-  else console.log(`\nProfiles kept in ${profileRoot}`);
-  process.exit(failed.length ? 1 : 0);
+  else console.log(`Profiles kept in ${profileRoot}`);
+  process.exit(failures ? 1 : 0);
 }
 
 main().catch((err) => { console.error(err); process.exit(2); });
