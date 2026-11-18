@@ -1602,29 +1602,961 @@
 
 <button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top" title="Back to top">Back to top ↑</button>
 
+<script>
+// =====================================================================================
+// Weather — runs first, and on its own
+// =====================================================================================
+//
+// This block depends on nothing but its own markup, and runs before Leaflet and before
+// the rest of the app. That is the point of it. The rest of the page is one script block,
+// and a single uncaught error there stops every line after it — which is how a Leaflet
+// CDN outage used to leave this panel on "Loading forecast…" forever. Kept apart, the
+// forecast loads whatever else on the page breaks.
+//
+// Where the forecast comes from:
+//   1. data/forecast.json — a snapshot of the same Open-Meteo request, fetched by a
+//      GitHub Action every half hour and published with the site, on the same CDN as
+//      this page: if the page loaded, this loads. It exists because Open-Meteo picks its
+//      server by GeoDNS and the one it gives Australia has repeatedly accepted
+//      connections and then never answered, while its European and US servers were fine.
+//      A browser can't choose another server; the Action can. See scripts/fetch-forecast.mjs.
+//   2. Open-Meteo itself, live from the browser — fresher, when it answers. Its main API
+//      first, then its previous-runs API, which serves the identical forecast from a
+//      different server (Germany) — see WX_LIVE_HOSTS.
+//   3. The service worker's saved copy of any of them, when there's no network at all.
+// Both requests go out at once. The panel paints from whichever valid forecast arrives
+// first and repaints if a fresher one follows, so a stalled source costs nothing.
+
+// Surface unexpected failures instead of letting them vanish into a silent dead panel.
+window.addEventListener("error", (e) => {
+  console.error("[cragify] uncaught error:", e.message, "at", `${e.filename || ""}:${e.lineno || ""}`);
+});
+window.addEventListener("unhandledrejection", (e) => {
+  console.error("[cragify] unhandled rejection:", e.reason);
+});
+
+// <wx-config> — scripts/fetch-forecast.mjs evaluates exactly this region to build the
+// request the page makes, so the published snapshot can't drift out of step with it.
+// Keep it self-contained: plain declarations, nothing from elsewhere in the page.
+const WX_SPOTS = [
+  { name: "Northern Grampians", lat: -36.97, lng: 142.44, covers: "Andersens, Trackside, the Citadel and surrounds" },
+  { name: "Central Grampians", lat: -37.14, lng: 142.52, covers: "Bleachers, Venus Baths and surrounds" },
+];
+// The forecast is one scrolling feed: WX_DAYS_PER_BATCH days are shown to start, and
+// another batch is appended each time the reader nears the bottom, up to the
+// WX_FORECAST_DAYS the API gives us.
+const WX_DAYS_PER_BATCH = 7, WX_FORECAST_DAYS = 16, WX_PAST_DAYS = 2;
+function wxForecastUrl() {
+  const params = new URLSearchParams({
+    latitude: WX_SPOTS.map(s => s.lat).join(","),
+    longitude: WX_SPOTS.map(s => s.lng).join(","),
+    daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max",
+    hourly: "precipitation,precipitation_probability,temperature_2m",
+    timezone: "Australia/Melbourne",
+    forecast_days: WX_FORECAST_DAYS,
+    past_days: WX_PAST_DAYS,
+  });
+  return `https://api.open-meteo.com/v1/forecast?${params}`;
+}
+// </wx-config>
+
+const WX_TZ = "Australia/Melbourne";
+const WX_SNAPSHOT_URL = "data/forecast.json";
+// Open-Meteo hosts that answer the same request with the same forecast, tried in this order.
+// previous-runs-api's base variables are "the current model run (equivalent to the live
+// Forecast API)" per Open-Meteo's docs — checked value for value against the main API.
+const WX_LIVE_HOSTS = [
+  ["api.open-meteo.com", "Open-Meteo"],
+  ["previous-runs-api.open-meteo.com", "Open-Meteo's backup server"],
+];
+// How long the main host gets before the backup is asked as well.
+const WX_HEDGE_MS = 2500;
+// How long each source gets. They run at the same time, so this is also the worst case
+// before the panel says it couldn't load — once, not a sum of retries.
+const WX_TIMEOUT_MS = 8000;
+// Past this age the forecast is still shown, but says how old it is.
+const WX_STALE_AFTER_MS = 3 * 60 * 60 * 1000;
+// Fetch again once the forecast on screen is this old…
+const WX_REFRESH_AFTER_MS = 45 * 60 * 1000;
+// …but not more often than this, however often the tab is switched to.
+const WX_MIN_REFRESH_GAP_MS = 5 * 60 * 1000;
+
+const wxBody = document.getElementById("wx-body");
+const wxSpots = document.getElementById("wx-spots");
+let wxData = null;       // one list of days per spot, parsed from Open-Meteo's response
+let wxFetchedAt = null;  // when that forecast left Open-Meteo (ms since the epoch)
+let wxSource = null;     // "snapshot" | "live" | "saved"
+let wxLoading = false, wxLastAttempt = 0;
+let wxSpot = 0, wxShown = WX_DAYS_PER_BATCH, wxYesterdayOpen = false;
+let wxRenderedFor = null, wxRenderedStale = null;
+
+// --- Small helpers ---
+const wxIsoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+// Calendar dates are formatted at local midday, so the device's timezone can't move them
+// onto a neighbouring day.
+const wxFmt = (iso, opts) => new Date(iso + "T12:00:00").toLocaleDateString("en-AU", opts);
+// 0 = Sunday … 6 = Saturday.
+const wxDayOfWeek = iso => new Date(iso + "T12:00:00").getDay();
+const wxNum = v => (typeof v === "number" && Number.isFinite(v) ? v : null);
+const wxDeg = v => (v == null ? "–" : `${Math.round(v)}°`);
+const wxEsc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+// The forecast is for the Grampians and Open-Meteo dates it in Melbourne time, so "today"
+// means today in Melbourne, not whatever the device's clock says. A laptop on UTC, or a
+// phone set to another timezone, used to find no day matching its own date for part of
+// every day — and showed no forecast at all.
+let wxMelbourneDate = null;
+function wxToday(now = new Date()) {
+  try {
+    wxMelbourneDate = wxMelbourneDate || new Intl.DateTimeFormat("en-AU", {
+      timeZone: WX_TZ, year: "numeric", month: "2-digit", day: "2-digit",
+    });
+    const part = {};
+    for (const p of wxMelbourneDate.formatToParts(now)) part[p.type] = p.value;
+    if (/^\d{4}$/.test(part.year) && /^\d{2}$/.test(part.month) && /^\d{2}$/.test(part.day)) {
+      return `${part.year}-${part.month}-${part.day}`;
+    }
+  } catch (err) { /* no time zone support: fall back to the device's own date */ }
+  return wxIsoDate(now);
+}
+
+wxSpots.innerHTML = WX_SPOTS.map((sp, i) =>
+  `<button type="button" class="wx-spot" data-i="${i}" aria-pressed="${i === 0}">${sp.name}</button>`).join("");
+wxSpots.addEventListener("click", (e) => {
+  const b = e.target.closest(".wx-spot");
+  if (!b) return;
+  wxSpot = +b.dataset.i;
+  wxSpots.querySelectorAll(".wx-spot").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+  wxSafeRender();
+});
+
+const WX_ICONS = {
+  sun: '<circle cx="12" cy="12" r="5" fill="var(--star)"/>',
+  partly: '<circle cx="15" cy="8" r="4" fill="var(--star)"/><path d="M6.5 20.5h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 6.6 12 4.25 4.25 0 0 0 6.5 20.5z" fill="currentColor" stroke="var(--panel)" stroke-width="1.2"/>',
+  cloud: '<path d="M6.5 19h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 6.6 10.5 4.25 4.25 0 0 0 6.5 19z" fill="currentColor"/>',
+  fog: '<g stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="16" x2="20" y2="16"/></g>',
+  rain: '<path d="M6.5 15h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 6.6 6.5 4.25 4.25 0 0 0 6.5 15z" fill="currentColor"/><g stroke="var(--link)" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="17.5" x2="7" y2="21"/><line x1="12" y1="17.5" x2="11" y2="21"/><line x1="16" y1="17.5" x2="15" y2="21"/></g>',
+  storm: '<path d="M6.5 15h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 6.6 6.5 4.25 4.25 0 0 0 6.5 15z" fill="currentColor"/><path d="M12.5 15l-2.5 4h3l-1.5 4" fill="none" stroke="var(--star)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+  // A day the models have nothing for: deliberately not a weather symbol.
+  none: '<circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2.5 2.5"/>',
+};
+// WMO weather codes → icon + label
+function wxKind(code) {
+  // Open-Meteo pads days past a model's horizon with nulls, and `null <= 2` is true in
+  // JavaScript — so without this a missing code read as "Partly cloudy".
+  if (typeof code !== "number" || !Number.isFinite(code)) return ["none", "No forecast"];
+  if (code === 0) return ["sun", "Sunny"];
+  if (code <= 2) return ["partly", "Partly cloudy"];
+  if (code === 3) return ["cloud", "Cloudy"];
+  if (code <= 48) return ["fog", "Fog"];
+  if (code >= 95) return ["storm", "Thunderstorms"];
+  if (code >= 71 && code <= 77) return ["rain", "Snow"];
+  return ["rain", "Rain"];
+}
+
+// A punchier one/two-word summary than wxKind's label alone — when there's
+// rain, says roughly when it falls instead of just "Rain".
+function wxPunchySummary(day) {
+  const [, desc] = wxKind(day.code);
+  if (day.code == null) return desc;
+  if (day.code >= 95) return "Storms";
+  if (day.rain == null || day.rain < 0.1) return desc;
+  const rainyHours = day.hours.filter(h => h.mm >= 0.1).map(h => h.hour);
+  if (!rainyHours.length) return desc;
+  const first = Math.min(...rainyHours), last = Math.max(...rainyHours);
+  if (rainyHours.length >= 14 || last - first >= 14) return "Raining all day";
+  if (last < 14) return "Early shower";
+  if (first >= 12) return "Late shower";
+  return "Showers";
+}
+
+// Rough conditions call, hour by hour through the climbing day, based only on
+// how dry the rock is likely to be: rain in the previous 24 hours, and how
+// many hours it has had to dry since the last real rain. Wet sandstone is
+// slippery and breakable.
+const WX_DAY_START = 7, WX_DAY_END = 19, WX_WET_MM = 0.2;
+const WX_LEVELS = ["good", "average", "bad"], WX_LABELS = ["Good", "Average", "Bad"];
+function wxLevel(r, dry) {
+  if ((r >= 5 && dry < 18) || (r >= 1 && dry < 6)) return 2;
+  if (r >= 5 || (r >= 1 && dry < 14) || (r >= WX_WET_MM && dry < 4)) return 1;
+  return 0;
+}
+
+// Rain in the 24 hours to hourly index i, and hours since the last hour with
+// measurable rain (capped at 48). Open-Meteo hourly precipitation is the total
+// for the preceding hour.
+function wxDrynessAt(p, i) {
+  let rain24 = 0;
+  for (let h = Math.max(0, i - 23); h <= i; h++) rain24 += wxNum(p[h]) ?? 0;
+  let dryHours = 48;
+  for (let h = i; h >= Math.max(0, i - 47); h--) {
+    if ((wxNum(p[h]) ?? 0) >= WX_WET_MM) { dryHours = i - h; break; }
+  }
+  return { rain24, dryHours };
+}
+
+// Split the climbing day into runs of the same conditions level, e.g.
+// Good 7am–1pm then Bad 1pm–7pm when rain arrives in the afternoon.
+function wxConditions(hourly, date) {
+  const i0 = hourly.time.indexOf(`${date}T${String(WX_DAY_START).padStart(2, "0")}:00`);
+  // No hourly data means no call at all — not "Good", which is what this used to say.
+  if (i0 < 0) return [];
+  const runs = [];
+  for (let h = WX_DAY_START; h < WX_DAY_END; h++) {
+    const { rain24, dryHours } = wxDrynessAt(hourly.precipitation, i0 + h - WX_DAY_START);
+    const lv = wxLevel(rain24, dryHours);
+    const last = runs[runs.length - 1];
+    if (last && last.lv === lv) { last.to = h + 1; last.rain = Math.max(last.rain, rain24); }
+    else runs.push({ lv, from: h, to: h + 1, rain: rain24 });
+  }
+  return runs.map(r => ({
+    level: WX_LEVELS[r.lv],
+    label: WX_LABELS[r.lv],
+    from: r.from,
+    to: r.to,
+    why: r.rain < 0.1 ? "No rain in the previous 24 hours" : `Up to ${r.rain < 10 ? r.rain.toFixed(1) : Math.round(r.rain)} mm of rain in the previous 24 hours`,
+  }));
+}
+
+// The 24 hourly rain totals and chances for one day, plus the conditions level
+// at each hour, for the expanded row.
+function wxHours(hourly, date) {
+  const i = hourly.time.indexOf(`${date}T00:00`);
+  if (i < 0) return [];
+  return hourly.time.slice(i, i + 24).map((t, k) => {
+    const { rain24, dryHours } = wxDrynessAt(hourly.precipitation, i + k);
+    return {
+      hour: k,
+      mm: wxNum(hourly.precipitation[i + k]) ?? 0,
+      prob: wxNum(hourly.precipitation_probability[i + k]) ?? 0,
+      temp: wxNum(hourly.temperature_2m[i + k]),
+      lv: wxLevel(rain24, dryHours),
+    };
+  });
+}
+
+const wxHourLabel = h => h === 0 ? "12am" : h === 12 ? "12pm" : h < 12 ? `${h}am` : `${h - 12}pm`;
+
+// A green/yellow/red wash behind the rainfall bars, showing the conditions
+// level hour by hour. Stops sit at hour centres so neighbouring levels blend.
+const WX_BAND_COLOURS = ["var(--wash-green)", "var(--wash-orange)", "var(--wash-red)"];
+function wxCondBand(hours) {
+  if (!hours.length) return "";
+  const stops = hours.map((h, k) => `${WX_BAND_COLOURS[h.lv]} ${(((k + 0.5) / hours.length) * 100).toFixed(2)}%`);
+  return `<div class="wx-band" aria-hidden="true" style="background:linear-gradient(to right,${stops.join(",")})"></div>`;
+}
+
+// A temperature line (with a value label at every hour) drawn as an SVG
+// overlay on top of the rain bars/conditions wash, sharing the same 24-slot
+// horizontal grid so an hour lines up between both layers.
+function wxTempLine(hours) {
+  const temps = hours.map(h => h.temp).filter(t => t != null);
+  if (!temps.length) return "";
+  const tMin = Math.min(...temps), tMax = Math.max(...temps);
+  const range = Math.max(1, tMax - tMin);
+  const padTop = 14, padBottom = 10;
+  const pts = hours.map((h, k) => {
+    const x = ((k + 0.5) / hours.length) * 100;
+    const y = h.temp == null ? null : (100 - padBottom) - ((h.temp - tMin) / range) * (100 - padTop - padBottom);
+    return { x, y, temp: h.temp, idx: k };
+  }).filter(p => p.y != null);
+  if (!pts.length) return "";
+  const line = pts.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
+  const svg = `<svg class="wx-temp-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <polyline points="${line}" fill="none" stroke="var(--temp-color)" stroke-width="0.9" vector-effect="non-scaling-stroke"/>
+  </svg>`;
+  const dots = `<div class="wx-temp-dots" aria-hidden="true">${pts.map(p => `<span style="left:${p.x.toFixed(2)}%;top:${p.y.toFixed(2)}%"></span>`).join("")}</div>`;
+  // Rain values are pinned near the bottom of the chart (~85%+ from the
+  // top) — if a temperature label would land in that band on an hour
+  // that also has a rain value, push it up clear of the collision so
+  // both stay legible instead of overlapping.
+  const RAIN_LABEL_ZONE = 82;
+  const CLEAR_OF_RAIN = 70;
+  const labels = `<div class="wx-temp-labels" aria-hidden="true">${pts.map(p => {
+    const collides = hours[p.idx].mm >= 0.1 && p.y > RAIN_LABEL_ZONE;
+    const labelY = collides ? Math.min(p.y, CLEAR_OF_RAIN) : p.y;
+    return `<span data-i3="${p.idx % 3}" style="left:${p.x.toFixed(2)}%;top:${labelY.toFixed(2)}%">${Math.round(p.temp)}°</span>`;
+  }).join("")}</div>`;
+  return svg + dots + labels;
+}
+
+function wxHourly(day) {
+  if (!day.hours.length) return '<p class="wx-hourly-empty">No hourly forecast for this day.</p>';
+  const peak = Math.max(1, ...day.hours.map(h => h.mm));
+  const step = peak <= 2 ? 1 : peak <= 4 ? 2 : peak <= 10 ? 5 : Math.ceil(peak / 20) * 10;
+  const max = Math.max(2, Math.ceil(peak / step) * step);
+  const ticks = [];
+  for (let v = max; v >= 0; v -= step) ticks.push(v);
+  const yAxis = `<div class="wx-y">${ticks.map(v => `<span style="bottom:${(v / max) * 100}%">${v}</span>`).join("")}</div>`;
+  const grid = ticks.map(v => `<i style="bottom:${(v / max) * 100}%"></i>`).join("");
+  const rainLabels = `<div class="wx-rain-labels" aria-hidden="true">${day.hours.map((h, k) => h.mm >= 0.1 ? `<span data-i3="${k % 3}" style="left:${((k + 0.5) / day.hours.length * 100).toFixed(2)}%">${h.mm.toFixed(1)}</span>` : "").join("")}</div>`;
+  return `<div class="wx-chart">${yAxis}<div class="wx-bars" role="img" aria-label="Hourly rainfall and temperature">${wxCondBand(day.hours)}${grid}${day.hours.map((h, k) => {
+    const pct = h.mm < 0.1 ? 0 : Math.max(6, (h.mm / max) * 100);
+    const tip = `${wxHourLabel(h.hour)}: ${h.mm < 0.1 ? "0" : h.mm.toFixed(1)} mm, ${Math.round(h.prob)}% chance${h.temp != null ? `, ${Math.round(h.temp)}°` : ""}`;
+    return `<div class="wx-bar" data-i3="${k % 3}" title="${tip}"><span style="height:${pct}%;opacity:${(0.35 + 0.65 * h.prob / 100).toFixed(2)}"></span></div>`;
+  }).join("")}${wxTempLine(day.hours)}${rainLabels}</div></div>
+  <div class="wx-bar-axis">${[0, 3, 6, 9, 12, 15, 18, 21].map(h => `<span>${wxHourLabel(h)}</span>`).join("")}</div>`;
+}
+
+// --- Victorian public holidays ---
+// The Grampians are in Victoria, so these are Victoria's dates, which differ from
+// other states: Easter Saturday and Sunday are holidays here, ANZAC Day is never
+// moved off the 25th, and Melbourne Cup Day is Victoria's alone. Computed per year
+// from the rules rather than kept in a table that would expire without warning.
+//
+// One holiday is deliberately missing: the Friday before the AFL Grand Final. Its
+// date is declared by the government each year and can't be derived from a rule.
+
+// Anonymous Gregorian computus — Easter Sunday for a given year.
+function wxEasterSunday(year) {
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  return new Date(year, month - 1, ((h + l - 7 * m + 114) % 31) + 1);
+}
+
+// The nth given weekday of a month, e.g. the second Monday in March.
+function wxNthWeekday(year, month, weekday, n) {
+  const first = new Date(year, month, 1);
+  const offset = (weekday - first.getDay() + 7) % 7;
+  return new Date(year, month, 1 + offset + (n - 1) * 7);
+}
+
+const wxHolidayCache = new Map();
+function wxHolidaysFor(year) {
+  if (wxHolidayCache.has(year)) return wxHolidayCache.get(year);
+  const days = new Map();
+  const add = (date, name) => days.set(wxIsoDate(date), name);
+  // Victoria moves a weekend holiday to the following Monday — true of these four,
+  // but not of ANZAC Day, which stays on the 25th whatever day it lands on.
+  //
+  // Substitutes are worked out only once every actual holiday is in, so each can see all
+  // the days it might collide with. Working them out as each holiday was added used to
+  // lose 27 December whenever Christmas fell on a Sunday: Christmas's substitute took the
+  // 26th, and adding Boxing Day then overwrote it.
+  const movable = [];
+  const addWithSubstitute = (date, name) => { add(date, name); movable.push([date, name]); };
+
+  addWithSubstitute(new Date(year, 0, 1), "New Year's Day");
+  addWithSubstitute(new Date(year, 0, 26), "Australia Day");
+  add(wxNthWeekday(year, 2, 1, 2), "Labour Day");
+  const easter = wxEasterSunday(year);
+  const easterOffset = (n, name) => {
+    const d = new Date(easter);
+    d.setDate(easter.getDate() + n);
+    add(d, name);
+  };
+  easterOffset(-2, "Good Friday");
+  easterOffset(-1, "Easter Saturday");
+  easterOffset(0, "Easter Sunday");
+  easterOffset(1, "Easter Monday");
+  add(new Date(year, 3, 25), "ANZAC Day");
+  add(wxNthWeekday(year, 5, 1, 2), "King's Birthday");
+  add(wxNthWeekday(year, 10, 2, 1), "Melbourne Cup Day");
+  addWithSubstitute(new Date(year, 11, 25), "Christmas Day");
+  addWithSubstitute(new Date(year, 11, 26), "Boxing Day");
+
+  for (const [date, name] of movable) {
+    const dow = date.getDay();
+    if (dow !== 0 && dow !== 6) continue;
+    const substitute = new Date(date);
+    substitute.setDate(date.getDate() + (dow === 6 ? 2 : 1));
+    // A weekend Christmas pushes Boxing Day's substitute onto the same Monday, and
+    // Victoria grants both days — so take the next free weekday instead of
+    // overwriting what's already there.
+    while (days.has(wxIsoDate(substitute))) substitute.setDate(substitute.getDate() + 1);
+    add(substitute, `${name} holiday`);
+  }
+
+  wxHolidayCache.set(year, days);
+  return days;
+}
+
+const wxHoliday = iso => wxHolidaysFor(+iso.slice(0, 4)).get(iso) || "";
+
+
+function wxHolidayChip(iso) {
+  const name = wxHoliday(iso);
+  return name ? `<span class="wx-holiday-chip" title="${name} — Victorian public holiday">${name}</span>` : "";
+}
+
+// showDate is false for the Yesterday card, whose collapsed header already names the day.
+function wxDayBody(day, showDate = true, dayChip = "") {
+  const [icon, desc] = wxKind(day.code);
+  // Unknown values read as a dash, never as a confident zero: a null temperature used to
+  // render as 0°, and a null rain total as "0 mm".
+  const rainText = day.rain == null ? "–" : `${day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain)} mm`;
+  const iconHtml = `<div class="wx-icon" title="${desc}"><svg width="18" height="18" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div>`;
+  const dateLine = showDate
+    ? `<div class="wx-date">${dayChip}${wxHolidayChip(day.date)}<span class="wx-date-chip"><span class="wx-date-day">${wxFmt(day.date, { weekday: "short" })}</span> <span class="wx-date-dot">&middot;</span> ${wxFmt(day.date, { day: "numeric", month: "short" })}</span>${iconHtml}<span class="wx-date-summary">${wxPunchySummary(day)}</span></div>`
+    : "";
+  return `${dateLine}
+    <div class="wx-summary">
+      <div class="wx-temp">${showDate ? "" : iconHtml}<span class="wx-temp-range"><span class="wx-tmin">${wxDeg(day.tmin)}</span><span class="wx-tsep">-</span><span class="wx-tmax">${wxDeg(day.tmax)}</span></span></div>
+      <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}${day.rain > 0 ? " has-rain" : ""}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5s7 7.8 7 12.5a7 7 0 1 1-14 0C5 10.3 12 2.5 12 2.5Z" fill="currentColor"/></svg>
+        <span class="wx-rain-text"><strong>${rainText}</strong>${day.prob == null ? "" : `<span>(${Math.round(day.prob)}%)</span>`}</span>
+      </div>
+      <div class="wx-wind">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8h11a2.5 2.5 0 1 0-2.1-3.9M3 12h14a2.5 2.5 0 1 1-2.1 3.9M3 16h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>${day.wind == null ? "–" : `${Math.round(day.wind)} km/h`}</span>
+      </div>
+      </div>
+      <div class="wx-hourly" data-wx-date="${day.date}">${wxHourly(day)}</div>`;
+}
+
+function wxYesterdayCard(day) {
+  return `<li class="wx-day wx-yesterday-card">
+    <button class="wx-yesterday-toggle" type="button" aria-expanded="${wxYesterdayOpen}">
+      <span class="wx-day-chip wx-day-chip-muted">Yesterday</span>
+      <span class="wx-yesterday-date"><span class="wx-date-day">${wxFmt(day.date, { weekday: "short" })}</span> <span class="wx-date-dot">&middot;</span> ${wxFmt(day.date, { day: "numeric", month: "short" })}</span>
+      <svg class="wx-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="wx-yesterday-body"${wxYesterdayOpen ? "" : " hidden"}>${wxDayBody(day, false)}</div>
+  </li>`;
+}
+
+// Most people climb on the weekend, so never stop the feed mid-weekend: round the
+// count up so Saturday and Sunday are always on screen together — one extra day when
+// it would end on a Saturday, two when it would end on a Friday.
+function wxWholeWeekends(days, count) {
+  const last = days[count - 1];
+  if (!last) return count;
+  const dow = wxDayOfWeek(last.date);
+  const extra = dow === 5 ? 2 : dow === 6 ? 1 : 0;
+  return Math.min(count + extra, days.length);
+}
+
+// --- Lining the forecast up with today ---
+// Days are found by date, never by position. A forecast fetched yesterday still holds
+// today and the fortnight after it, one place further along — so it is still useful —
+// and a page left open past midnight moves on to the new day by itself instead of
+// labelling yesterday "Today".
+function wxTodayIndex(days, today = wxToday()) {
+  return Array.isArray(days) ? days.findIndex(d => d.date === today) : -1;
+}
+function wxCoversToday(spots, today = wxToday()) {
+  return Array.isArray(spots) && spots.length === WX_SPOTS.length
+    && spots.every(days => wxTodayIndex(days, today) >= 0);
+}
+function wxView(days, today = wxToday()) {
+  const k = wxTodayIndex(days, today);
+  return k < 0 ? null : { yesterday: k > 0 ? days[k - 1] : null, days: days.slice(k) };
+}
+
+// --- How old the forecast on screen is ---
+const wxIsStale = () => wxFetchedAt != null && Date.now() - wxFetchedAt >= WX_STALE_AFTER_MS;
+function wxAgeText(ms) {
+  const mins = Math.max(1, Math.round(ms / 60000));
+  if (mins < 60) return `${mins} min`;
+  if (mins < 1440) return `${Math.round(mins / 60)} hr`;
+  const d = Math.round(mins / 1440);
+  return `${d} day${d === 1 ? "" : "s"}`;
+}
+// Shown once the forecast is old enough to matter. A saved forecast is worth having in a
+// car park with no reception, but it has to say so: an out-of-date forecast presented as
+// current is worse than none, because you'd pack for it.
+function wxStaleBanner() {
+  if (!wxIsStale()) return "";
+  const when = wxAgeText(Date.now() - wxFetchedAt);
+  if (wxLoading) return `<p class="wx-stale" data-updating="1">Forecast from ${when} ago — checking for a newer one…</p>`;
+  return `<p class="wx-stale">Forecast from ${when} ago — couldn’t get a newer one. <button type="button" class="wx-retry">Try again</button></p>`;
+}
+// When the forecast left Open-Meteo, as a clock time, which doesn't go stale on screen
+// the way "5 min ago" would.
+function wxUpdatedText() {
+  if (wxFetchedAt == null) return "";
+  try {
+    const at = new Date(wxFetchedAt);
+    const time = at.toLocaleTimeString("en-AU", { timeZone: WX_TZ, hour: "numeric", minute: "2-digit" });
+    const day = wxToday(at) === wxToday() ? "" : `${at.toLocaleDateString("en-AU", { timeZone: WX_TZ, weekday: "short" })} `;
+    return ` Updated ${day}${time}.`;
+  } catch (err) { return ""; }
+}
+
+function wxShowStatus(text, withRetry = false) {
+  wxBody.innerHTML = `<p class="wx-status">${wxEsc(text)}${withRetry ? ' <button type="button" class="wx-retry">Try again</button>' : ""}</p>`;
+}
+
+function renderWeather() {
+  if (!wxData) return;
+  const today = wxToday();
+  wxRenderedFor = today;
+  wxRenderedStale = wxIsStale();
+  const view = wxView(wxData[wxSpot], today);
+  if (!view || !view.days.length) {
+    // Nothing held covers today (a tab left open for a fortnight). The next load
+    // replaces it; until then, say so rather than show the past as the future.
+    if (wxLoading) wxShowStatus("Loading forecast…");
+    else wxShowStatus("Couldn’t load the forecast (the saved one has run out of date).", true);
+    return;
+  }
+  const count = wxWholeWeekends(view.days, Math.min(wxShown, view.days.length));
+  const days = view.days.slice(0, count);
+  const more = count < view.days.length;
+  // Re-rendering replaces the whole list, which would otherwise jump the reader back
+  // to the top — including when a scroll appends the next batch.
+  const scroll = wxBody.scrollTop;
+  // The covers line sits inside the scroller, so it scrolls away with the days
+  // rather than holding height above them.
+  let weekBreaks = 0;
+  wxBody.innerHTML = wxStaleBanner() + `<p class="wx-covers">Covers ${WX_SPOTS[wxSpot].covers}.${wxUpdatedText()}</p>`
+    + '<ul class="wx-days">' + (view.yesterday ? wxYesterdayCard(view.yesterday) : "") + days.map((day, overall) => {
+    const dayChip = overall === 0 ? `<span class="wx-day-chip">Today</span>` : overall === 1 ? `<span class="wx-day-chip">Tomorrow</span>` : "";
+    // Each Monday after the first card starts a new week. The first break is the
+    // familiar "Next week"; later ones are dated, since "next" stops being true.
+    const divider = overall > 0 && wxDayOfWeek(day.date) === 1
+      ? `<li class="wx-week-divider"><span>${++weekBreaks === 1 ? "Next week" : `Week of ${wxFmt(day.date, { day: "numeric", month: "short" })}`}</span></li>`
+      : "";
+    return `${divider}<li class="wx-day">
+      ${wxDayBody(day, true, dayChip)}
+    </li>`;
+  }).join("") + "</ul>"
+    + (more ? '<p class="wx-more">Keep scrolling for more days…</p>' : "")
+    + '<p class="wx-note">Weather forecast provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>';
+  wxBody.scrollTop = scroll;
+  // The conditions popover was anchored to a chart that no longer exists: re-anchor it
+  // to the same day's new chart, so appending days mid-read doesn't dismiss it.
+  rebindConditionsPopover();
+}
+
+// renderWeather never throws past here. If it ever does — data nobody anticipated, a
+// bug — the panel says so and offers a retry, instead of keeping whatever it showed
+// before, which at startup is "Loading forecast…" forever.
+function wxSafeRender() {
+  try {
+    renderWeather();
+  } catch (err) {
+    console.error("[cragify] couldn't render the forecast:", err);
+    wxShowStatus(`Couldn’t show the forecast (${(err && err.message) || "unexpected error"}).`, true);
+  }
+}
+
+// --- Reading a forecast ---
+const WX_ISO = /^\d{4}-\d{2}-\d{2}$/;
+// A day the models have nothing at all for. Open-Meteo pads the far end of a 16-day
+// request this way when some models stop short; those days are dropped, not shown.
+const wxEmptyDay = d => d.code == null && d.tmax == null && d.tmin == null && d.rain == null;
+
+function wxHourlyOf(loc) {
+  const h = loc && loc.hourly;
+  const col = k => (h && Array.isArray(h[k]) ? h[k] : []);
+  return { time: col("time"), precipitation: col("precipitation"),
+           precipitation_probability: col("precipitation_probability"), temperature_2m: col("temperature_2m") };
+}
+
+// Open-Meteo's response — one entry per spot — into one list of days per spot. Throws on
+// anything that isn't recognisably that, so a bad response counts as a failed source
+// (and the other one is used) rather than being rendered.
+function wxParsePayload(json) {
+  const locs = Array.isArray(json) ? json : [json];
+  if (locs.length !== WX_SPOTS.length) throw new Error("unexpected forecast shape");
+  return locs.map(loc => {
+    const d = loc && loc.daily;
+    if (!d || !Array.isArray(d.time) || !d.time.length) throw new Error("forecast has no days");
+    const hourly = wxHourlyOf(loc);
+    const col = k => (Array.isArray(d[k]) ? d[k] : []);
+    const days = d.time.map((t, i) => {
+      if (typeof t !== "string" || !WX_ISO.test(t)) throw new Error("forecast has a malformed date");
+      return {
+        date: t,
+        code: wxNum(col("weather_code")[i]),
+        tmax: wxNum(col("temperature_2m_max")[i]),
+        tmin: wxNum(col("temperature_2m_min")[i]),
+        rain: wxNum(col("precipitation_sum")[i]),
+        prob: wxNum(col("precipitation_probability_max")[i]),
+        wind: wxNum(col("wind_speed_10m_max")[i]),
+        gust: wxNum(col("wind_gusts_10m_max")[i]),
+        cond: wxConditions(hourly, t),
+        hours: wxHours(hourly, t),
+      };
+    });
+    while (days.length && wxEmptyDay(days[days.length - 1])) days.pop();
+    return days;
+  });
+}
+
+// --- Fetching ---
+function wxTimeoutSignal(ms) {
+  if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) return AbortSignal.timeout(ms);
+  const c = new AbortController();
+  setTimeout(() => c.abort(), ms);
+  return c.signal;
+}
+
+// fetch, bounded — a stalled connection otherwise leaves it pending forever — with the
+// failure named for what it was.
+async function wxFetch(url, init, what) {
+  let res;
+  try {
+    res = await fetch(url, Object.assign({}, init, { signal: wxTimeoutSignal(WX_TIMEOUT_MS) }));
+  } catch (err) {
+    throw new Error(err && (err.name === "AbortError" || err.name === "TimeoutError")
+      ? `${what} timed out` : `couldn’t reach ${what}`);
+  }
+  // 504 is the service worker's own answer for "the network failed and nothing was
+  // saved", not something the server said.
+  if (res.status === 504) throw new Error(`couldn’t reach ${what}`);
+  if (!res.ok) throw new Error(`${what} answered ${res.status}`);
+  return res;
+}
+
+async function wxReadJson(res, what) {
+  try {
+    return await res.json();
+  } catch (err) {
+    throw new Error(err && (err.name === "AbortError" || err.name === "TimeoutError")
+      ? `${what} timed out` : `${what} sent something unreadable`);
+  }
+}
+
+async function wxFetchSnapshot() {
+  const what = "the forecast snapshot";
+  // "no-cache" revalidates rather than trusting a copy the browser decided was fresh.
+  const res = await wxFetch(WX_SNAPSHOT_URL, { cache: "no-cache" }, what);
+  const snap = await wxReadJson(res, what);
+  // Only a snapshot of exactly this page's request is used. One left over from an older
+  // version of the page — other spots, other days — is ignored, not shown under the
+  // wrong labels.
+  if (!snap || snap.v !== 1 || snap.url !== wxForecastUrl()) throw new Error(`${what} doesn’t match this page`);
+  const fetchedAt = Date.parse(snap.fetchedAt);
+  if (!Number.isFinite(fetchedAt)) throw new Error(`${what} has no timestamp`);
+  return { spots: wxParsePayload(snap.payload), fetchedAt, source: "snapshot" };
+}
+
+// Open-Meteo, live, from one of its hosts, through the service worker — which answers with
+// its saved copy when the network fails. Only saved copies carry the time they were saved.
+async function wxFetchLiveFrom(host, what) {
+  const url = new URL(wxForecastUrl());
+  url.host = host;
+  const res = await wxFetch(url.href, { cache: "no-store" }, what);
+  const stamp = Number(res.headers.get("x-cragify-cached-at"));
+  const saved = Number.isFinite(stamp) && stamp > 0;
+  const json = await wxReadJson(res, what);
+  return { spots: wxParsePayload(json), fetchedAt: saved ? stamp : Date.now(), source: saved ? "saved" : "live" };
+}
+
+// Try sources in order, starting the next one as soon as the current one fails, answers only
+// with a saved copy (meaning its network request failed), or just hasn't answered within
+// `hedgeMs`. Resolves with the first fresh answer; failing that, the newest saved one; and
+// rejects only if every source failed. So a healthy main host costs one request, and a dead
+// one costs the visitor `hedgeMs`, not the full timeout.
+function wxFirstFresh(tasks, hedgeMs) {
+  return new Promise((resolve, reject) => {
+    const saved = [], errors = [];
+    let next = 0, pending = 0, done = false;
+    const finishIfIdle = () => {
+      if (done || pending > 0 || next < tasks.length) return;
+      done = true;
+      if (saved.length) resolve(saved.sort((a, b) => b.fetchedAt - a.fetchedAt)[0]);
+      else reject(errors[0] || new Error("no source answered"));
+    };
+    const launch = () => {
+      if (done || next >= tasks.length) return;
+      const task = tasks[next++];
+      pending++;
+      const hedge = setTimeout(launch, hedgeMs);
+      task().then((result) => {
+        pending--;
+        clearTimeout(hedge);
+        if (done) return;
+        if (result.source !== "saved") { done = true; resolve(result); return; }
+        saved.push(result);
+        launch();
+        finishIfIdle();
+      }, (err) => {
+        pending--;
+        clearTimeout(hedge);
+        if (done) return;
+        errors.push(err);
+        launch();
+        finishIfIdle();
+      });
+    };
+    launch();
+  });
+}
+
+// Open-Meteo live: its main API, then — if that's down, stalled, or slow — its previous-runs
+// API, which serves the identical request (same models, same numbers) from a different
+// server. That one is in Germany, so it answers when the main API's Australian server doesn't.
+async function wxFetchLive() {
+  return wxFirstFresh(WX_LIVE_HOSTS.map(([host, what]) => () => wxFetchLiveFrom(host, what)), WX_HEDGE_MS);
+}
+
+// --- Loading ---
+async function loadWeather(force = false) {
+  if (wxLoading || (wxData && !force)) return;
+  wxLoading = true;
+  wxLastAttempt = Date.now();
+  const failed = {};
+  try {
+    if (!wxData) wxShowStatus("Loading forecast…");
+    else wxSafeRender();  // turns an "old forecast" banner into "checking for a newer one…"
+    const offer = (result) => {
+      if (!wxCoversToday(result.spots)) throw new Error("forecast is out of date");
+      // Replace what's on screen only with something newer — or with anything at all,
+      // if what's on screen no longer covers today.
+      if (wxData && wxCoversToday(wxData) && result.fetchedAt <= wxFetchedAt) return;
+      wxData = result.spots;
+      wxFetchedAt = result.fetchedAt;
+      wxSource = result.source;
+      wxSafeRender();
+    };
+    await Promise.all([
+      wxFetchSnapshot().then(offer).catch(err => { failed.snapshot = err; }),
+      wxFetchLive().then(offer).catch(err => { failed.live = err; }),
+    ]);
+  } finally {
+    wxLoading = false;
+  }
+  if (wxData && wxCoversToday(wxData)) {
+    wxSafeRender();
+  } else {
+    // Open-Meteo's reason is the one worth reporting: the snapshot only fails when the
+    // site itself is unreachable, or (run locally) when there isn't one.
+    const why = (failed.live || failed.snapshot || {}).message || "no forecast available";
+    wxShowStatus(`Couldn’t load the forecast (${why}).`, true);
+  }
+}
+
+wxBody.addEventListener("click", (e) => {
+  if (e.target.closest(".wx-retry")) { loadWeather(true); return; }
+  if (!e.target.closest(".wx-yesterday-toggle")) return;
+  wxYesterdayOpen = !wxYesterdayOpen;
+  wxSafeRender();
+});
+
+// Infinite scroll: append the next batch of days as the reader nears the bottom.
+wxBody.addEventListener("scroll", () => {
+  if (!wxData) return;
+  const view = wxView(wxData[wxSpot]);
+  if (!view) return;
+  if (wxShown >= view.days.length) return;
+  if (wxBody.scrollTop + wxBody.clientHeight < wxBody.scrollHeight - 240) return;
+  wxShown = Math.min(wxShown + WX_DAYS_PER_BATCH, view.days.length);
+  wxSafeRender();
+});
+
+// --- Staying current while the page is open ---
+// Once a minute while visible, and whenever the page comes back to the foreground: move
+// on to the new day at midnight, show the age banner once the forecast crosses that line,
+// and fetch again once it's old — never more often than WX_MIN_REFRESH_GAP_MS, however
+// often the tab is switched to. With no forecast at all, that is also the retry.
+function wxTick() {
+  if (document.visibilityState === "hidden") return;
+  if (wxData && (wxToday() !== wxRenderedFor || wxIsStale() !== wxRenderedStale)) wxSafeRender();
+  const due = !wxData || wxFetchedAt == null || Date.now() - wxFetchedAt >= WX_REFRESH_AFTER_MS;
+  if (due && !wxLoading && Date.now() - wxLastAttempt >= WX_MIN_REFRESH_GAP_MS) loadWeather(true);
+}
+document.addEventListener("visibilitychange", wxTick);
+// Reception back: try straight away, if there's anything to gain, rather than at the next tick.
+window.addEventListener("online", () => {
+  if (!wxData || !wxCoversToday(wxData) || Date.now() - wxFetchedAt >= WX_REFRESH_AFTER_MS) loadWeather(true);
+});
+setInterval(wxTick, 60 * 1000);
+
+// --- Climbing-conditions popover ---
+// Opened from the rainfall chart itself — hover on devices with a real pointer,
+// tap everywhere else — and broken down by time, one row per run of hours that
+// share a conditions level.
+const conditionsPopover = document.getElementById("conditions-popover");
+const conditionsPopoverBody = document.getElementById("conditions-popover-body");
+const supportsHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+// `var`, and the element looked up lazily, so renderWeather — which runs earlier in
+// the file — can close a stale popover without tripping over a temporal dead zone.
+var conditionsPopoverFor = null;
+function closeConditionsPopover() {
+  const el = document.getElementById("conditions-popover");
+  if (el) el.hidden = true;
+  conditionsPopoverFor = null;
+}
+
+// Called after the feed re-renders: point the open popover at the new element for the
+// same day, or close it if that day is no longer on screen.
+function rebindConditionsPopover() {
+  const date = conditionsPopoverFor?.dataset.wxDate;
+  if (!date) return;
+  const chart = document.querySelector(`.wx-hourly[data-wx-date="${date}"]`);
+  if (!chart) return closeConditionsPopover();
+  conditionsPopoverFor = chart;
+  if (!conditionsPopover.classList.contains("is-following")) positionConditionsPopover(chart);
+}
+
+function wxCondRowsHtml(day) {
+  if (!day.cond?.length) return '<p class="wx-cond-row-text">No hourly forecast for this day.</p>';
+  const allDay = day.cond.length === 1;
+  return day.cond.map(c => {
+    const when = allDay ? `All day (${wxHourLabel(c.from)}–${wxHourLabel(c.to)})` : `${wxHourLabel(c.from)}–${wxHourLabel(c.to)}`;
+    return `<div class="wx-cond-row"><span class="wx-cond ${c.level}">${c.label}</span><span class="wx-cond-row-text"><strong>${when}</strong> · ${c.why}</span></div>`;
+  }).join("");
+}
+
+// Place the popover at viewport point (x, y), nudged clear of it and flipped to
+// whichever side keeps it fully on screen.
+function placeConditionsPopover(x, y, gapX, gapY) {
+  const w = conditionsPopover.offsetWidth, h = conditionsPopover.offsetHeight;
+  const fitsRight = x + gapX + w <= window.innerWidth - 8;
+  const left = Math.max(8, fitsRight ? x + gapX : Math.min(x - gapX - w, window.innerWidth - 8 - w));
+  const below = y + gapY + h <= window.innerHeight - 8;
+  const top = below ? y + gapY : Math.max(8, y - gapY - h);
+  conditionsPopover.style.left = `${window.scrollX + left}px`;
+  conditionsPopover.style.top = `${window.scrollY + top}px`;
+}
+
+// Touch: anchored to the chart, which is tall, so it goes below when there's room
+// and above when there isn't rather than running off the bottom of the screen.
+function positionConditionsPopover(chart) {
+  const rect = chart.getBoundingClientRect();
+  placeConditionsPopover(rect.left, rect.top + rect.height, 0, 6);
+}
+
+// Pointer: tracks the cursor, offset so it never sits under it.
+const WX_CURSOR_GAP_X = 16, WX_CURSOR_GAP_Y = 18;
+function positionConditionsPopoverAtCursor(e) {
+  placeConditionsPopover(e.clientX, e.clientY, WX_CURSOR_GAP_X, WX_CURSOR_GAP_Y);
+}
+
+function openConditionsPopoverFor(chart, e) {
+  const day = wxData?.[wxSpot]?.find(d => d.date === chart.dataset.wxDate);
+  if (!day) return;
+  conditionsPopoverBody.innerHTML = wxCondRowsHtml(day);
+  conditionsPopover.hidden = false;
+  // Following the cursor means the popover can land under it, so it must not
+  // intercept the pointer — that would fire mouseout on the chart and flicker.
+  conditionsPopover.classList.toggle("is-following", !!e);
+  if (e) positionConditionsPopoverAtCursor(e);
+  else positionConditionsPopover(chart);
+  conditionsPopoverFor = chart;
+}
+const WX_CONDS_TRIGGER = ".wx-hourly";
+wxBody.addEventListener("click", (e) => {
+  // Where there's a real pointer, hover drives the popover and a click would only
+  // fight it — the pointer is still over the chart that opened it.
+  if (supportsHover) return;
+  const chart = e.target.closest(WX_CONDS_TRIGGER);
+  if (!chart) return;
+  // A second tap on the same chart dismisses it; tapping another day's chart moves it.
+  if (conditionsPopoverFor === chart) closeConditionsPopover();
+  else openConditionsPopoverFor(chart);
+});
+if (supportsHover) {
+  // One mousemove handler does both jobs: open on entering a chart, and follow the
+  // cursor while it's over one.
+  wxBody.addEventListener("mousemove", (e) => {
+    const chart = e.target.closest(WX_CONDS_TRIGGER);
+    if (!chart) return;
+    if (conditionsPopoverFor === chart) positionConditionsPopoverAtCursor(e);
+    else openConditionsPopoverFor(chart, e);
+  });
+  wxBody.addEventListener("mouseout", (e) => {
+    const chart = e.target.closest(WX_CONDS_TRIGGER);
+    if (chart && !chart.contains(e.relatedTarget)) closeConditionsPopover();
+  });
+  wxBody.addEventListener("mouseleave", closeConditionsPopover);
+}
+// A chart-anchored popover has to follow its chart as the feed scrolls, and give up
+// once that chart has scrolled out of the feed's viewport. A cursor-following one
+// stays where the cursor is, and mouseout closes it when the content slides away.
+wxBody.addEventListener("scroll", () => {
+  const chart = conditionsPopoverFor;
+  if (!chart) return;
+  if (!chart.isConnected) return closeConditionsPopover();
+  const rect = chart.getBoundingClientRect(), panel = wxBody.getBoundingClientRect();
+  if (rect.bottom < panel.top || rect.top > panel.bottom) return closeConditionsPopover();
+  if (!conditionsPopover.classList.contains("is-following")) positionConditionsPopover(chart);
+});
+document.addEventListener("click", (e) => {
+  if (conditionsPopover.hidden) return;
+  if (e.target.closest(WX_CONDS_TRIGGER) || e.target.closest("#conditions-popover")) return;
+  closeConditionsPopover();
+});
+
+// --- Weather / Find climbs tab switcher ---
+const weatherTabs = [document.getElementById("tab-weather"), document.getElementById("tab-weather-wide")].filter(Boolean);
+const climbsTabs = [document.getElementById("tab-climbs"), document.getElementById("tab-climbs-wide")].filter(Boolean);
+const weatherPanel = document.getElementById("weather-panel");
+const climbsLayout = document.getElementById("climbs-layout");
+const mapToggleBtns = [document.getElementById("map-toggle-desktop")].filter(Boolean);
+function setView(view) {
+  const isWeather = view === "weather";
+  weatherTabs.forEach(b => b.setAttribute("aria-selected", isWeather ? "true" : "false"));
+  climbsTabs.forEach(b => b.setAttribute("aria-selected", isWeather ? "false" : "true"));
+  if (weatherPanel) weatherPanel.hidden = !isWeather;
+  if (climbsLayout) climbsLayout.hidden = isWeather;
+  mapToggleBtns.forEach(b => b.hidden = isWeather);
+  document.body.classList.toggle("view-weather", isWeather);
+  document.body.classList.toggle("view-climbs", !isWeather);
+  // `map` belongs to the main script, which runs after this one and may have failed: a
+  // dead map must not break switching tabs.
+  if (!isWeather) setTimeout(() => { try { map.invalidateSize(); } catch (err) { /* no map */ } }, 50);
+}
+weatherTabs.forEach(b => b.addEventListener("click", () => setView("weather")));
+climbsTabs.forEach(b => b.addEventListener("click", () => setView("climbs")));
+setView("weather");
+loadWeather();
+
+// --- Service worker ---
+// Keeps the last forecast that got through, and the page itself, for when there's no
+// reception. See sw.js. Registered on load, or after a few seconds if something on the
+// page (a stalled font, a map tile) is holding the load event up.
+let wxWorkerRegistered = false;
+function wxRegisterWorker() {
+  if (wxWorkerRegistered || !("serviceWorker" in navigator)) return;
+  wxWorkerRegistered = true;
+  navigator.serviceWorker.register("sw.js").then(wxWarmCache).catch(() => { /* non-critical */ });
+  // When an update takes over, the warm request above went to the worker it replaced
+  // (which may keep its copies elsewhere, or not at all) — so ask the new one too.
+  navigator.serviceWorker.addEventListener("controllerchange", wxWarmCache);
+}
+window.addEventListener("load", wxRegisterWorker);
+setTimeout(wxRegisterWorker, 4000);
+
+// On a first visit the forecast is fetched while the page is still loading, before the
+// worker exists to keep a copy — so ask the worker to fetch and keep its own while there's
+// still signal. (A fetch from the page would bypass a worker not yet controlling it.)
+async function wxWarmCache() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const worker = reg.active || navigator.serviceWorker.controller;
+    if (!worker) return;
+    const live = wxForecastUrl();
+    // `url` is what earlier versions of the worker understand; `urls` is the current form.
+    worker.postMessage({ type: "warm-weather", url: live, urls: [live, new URL(WX_SNAPSHOT_URL, location.href).href] });
+  } catch (err) { /* best effort */ }
+}
+</script>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script>
 // --- Safety net: the map must never be able to take down the rest of the page ---
 //
-// Everything below this point — the climbs table, the filters, and the whole weather
-// panel — lives in one classic script block. A single uncaught exception aborts the
-// block, so anything that throws here silently kills every feature defined after it.
-// That is what used to happen when Leaflet failed to load: `L` was undefined, the first
-// `L.map(...)` threw, and the weather panel was left showing its static
-// "Loading forecast…" markup forever, because the code that replaces it never ran.
+// Everything below this point — the map, the climbs table and the filters — lives in one
+// classic script block. A single uncaught exception aborts the block, so anything that
+// throws here silently kills every feature defined after it. (The weather has its own
+// block, above, precisely so that it can't be taken down with it.)
 //
-// Leaflet is now served from this repo, so it should always be there. This stands in for
-// it if it ever isn't — a stale cache, a bad deploy, a 404 — by substituting a no-op
-// stand-in. Every L.* and map.* call then quietly does nothing instead of throwing:
-// the map is dead, but the table and the forecast are unaffected. That is a far better
-// failure than a page that looks like it is still loading and never will be.
+// Leaflet is served from this repo, so it should always be there. This stands in for it
+// if it ever isn't — a stale cache, a bad deploy, a 404 — so that every L.* and map.*
+// call quietly does nothing instead of throwing: the map is dead, but the table works.
 if (typeof L === "undefined") {
   // Returns itself for any property or call, so arbitrarily long chains like
-  // L.control.scale({...}).addTo(map) are safe. Symbols return undefined so that
-  // iteration and primitive coercion fall back to normal behaviour rather than
-  // receiving something non-iterable.
+  // L.control.scale({...}).addTo(map) are safe. It must also survive being used as a
+  // value: the map code does arithmetic and builds strings with what Leaflet returns
+  // (map.getSize().x, a bounds' corners), and an object that is only ever itself can't
+  // be turned into a number or a string — JavaScript throws "Cannot convert object to
+  // primitive value", which is exactly how the first version of this stand-in killed the
+  // climbs table. So it converts to 0 (or "" as text), and iterates as empty.
   const stub = new Proxy(function () {}, {
-    get: (target, prop) => (typeof prop === "symbol" ? undefined : stub),
+    get: (target, prop) => {
+      if (prop === Symbol.toPrimitive) return (hint) => (hint === "string" ? "" : 0);
+      if (prop === Symbol.iterator) return function* () {};
+      if (typeof prop === "symbol") return undefined;
+      return stub;
+    },
     apply: () => stub,
     construct: () => stub,
   });
@@ -1635,16 +2567,6 @@ if (typeof L === "undefined") {
   }
 }
 
-// Surface unexpected failures instead of letting them vanish. These cannot resurrect a
-// script block that has already died, but they turn a silent breakage into something
-// visible in the console and, for the weather panel specifically, into a message with a
-// retry rather than a permanent "Loading forecast…".
-window.addEventListener("error", (e) => {
-  console.error("[cragify] uncaught error:", e.message, "at", e.filename + ":" + e.lineno);
-});
-window.addEventListener("unhandledrejection", (e) => {
-  console.error("[cragify] unhandled rejection:", e.reason);
-});
 // --- Light/dark theme toggle ---
 const themeToggle = document.getElementById("theme-toggle");
 function currentTheme() {
@@ -2937,579 +3859,9 @@ locationSwapBtn.addEventListener("click", (e) => { e.stopPropagation(); location
 locationClose.addEventListener("click", () => { locationModal.hidden = true; });
 locationModal.addEventListener("click", (e) => { if (e.target === locationModal) locationModal.hidden = true; });
 
-// --- Weather modal (Open-Meteo, free, no API key) ---
-const WX_SPOTS = [
-  { name: "Northern Grampians", lat: -36.97, lng: 142.44, covers: "Andersens, Trackside, the Citadel and surrounds" },
-  { name: "Central Grampians", lat: -37.14, lng: 142.52, covers: "Bleachers, Venus Baths and surrounds" },
-];
-// The forecast is one scrolling feed: WX_DAYS_PER_BATCH days are shown to start, and
-// another batch is appended each time the reader nears the bottom, up to the
-// WX_FORECAST_DAYS the API gives us.
-const WX_DAYS_PER_BATCH = 7, WX_FORECAST_DAYS = 16, WX_PAST_DAYS = 2;
-const wxBody = document.getElementById("wx-body");
-const wxSpots = document.getElementById("wx-spots");
-let wxData = null, wxLoading = false, wxSpot = 0, wxShown = WX_DAYS_PER_BATCH, wxLoadedFor = null, wxStaleSince = null, wxRefreshing = false;
-
-wxSpots.innerHTML = WX_SPOTS.map((sp, i) =>
-  `<button type="button" class="wx-spot" data-i="${i}" aria-pressed="${i === 0}">${sp.name}</button>`).join("");
-wxSpots.addEventListener("click", (e) => {
-  const b = e.target.closest(".wx-spot");
-  if (!b) return;
-  wxSpot = +b.dataset.i;
-  wxSpots.querySelectorAll(".wx-spot").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
-  renderWeather();
-});
-
-const WX_ICONS = {
-  sun: '<circle cx="12" cy="12" r="5" fill="var(--star)"/>',
-  partly: '<circle cx="15" cy="8" r="4" fill="var(--star)"/><path d="M6.5 20.5h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 6.6 12 4.25 4.25 0 0 0 6.5 20.5z" fill="currentColor" stroke="var(--panel)" stroke-width="1.2"/>',
-  cloud: '<path d="M6.5 19h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 6.6 10.5 4.25 4.25 0 0 0 6.5 19z" fill="currentColor"/>',
-  fog: '<g stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="16" x2="20" y2="16"/></g>',
-  rain: '<path d="M6.5 15h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 6.6 6.5 4.25 4.25 0 0 0 6.5 15z" fill="currentColor"/><g stroke="var(--link)" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="17.5" x2="7" y2="21"/><line x1="12" y1="17.5" x2="11" y2="21"/><line x1="16" y1="17.5" x2="15" y2="21"/></g>',
-  storm: '<path d="M6.5 15h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 6.6 6.5 4.25 4.25 0 0 0 6.5 15z" fill="currentColor"/><path d="M12.5 15l-2.5 4h3l-1.5 4" fill="none" stroke="var(--star)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
-};
-// WMO weather codes → icon + label
-function wxKind(code) {
-  if (code === 0) return ["sun", "Sunny"];
-  if (code <= 2) return ["partly", "Partly cloudy"];
-  if (code === 3) return ["cloud", "Cloudy"];
-  if (code <= 48) return ["fog", "Fog"];
-  if (code >= 95) return ["storm", "Thunderstorms"];
-  if (code >= 71 && code <= 77) return ["rain", "Snow"];
-  return ["rain", "Rain"];
-}
-
-// A punchier one/two-word summary than wxKind's label alone — when there's
-// rain, says roughly when it falls instead of just "Rain".
-function wxPunchySummary(day) {
-  const [, desc] = wxKind(day.code);
-  if (day.code >= 95) return "Storms";
-  if (day.rain < 0.1) return desc;
-  const rainyHours = day.hours.filter(h => h.mm >= 0.1).map(h => h.hour);
-  if (!rainyHours.length) return desc;
-  const first = Math.min(...rainyHours), last = Math.max(...rainyHours);
-  if (rainyHours.length >= 14 || last - first >= 14) return "Raining all day";
-  if (last < 14) return "Early shower";
-  if (first >= 12) return "Late shower";
-  return "Showers";
-}
-
-// Rough conditions call, hour by hour through the climbing day, based only on
-// how dry the rock is likely to be: rain in the previous 24 hours, and how
-// many hours it has had to dry since the last real rain. Wet sandstone is
-// slippery and breakable.
-const WX_DAY_START = 7, WX_DAY_END = 19, WX_WET_MM = 0.2;
-const WX_LEVELS = ["good", "average", "bad"], WX_LABELS = ["Good", "Average", "Bad"];
-function wxLevel(r, dry) {
-  if ((r >= 5 && dry < 18) || (r >= 1 && dry < 6)) return 2;
-  if (r >= 5 || (r >= 1 && dry < 14) || (r >= WX_WET_MM && dry < 4)) return 1;
-  return 0;
-}
-
-// Rain in the 24 hours to hourly index i, and hours since the last hour with
-// measurable rain (capped at 48). Open-Meteo hourly precipitation is the total
-// for the preceding hour.
-function wxDrynessAt(p, i) {
-  let rain24 = 0;
-  for (let h = Math.max(0, i - 23); h <= i; h++) rain24 += p[h] ?? 0;
-  let dryHours = 48;
-  for (let h = i; h >= Math.max(0, i - 47); h--) {
-    if ((p[h] ?? 0) >= WX_WET_MM) { dryHours = i - h; break; }
-  }
-  return { rain24, dryHours };
-}
-
-// Split the climbing day into runs of the same conditions level, e.g.
-// Good 7am–1pm then Bad 1pm–7pm when rain arrives in the afternoon.
-function wxConditions(hourly, date) {
-  const i0 = hourly.time.indexOf(`${date}T${String(WX_DAY_START).padStart(2, "0")}:00`);
-  if (i0 < 0) return [{ level: "good", label: "Good", from: WX_DAY_START, to: WX_DAY_END, why: "No hourly forecast" }];
-  const runs = [];
-  for (let h = WX_DAY_START; h < WX_DAY_END; h++) {
-    const { rain24, dryHours } = wxDrynessAt(hourly.precipitation, i0 + h - WX_DAY_START);
-    const lv = wxLevel(rain24, dryHours);
-    const last = runs[runs.length - 1];
-    if (last && last.lv === lv) { last.to = h + 1; last.rain = Math.max(last.rain, rain24); }
-    else runs.push({ lv, from: h, to: h + 1, rain: rain24 });
-  }
-  return runs.map(r => ({
-    level: WX_LEVELS[r.lv],
-    label: WX_LABELS[r.lv],
-    from: r.from,
-    to: r.to,
-    why: r.rain < 0.1 ? "No rain in the previous 24 hours" : `Up to ${r.rain < 10 ? r.rain.toFixed(1) : Math.round(r.rain)} mm of rain in the previous 24 hours`,
-  }));
-}
-
-// The 24 hourly rain totals and chances for one day, plus the conditions level
-// at each hour, for the expanded row.
-function wxHours(hourly, date) {
-  const i = hourly.time.indexOf(`${date}T00:00`);
-  if (i < 0) return [];
-  return hourly.time.slice(i, i + 24).map((t, k) => {
-    const { rain24, dryHours } = wxDrynessAt(hourly.precipitation, i + k);
-    return {
-      hour: k,
-      mm: hourly.precipitation[i + k] ?? 0,
-      prob: hourly.precipitation_probability?.[i + k] ?? 0,
-      temp: hourly.temperature_2m?.[i + k] ?? null,
-      lv: wxLevel(rain24, dryHours),
-    };
-  });
-}
-
-const wxHourLabel = h => h === 0 ? "12am" : h === 12 ? "12pm" : h < 12 ? `${h}am` : `${h - 12}pm`;
-
-// A green/yellow/red wash behind the rainfall bars, showing the conditions
-// level hour by hour. Stops sit at hour centres so neighbouring levels blend.
-const WX_BAND_COLOURS = ["var(--wash-green)", "var(--wash-orange)", "var(--wash-red)"];
-function wxCondBand(hours) {
-  if (!hours.length) return "";
-  const stops = hours.map((h, k) => `${WX_BAND_COLOURS[h.lv]} ${(((k + 0.5) / hours.length) * 100).toFixed(2)}%`);
-  return `<div class="wx-band" aria-hidden="true" style="background:linear-gradient(to right,${stops.join(",")})"></div>`;
-}
-
-// A temperature line (with a value label at every hour) drawn as an SVG
-// overlay on top of the rain bars/conditions wash, sharing the same 24-slot
-// horizontal grid so an hour lines up between both layers.
-function wxTempLine(hours) {
-  const temps = hours.map(h => h.temp).filter(t => t != null);
-  if (!temps.length) return "";
-  const tMin = Math.min(...temps), tMax = Math.max(...temps);
-  const range = Math.max(1, tMax - tMin);
-  const padTop = 14, padBottom = 10;
-  const pts = hours.map((h, k) => {
-    const x = ((k + 0.5) / hours.length) * 100;
-    const y = h.temp == null ? null : (100 - padBottom) - ((h.temp - tMin) / range) * (100 - padTop - padBottom);
-    return { x, y, temp: h.temp, idx: k };
-  }).filter(p => p.y != null);
-  if (!pts.length) return "";
-  const line = pts.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
-  const svg = `<svg class="wx-temp-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-    <polyline points="${line}" fill="none" stroke="var(--temp-color)" stroke-width="0.9" vector-effect="non-scaling-stroke"/>
-  </svg>`;
-  const dots = `<div class="wx-temp-dots" aria-hidden="true">${pts.map(p => `<span style="left:${p.x.toFixed(2)}%;top:${p.y.toFixed(2)}%"></span>`).join("")}</div>`;
-  // Rain values are pinned near the bottom of the chart (~85%+ from the
-  // top) — if a temperature label would land in that band on an hour
-  // that also has a rain value, push it up clear of the collision so
-  // both stay legible instead of overlapping.
-  const RAIN_LABEL_ZONE = 82;
-  const CLEAR_OF_RAIN = 70;
-  const labels = `<div class="wx-temp-labels" aria-hidden="true">${pts.map(p => {
-    const collides = hours[p.idx].mm >= 0.1 && p.y > RAIN_LABEL_ZONE;
-    const labelY = collides ? Math.min(p.y, CLEAR_OF_RAIN) : p.y;
-    return `<span data-i3="${p.idx % 3}" style="left:${p.x.toFixed(2)}%;top:${labelY.toFixed(2)}%">${Math.round(p.temp)}°</span>`;
-  }).join("")}</div>`;
-  return svg + dots + labels;
-}
-
-function wxHourly(day) {
-  if (!day.hours.length) return '<p class="wx-hourly-empty">No hourly forecast for this day.</p>';
-  const peak = Math.max(1, ...day.hours.map(h => h.mm));
-  const step = peak <= 2 ? 1 : peak <= 4 ? 2 : peak <= 10 ? 5 : Math.ceil(peak / 20) * 10;
-  const max = Math.max(2, Math.ceil(peak / step) * step);
-  const ticks = [];
-  for (let v = max; v >= 0; v -= step) ticks.push(v);
-  const yAxis = `<div class="wx-y">${ticks.map(v => `<span style="bottom:${(v / max) * 100}%">${v}</span>`).join("")}</div>`;
-  const grid = ticks.map(v => `<i style="bottom:${(v / max) * 100}%"></i>`).join("");
-  const rainLabels = `<div class="wx-rain-labels" aria-hidden="true">${day.hours.map((h, k) => h.mm >= 0.1 ? `<span data-i3="${k % 3}" style="left:${((k + 0.5) / day.hours.length * 100).toFixed(2)}%">${h.mm.toFixed(1)}</span>` : "").join("")}</div>`;
-  return `<div class="wx-chart">${yAxis}<div class="wx-bars" role="img" aria-label="Hourly rainfall and temperature">${wxCondBand(day.hours)}${grid}${day.hours.map((h, k) => {
-    const pct = h.mm < 0.1 ? 0 : Math.max(6, (h.mm / max) * 100);
-    const tip = `${wxHourLabel(h.hour)}: ${h.mm < 0.1 ? "0" : h.mm.toFixed(1)} mm, ${Math.round(h.prob)}% chance${h.temp != null ? `, ${Math.round(h.temp)}°` : ""}`;
-    return `<div class="wx-bar" data-i3="${k % 3}" title="${tip}"><span style="height:${pct}%;opacity:${(0.35 + 0.65 * h.prob / 100).toFixed(2)}"></span></div>`;
-  }).join("")}${wxTempLine(day.hours)}${rainLabels}</div></div>
-  <div class="wx-bar-axis">${[0, 3, 6, 9, 12, 15, 18, 21].map(h => `<span>${wxHourLabel(h)}</span>`).join("")}</div>`;
-}
-
-function wxForecastUrl() {
-  const params = new URLSearchParams({
-    latitude: WX_SPOTS.map(s => s.lat).join(","),
-    longitude: WX_SPOTS.map(s => s.lng).join(","),
-    daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max",
-    hourly: "precipitation,precipitation_probability,temperature_2m",
-    timezone: "Australia/Melbourne",
-    forecast_days: WX_FORECAST_DAYS,
-    past_days: WX_PAST_DAYS,
-  });
-  return `https://api.open-meteo.com/v1/forecast?${params}`;
-}
-
-// Every weather request is bounded. A stalled connection — the first HTTPS
-// handshake on weak reception is the usual culprit — otherwise leaves `fetch`
-// pending forever, and a promise that never settles shows up as a panel stuck
-// on "Loading forecast…" with no error to report and no way back.
-// Budgets are deliberately tight and stack to about 15s worst case. The first
-// pass is short because it is usually answered from cache; the refresh gets a
-// little longer because it always goes to the network.
-const WX_TIMEOUT_MS = 5000;
-const WX_REFRESH_TIMEOUT_MS = 7000;
-
-function wxTimeoutSignal(ms) {
-  if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) return AbortSignal.timeout(ms);
-  const c = new AbortController();
-  setTimeout(() => c.abort(), ms);
-  return c.signal;
-}
-
-// `fresh: true` asks the service worker to skip its cache and go to the network
-// (it watches for this cache mode). Without it the worker answers instantly from
-// whatever it has, which is what the first paint wants.
-async function fetchWeather({ fresh = false, timeout = WX_TIMEOUT_MS } = {}) {
-  let res;
-  try {
-    res = await fetch(wxForecastUrl(), {
-      signal: wxTimeoutSignal(timeout),
-      ...(fresh ? { cache: "reload" } : {}),
-    });
-  } catch (err) {
-    // A timeout arrives as an AbortError, which on its own reads like the user
-    // navigated away. Name it for what it was so the panel can say so.
-    throw new Error(err?.name === "AbortError" || err?.name === "TimeoutError"
-      ? "timed out" : "no connection");
-  }
-  // 504 here is the worker's own synthetic response for "network failed and I
-  // had nothing saved", not something Open-Meteo said. Report the cause.
-  if (res.status === 504) throw new Error("couldn’t reach Open-Meteo");
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  // Only the worker's cached copies carry this stamp, so it doubles as "this did
-  // not come from the network just now" — the age the reader needs to be told about.
-  const stamp = Number(res.headers.get("x-cragify-cached-at"));
-  const cachedAt = Number.isFinite(stamp) && stamp > 0 ? stamp : null;
-  const json = await res.json();
-  const spots = (Array.isArray(json) ? json : [json]).map(loc => {
-    const d = loc.daily;
-    return d.time.map((t, i) => ({
-      date: t,
-      code: d.weather_code[i],
-      tmax: d.temperature_2m_max[i],
-      tmin: d.temperature_2m_min[i],
-      rain: d.precipitation_sum[i] ?? 0,
-      prob: d.precipitation_probability_max[i] ?? 0,
-      wind: d.wind_speed_10m_max[i],
-      gust: d.wind_gusts_10m_max[i],
-      cond: wxConditions(loc.hourly, t),
-      hours: wxHours(loc.hourly, t),
-    }));
-  });
-  if (!spots.length || !spots[0].length) throw new Error("empty forecast");
-  return { spots, cachedAt };
-}
-
-
-// Accept a response only if it is actually about now: everything downstream
-// reads today's forecast as index WX_PAST_DAYS, which holds only for a response
-// fetched today. A copy from last night would otherwise be relabelled as the
-// week ahead — the exact bug that showed Wednesday's weather on Friday.
-function wxIsCurrent(payload) {
-  return payload.spots[0][WX_PAST_DAYS]?.date === wxIsoDate(new Date());
-}
-
-// Two stages, because this gets read in the field: paint whatever is cached
-// straight away so there is something to look at on bad reception, then go to
-// the network and swap in the current forecast when it lands.
-async function loadWeather(force = false) {
-  if ((wxData && !force) || wxLoading) return;
-  wxLoading = true;
-  if (!wxData) wxBody.innerHTML = '<p class="wx-status">Loading forecast…</p>';
-
-  let failure = null;
-  let needRefresh = true;
-  try {
-    const quick = await fetchWeather();
-    // Only worth painting early if it isn't already superseded by the calendar.
-    if (wxIsCurrent(quick)) {
-      wxData = quick.spots;
-      wxStaleSince = quick.cachedAt;
-      wxLoadedFor = wxIsoDate(new Date());
-      renderWeather();
-      // No stamp means the worker had nothing cached and went to the network
-      // itself, so this *is* the current forecast — asking again would just be
-      // a second identical call against a rate-limited free API.
-      needRefresh = quick.cachedAt !== null;
-    } else if (quick.cachedAt) {
-      wxStaleSince = quick.cachedAt;
-    }
-  } catch (err) {
-    failure = err;
-  }
-
-  // The refresh runs when the quick pass painted from the worker's cache, since
-  // that copy can be up to a day old.
-  //
-  // Two attempts, because the failure this guards against is a stalled first
-  // connection: once the handshake finally gives up, a second request on a new
-  // connection usually succeeds straight away. Worth one retry before telling
-  // someone standing at a crag that there's no forecast.
-  if (needRefresh) {
-    wxRefreshing = true;
-    if (wxData) renderWeather();
-    for (let attempt = 0; attempt < 2; attempt++) {
-      // Nothing to show yet and we're about to spend another several seconds on
-      // the network: say so, rather than leaving "Loading forecast…" sitting
-      // there looking like a hung page. This is what the stall actually looked
-      // like from the outside — frozen, with no sign it was still working.
-      if (!wxData) wxBody.innerHTML = `<p class="wx-status">Still trying to reach Open-Meteo${attempt ? " (last try)" : ""}…</p>`;
-      try {
-        const current = await fetchWeather({ fresh: true, timeout: WX_REFRESH_TIMEOUT_MS });
-        // With the network down the worker answers even a refresh from its
-        // cache, and it doesn't age-check that path — so a copy old enough to
-        // have the wrong day at index WX_PAST_DAYS can come back here. Showing
-        // it would relabel last week as the week ahead.
-        if (!wxIsCurrent(current)) { failure = new Error("forecast out of date"); continue; }
-        wxData = current.spots;
-        // Staleness is about where the bytes came from, not whether their dates
-        // line up: a copy cached this morning still has today at the right index
-        // while being hours old and unrefreshable. A null stamp — and only that
-        // — means this came straight off the network.
-        wxStaleSince = current.cachedAt;
-        wxLoadedFor = wxIsoDate(new Date());
-        failure = null;
-        break;
-      } catch (err) {
-        failure = err;
-      }
-    }
-  }
-
-  wxRefreshing = false;
-  wxLoading = false;
-  if (wxData) renderWeather();
-  else wxBody.innerHTML = `<p class="wx-status">Couldn’t load the forecast${failure ? ` (${failure.message})` : ""}. <button type="button" class="wx-retry">Try again</button></p>`;
-}
-
-wxBody.addEventListener("click", (e) => {
-  if (e.target.closest(".wx-retry")) loadWeather(true);
-});
-
-// A tab left open overnight — or woken from a phone's back pocket days later —
-// is showing a forecast for a day that has passed, so re-fetch whenever the page
-// returns to the foreground on a different date than the data was loaded for.
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState !== "visible") return;
-  if (wxData && wxLoadedFor !== wxIsoDate(new Date())) loadWeather(true);
-});
-
-// --- Victorian public holidays ---
-// The Grampians are in Victoria, so these are Victoria's dates, which differ from
-// other states: Easter Saturday and Sunday are holidays here, ANZAC Day is never
-// moved off the 25th, and Melbourne Cup Day is Victoria's alone. Computed per year
-// from the rules rather than kept in a table that would expire without warning.
-//
-// One holiday is deliberately missing: the Friday before the AFL Grand Final. Its
-// date is declared by the government each year and can't be derived from a rule.
-const wxIsoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-
-// Anonymous Gregorian computus — Easter Sunday for a given year.
-function wxEasterSunday(year) {
-  const a = year % 19, b = Math.floor(year / 100), c = year % 100;
-  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
-  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
-  const i = Math.floor(c / 4), k = c % 4;
-  const l = (32 + 2 * e + 2 * i - h - k) % 7;
-  const m = Math.floor((a + 11 * h + 22 * l) / 451);
-  const month = Math.floor((h + l - 7 * m + 114) / 31);
-  return new Date(year, month - 1, ((h + l - 7 * m + 114) % 31) + 1);
-}
-
-// The nth given weekday of a month, e.g. the second Monday in March.
-function wxNthWeekday(year, month, weekday, n) {
-  const first = new Date(year, month, 1);
-  const offset = (weekday - first.getDay() + 7) % 7;
-  return new Date(year, month, 1 + offset + (n - 1) * 7);
-}
-
-const wxHolidayCache = new Map();
-function wxHolidaysFor(year) {
-  if (wxHolidayCache.has(year)) return wxHolidayCache.get(year);
-  const days = new Map();
-  const add = (date, name) => days.set(wxIsoDate(date), name);
-  // Victoria moves a weekend holiday to the following Monday — true of these four,
-  // but not of ANZAC Day, which stays on the 25th whatever day it lands on.
-  const addWithSubstitute = (date, name) => {
-    add(date, name);
-    const dow = date.getDay();
-    if (dow !== 0 && dow !== 6) return;
-    const substitute = new Date(date);
-    substitute.setDate(date.getDate() + (dow === 6 ? 2 : 1));
-    // A weekend Christmas pushes Boxing Day's substitute onto the same Monday, and
-    // Victoria grants both days — so take the next free weekday instead of
-    // overwriting what's already there.
-    while (days.has(wxIsoDate(substitute))) substitute.setDate(substitute.getDate() + 1);
-    add(substitute, `${name} holiday`);
-  };
-
-  addWithSubstitute(new Date(year, 0, 1), "New Year's Day");
-  addWithSubstitute(new Date(year, 0, 26), "Australia Day");
-  add(wxNthWeekday(year, 2, 1, 2), "Labour Day");
-  const easter = wxEasterSunday(year);
-  const easterOffset = (n, name) => {
-    const d = new Date(easter);
-    d.setDate(easter.getDate() + n);
-    add(d, name);
-  };
-  easterOffset(-2, "Good Friday");
-  easterOffset(-1, "Easter Saturday");
-  easterOffset(0, "Easter Sunday");
-  easterOffset(1, "Easter Monday");
-  add(new Date(year, 3, 25), "ANZAC Day");
-  add(wxNthWeekday(year, 5, 1, 2), "King's Birthday");
-  add(wxNthWeekday(year, 10, 2, 1), "Melbourne Cup Day");
-  addWithSubstitute(new Date(year, 11, 25), "Christmas Day");
-  addWithSubstitute(new Date(year, 11, 26), "Boxing Day");
-
-  wxHolidayCache.set(year, days);
-  return days;
-}
-
-const wxHoliday = iso => wxHolidaysFor(+iso.slice(0, 4)).get(iso) || "";
-
-const wxFmt = (iso, opts) => new Date(iso + "T12:00:00").toLocaleDateString("en-AU", opts);
-// 0 = Sunday … 6 = Saturday, in the browser's local time (midday avoids DST edges).
-const wxDayOfWeek = iso => new Date(iso + "T12:00:00").getDay();
-
-function wxHolidayChip(iso) {
-  const name = wxHoliday(iso);
-  return name ? `<span class="wx-holiday-chip" title="${name} — Victorian public holiday">${name}</span>` : "";
-}
-
-// showDate is false for the Yesterday card, whose collapsed header already names the day.
-function wxDayBody(day, showDate = true, dayChip = "") {
-  const [icon, desc] = wxKind(day.code);
-  const rainMm = day.rain < 0.1 ? "0" : day.rain < 10 ? day.rain.toFixed(1) : Math.round(day.rain);
-  const iconHtml = `<div class="wx-icon" title="${desc}"><svg width="18" height="18" viewBox="0 0 24 24" role="img" aria-label="${desc}">${WX_ICONS[icon]}</svg></div>`;
-  const dateLine = showDate
-    ? `<div class="wx-date">${dayChip}${wxHolidayChip(day.date)}<span class="wx-date-chip"><span class="wx-date-day">${wxFmt(day.date, { weekday: "short" })}</span> <span class="wx-date-dot">&middot;</span> ${wxFmt(day.date, { day: "numeric", month: "short" })}</span>${iconHtml}<span class="wx-date-summary">${wxPunchySummary(day)}</span></div>`
-    : "";
-  return `${dateLine}
-    <div class="wx-summary">
-      <div class="wx-temp">${showDate ? "" : iconHtml}<span class="wx-temp-range"><span class="wx-tmin">${Math.round(day.tmin)}°</span><span class="wx-tsep">-</span><span class="wx-tmax">${Math.round(day.tmax)}°</span></span></div>
-      <div class="wx-rain${day.rain >= 0.5 ? " is-wet" : ""}${day.rain > 0 ? " has-rain" : ""}">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5s7 7.8 7 12.5a7 7 0 1 1-14 0C5 10.3 12 2.5 12 2.5Z" fill="currentColor"/></svg>
-        <span class="wx-rain-text"><strong>${rainMm} mm</strong><span>(${Math.round(day.prob)}%)</span></span>
-      </div>
-      <div class="wx-wind">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8h11a2.5 2.5 0 1 0-2.1-3.9M3 12h14a2.5 2.5 0 1 1-2.1 3.9M3 16h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span>${Math.round(day.wind)} km/h</span>
-      </div>
-      </div>
-      <div class="wx-hourly" data-wx-date="${day.date}">${wxHourly(day)}</div>`;
-}
-
-let wxYesterdayOpen = false;
-
-function wxYesterdayCard(all) {
-  const day = all[WX_PAST_DAYS - 1];
-  if (!day) return "";
-  return `<li class="wx-day wx-yesterday-card">
-    <button class="wx-yesterday-toggle" type="button" aria-expanded="${wxYesterdayOpen}">
-      <span class="wx-day-chip wx-day-chip-muted">Yesterday</span>
-      <span class="wx-yesterday-date"><span class="wx-date-day">${wxFmt(day.date, { weekday: "short" })}</span> <span class="wx-date-dot">&middot;</span> ${wxFmt(day.date, { day: "numeric", month: "short" })}</span>
-      <svg class="wx-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <div class="wx-yesterday-body"${wxYesterdayOpen ? "" : " hidden"}>${wxDayBody(day, false)}</div>
-  </li>`;
-}
-
-// Most people climb on the weekend, so never stop the feed mid-weekend: round the
-// count up so Saturday and Sunday are always on screen together — one extra day when
-// it would end on a Saturday, two when it would end on a Friday.
-function wxWholeWeekends(all, count) {
-  const last = all[WX_PAST_DAYS + count - 1];
-  if (!last) return count;
-  const dow = wxDayOfWeek(last.date);
-  const extra = dow === 5 ? 2 : dow === 6 ? 1 : 0;
-  return Math.min(count + extra, all.length - WX_PAST_DAYS);
-}
-
-// Shown only when the forecast on screen didn't come from the network just now.
-// A saved copy is worth having in a car park with no reception, but it has to
-// announce itself — an out-of-date forecast presented as current is worse than
-// no forecast, because you'd pack for it.
-function wxStaleBanner() {
-  if (!wxStaleSince) return "";
-  const mins = Math.max(1, Math.round((Date.now() - wxStaleSince) / 60000));
-  const when = mins < 60 ? `${mins} min` : mins < 1440 ? `${Math.round(mins / 60)} hr` : `${Math.round(mins / 1440)} day${Math.round(mins / 1440) === 1 ? "" : "s"}`;
-  // While a refresh is still in flight we have not failed at all — saying "couldn't
-  // reach Open-Meteo" there is simply untrue, and it is the first thing a reader sees on
-  // any warm visit. Only claim a failure once one has actually happened.
-  if (wxRefreshing) {
-    return `<p class="wx-stale" data-updating="1">Saved forecast from ${when} ago — checking for a newer one…</p>`;
-  }
-  return `<p class="wx-stale">Saved forecast from ${when} ago — couldn’t reach Open-Meteo. <button type="button" class="wx-retry">Try again</button></p>`;
-}
-
-function renderWeather() {
-  if (!wxData) return;
-  const all = wxData[wxSpot];
-  const count = wxWholeWeekends(all, Math.min(wxShown, all.length - WX_PAST_DAYS));
-  const days = all.slice(WX_PAST_DAYS, WX_PAST_DAYS + count);
-  if (!days.length) return;
-  const more = count < all.length - WX_PAST_DAYS;
-  // Re-rendering replaces the whole list, which would otherwise jump the reader back
-  // to the top — including when a scroll appends the next batch.
-  const scroll = wxBody.scrollTop;
-  // The covers line sits inside the scroller, so it scrolls away with the days
-  // rather than holding height above them.
-  let weekBreaks = 0;
-  wxBody.innerHTML = wxStaleBanner() + `<p class="wx-covers">Covers ${WX_SPOTS[wxSpot].covers}.</p>`
-    + '<ul class="wx-days">' + wxYesterdayCard(all) + days.map((day, overall) => {
-    const dayChip = overall === 0 ? `<span class="wx-day-chip">Today</span>` : overall === 1 ? `<span class="wx-day-chip">Tomorrow</span>` : "";
-    // Each Monday after the first card starts a new week. The first break is the
-    // familiar "Next week"; later ones are dated, since "next" stops being true.
-    const divider = overall > 0 && wxDayOfWeek(day.date) === 1
-      ? `<li class="wx-week-divider"><span>${++weekBreaks === 1 ? "Next week" : `Week of ${wxFmt(day.date, { day: "numeric", month: "short" })}`}</span></li>`
-      : "";
-    return `${divider}<li class="wx-day">
-      ${wxDayBody(day, true, dayChip)}
-    </li>`;
-  }).join("") + "</ul>"
-    + (more ? '<p class="wx-more">Keep scrolling for more days…</p>' : "")
-    + '<p class="wx-note">Weather forecast provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>';
-  wxBody.scrollTop = scroll;
-  // The conditions popover was anchored to a chart that no longer exists: re-anchor it
-  // to the same day's new chart, so appending days mid-read doesn't dismiss it.
-  rebindConditionsPopover();
-}
-
-wxBody.addEventListener("click", (e) => {
-  const btn = e.target.closest(".wx-yesterday-toggle");
-  if (!btn) return;
-  wxYesterdayOpen = !wxYesterdayOpen;
-  renderWeather();
-});
-
-// Infinite scroll: append the next batch of days as the reader nears the bottom.
-wxBody.addEventListener("scroll", () => {
-  if (!wxData) return;
-  const total = wxData[wxSpot].length - WX_PAST_DAYS;
-  if (wxShown >= total) return;
-  if (wxBody.scrollTop + wxBody.clientHeight < wxBody.scrollHeight - 240) return;
-  wxShown = Math.min(wxShown + WX_DAYS_PER_BATCH, total);
-  renderWeather();
-});
-
-// --- Weather / Find climbs tab switcher ---
-const weatherTabs = [document.getElementById("tab-weather"), document.getElementById("tab-weather-wide")];
-const climbsTabs = [document.getElementById("tab-climbs"), document.getElementById("tab-climbs-wide")];
-const weatherPanel = document.getElementById("weather-panel");
-const climbsLayout = document.getElementById("climbs-layout");
-const mapToggleBtns = [document.getElementById("map-toggle-desktop")];
-function setView(view) {
-  const isWeather = view === "weather";
-  weatherTabs.forEach(b => b.setAttribute("aria-selected", isWeather ? "true" : "false"));
-  climbsTabs.forEach(b => b.setAttribute("aria-selected", isWeather ? "false" : "true"));
-  weatherPanel.hidden = !isWeather;
-  climbsLayout.hidden = isWeather;
-  mapToggleBtns.forEach(b => b.hidden = isWeather);
-  document.body.classList.toggle("view-weather", isWeather);
-  document.body.classList.toggle("view-climbs", !isWeather);
-  if (!isWeather) setTimeout(() => map.invalidateSize(), 50);
-}
-weatherTabs.forEach(b => b.addEventListener("click", () => setView("weather")));
-climbsTabs.forEach(b => b.addEventListener("click", () => setView("climbs")));
-setView("weather");
-renderWeather();
-loadWeather();
+// --- Weather ---
+// The forecast, its popover and the Weather / Find climbs tab switcher live in their own
+// script block, which runs before this one. See the top of that block for why.
 
 // --- Attribution modal ---
 const attributionModal = document.getElementById("attribution-modal");
@@ -3537,122 +3889,6 @@ resultsBody.addEventListener("click", (e) => {
 });
 accessClose.addEventListener("click", () => { accessModal.hidden = true; });
 accessModal.addEventListener("click", (e) => { if (e.target === accessModal) accessModal.hidden = true; });
-
-// --- Climbing-conditions popover ---
-// Opened from the rainfall chart itself — hover on devices with a real pointer,
-// tap everywhere else — and broken down by time, one row per run of hours that
-// share a conditions level.
-const conditionsPopover = document.getElementById("conditions-popover");
-const conditionsPopoverBody = document.getElementById("conditions-popover-body");
-const supportsHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-// `var`, and the element looked up lazily, so renderWeather — which runs earlier in
-// the file — can close a stale popover without tripping over a temporal dead zone.
-var conditionsPopoverFor = null;
-function closeConditionsPopover() {
-  const el = document.getElementById("conditions-popover");
-  if (el) el.hidden = true;
-  conditionsPopoverFor = null;
-}
-
-// Called after the feed re-renders: point the open popover at the new element for the
-// same day, or close it if that day is no longer on screen.
-function rebindConditionsPopover() {
-  const date = conditionsPopoverFor?.dataset.wxDate;
-  if (!date) return;
-  const chart = document.querySelector(`.wx-hourly[data-wx-date="${date}"]`);
-  if (!chart) return closeConditionsPopover();
-  conditionsPopoverFor = chart;
-  if (!conditionsPopover.classList.contains("is-following")) positionConditionsPopover(chart);
-}
-
-function wxCondRowsHtml(day) {
-  if (!day.cond?.length) return '<p class="wx-cond-row-text">No hourly forecast for this day.</p>';
-  const allDay = day.cond.length === 1;
-  return day.cond.map(c => {
-    const when = allDay ? `All day (${wxHourLabel(c.from)}–${wxHourLabel(c.to)})` : `${wxHourLabel(c.from)}–${wxHourLabel(c.to)}`;
-    return `<div class="wx-cond-row"><span class="wx-cond ${c.level}">${c.label}</span><span class="wx-cond-row-text"><strong>${when}</strong> · ${c.why}</span></div>`;
-  }).join("");
-}
-
-// Place the popover at viewport point (x, y), nudged clear of it and flipped to
-// whichever side keeps it fully on screen.
-function placeConditionsPopover(x, y, gapX, gapY) {
-  const w = conditionsPopover.offsetWidth, h = conditionsPopover.offsetHeight;
-  const fitsRight = x + gapX + w <= window.innerWidth - 8;
-  const left = Math.max(8, fitsRight ? x + gapX : Math.min(x - gapX - w, window.innerWidth - 8 - w));
-  const below = y + gapY + h <= window.innerHeight - 8;
-  const top = below ? y + gapY : Math.max(8, y - gapY - h);
-  conditionsPopover.style.left = `${window.scrollX + left}px`;
-  conditionsPopover.style.top = `${window.scrollY + top}px`;
-}
-
-// Touch: anchored to the chart, which is tall, so it goes below when there's room
-// and above when there isn't rather than running off the bottom of the screen.
-function positionConditionsPopover(chart) {
-  const rect = chart.getBoundingClientRect();
-  placeConditionsPopover(rect.left, rect.top + rect.height, 0, 6);
-}
-
-// Pointer: tracks the cursor, offset so it never sits under it.
-const WX_CURSOR_GAP_X = 16, WX_CURSOR_GAP_Y = 18;
-function positionConditionsPopoverAtCursor(e) {
-  placeConditionsPopover(e.clientX, e.clientY, WX_CURSOR_GAP_X, WX_CURSOR_GAP_Y);
-}
-
-function openConditionsPopoverFor(chart, e) {
-  const day = wxData?.[wxSpot]?.find(d => d.date === chart.dataset.wxDate);
-  if (!day) return;
-  conditionsPopoverBody.innerHTML = wxCondRowsHtml(day);
-  conditionsPopover.hidden = false;
-  // Following the cursor means the popover can land under it, so it must not
-  // intercept the pointer — that would fire mouseout on the chart and flicker.
-  conditionsPopover.classList.toggle("is-following", !!e);
-  if (e) positionConditionsPopoverAtCursor(e);
-  else positionConditionsPopover(chart);
-  conditionsPopoverFor = chart;
-}
-const WX_CONDS_TRIGGER = ".wx-hourly";
-wxBody.addEventListener("click", (e) => {
-  // Where there's a real pointer, hover drives the popover and a click would only
-  // fight it — the pointer is still over the chart that opened it.
-  if (supportsHover) return;
-  const chart = e.target.closest(WX_CONDS_TRIGGER);
-  if (!chart) return;
-  // A second tap on the same chart dismisses it; tapping another day's chart moves it.
-  if (conditionsPopoverFor === chart) closeConditionsPopover();
-  else openConditionsPopoverFor(chart);
-});
-if (supportsHover) {
-  // One mousemove handler does both jobs: open on entering a chart, and follow the
-  // cursor while it's over one.
-  wxBody.addEventListener("mousemove", (e) => {
-    const chart = e.target.closest(WX_CONDS_TRIGGER);
-    if (!chart) return;
-    if (conditionsPopoverFor === chart) positionConditionsPopoverAtCursor(e);
-    else openConditionsPopoverFor(chart, e);
-  });
-  wxBody.addEventListener("mouseout", (e) => {
-    const chart = e.target.closest(WX_CONDS_TRIGGER);
-    if (chart && !chart.contains(e.relatedTarget)) closeConditionsPopover();
-  });
-  wxBody.addEventListener("mouseleave", closeConditionsPopover);
-}
-// A chart-anchored popover has to follow its chart as the feed scrolls, and give up
-// once that chart has scrolled out of the feed's viewport. A cursor-following one
-// stays where the cursor is, and mouseout closes it when the content slides away.
-wxBody.addEventListener("scroll", () => {
-  const chart = conditionsPopoverFor;
-  if (!chart) return;
-  if (!chart.isConnected) return closeConditionsPopover();
-  const rect = chart.getBoundingClientRect(), panel = wxBody.getBoundingClientRect();
-  if (rect.bottom < panel.top || rect.top > panel.bottom) return closeConditionsPopover();
-  if (!conditionsPopover.classList.contains("is-following")) positionConditionsPopover(chart);
-});
-document.addEventListener("click", (e) => {
-  if (conditionsPopover.hidden) return;
-  if (e.target.closest(WX_CONDS_TRIGGER) || e.target.closest("#conditions-popover")) return;
-  closeConditionsPopover();
-});
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
@@ -3862,38 +4098,6 @@ backToTop.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
-// --- Service worker: caches the weather API response so a return visit with
-// bad reception shows last-known weather instantly instead of stalling. ---
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").then(warmWeatherCache).catch(() => { /* non-critical */ });
-  });
-}
-
-// On a first visit the forecast is fetched while the page is still parsing,
-// before this worker exists to intercept it — so nothing is cached, and the
-// cache only fills on a second visit. That's the wrong way round for the way
-// this gets used: load it at home on wifi, drive out, lose reception. So once
-// the worker is running, warm the cache if it's empty, while there's still
-// signal to do it with.
-async function warmWeatherCache() {
-  try {
-    if (!("caches" in window)) return;
-    const reg = await navigator.serviceWorker.ready;
-    // A global match searches every cache, so the worker's cache name doesn't
-    // have to be repeated here.
-    if (await caches.match(wxForecastUrl())) return;
-    // Ask the worker to fetch and store it, rather than fetching here and hoping the
-    // request passes through the worker. On a first visit it usually would not: the
-    // worker is still activating and does not control this page yet, so a fetch from
-    // here bypasses it and caches nothing. A fetch started inside the worker always
-    // reaches its own cache.
-    const worker = reg.active || navigator.serviceWorker.controller;
-    if (worker) { worker.postMessage({ type: "warm-weather", url: wxForecastUrl() }); return; }
-    // No worker to delegate to — try directly, which at least populates the HTTP cache.
-    await fetch(wxForecastUrl(), { cache: "reload", signal: wxTimeoutSignal(WX_TIMEOUT_MS) });
-  } catch (err) { /* best effort: the forecast itself is already on screen */ }
-}
 </script>
 </body>
 </html>
