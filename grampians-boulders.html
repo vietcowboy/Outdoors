@@ -1209,7 +1209,10 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   .problem-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
-  .problem-meta-row { display: flex; align-items: center; gap: 0.5rem; }
+  /* Grade and stars stay together on one line; the camera button wraps underneath when the cell is narrow. */
+  .problem-meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.5rem; max-width: 100%; }
+  .meta-pair { display: inline-flex; align-items: center; gap: 0.5rem; flex-shrink: 0; white-space: nowrap; }
+  .problem-meta-row .photo-btn { margin-left: 0; }
   /* Guidebook description: low emphasis, small, across the whole climb cell. */
   .problem-cell { width: 100%; }
   .climb-desc { align-self: stretch; margin: 0; font-size: 0.7rem; line-height: 1.4; color: var(--muted); opacity: 0.85; }
@@ -4395,8 +4398,7 @@ function render() {
         <div class="problem-cell">
           ${b.url ? `<a class="climb-link" href="${b.url}" target="_blank" rel="noopener" title="${b.urlIsAreaPage ? "Links to the sector's problem list — the exact route page for this one wasn't found" : ""}"><span class="climb-name">${b.name}</span><span class="go-arrow">↗</span></a>` : `<span class="climb-link climb-link-plain"><span class="climb-name">${b.name}</span></span>`}
           <div class="problem-meta-row">
-            <span class="grade-pill ${gradeBandClass(b.grade)}">V${b.grade}</span>
-            ${b.url ? starBadge(b.stars) : ""}
+            <span class="meta-pair"><span class="grade-pill ${gradeBandClass(b.grade)}">V${b.grade}</span>${b.url ? starBadge(b.stars) : ""}</span>
             ${b.photo ? `<button type="button" class="photo-btn" data-photo="${b.photo}" data-name="${b.name.replace(/"/g, "&quot;")}" aria-label="Show photo of ${b.name.replace(/"/g, "&quot;")}" title="Show photo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h3l2-2.5h6L17 7h3v12H4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" stroke="currentColor" stroke-width="1.8"/></svg></button>` : ""}
           </div>
           ${b.description ? `<p class="climb-desc">${escHtml(b.description)}</p>` : ""}
