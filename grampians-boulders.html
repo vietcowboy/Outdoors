@@ -55,8 +55,8 @@
     --band-red: rgba(247, 112, 108, 0.36);
     /* Heat stripes. Solid enough to read through the rain wash, distinct per level. */
     --heat-advisory: #ffd000;
-    --heat-warning: #ff6400;
-    --heat-extreme: #e0001b;
+    --heat-warning: #e0001b;
+    --heat-extreme: #111111;
     --text: #1f2320;
     --muted: #6b6f6c;
     --border: #e2ddd5;
@@ -650,7 +650,8 @@
   .wx-heat-run { position: absolute; top: 0; bottom: 0; }
   .wx-heat-layer-1 { background: repeating-linear-gradient(45deg, var(--heat-advisory) 0 3px, transparent 3px 8px); }
   .wx-heat-layer-2 { background: repeating-linear-gradient(45deg, var(--heat-warning) 0 3.5px, transparent 3.5px 8px); }
-  .wx-heat-layer-3 { background: repeating-linear-gradient(45deg, var(--heat-extreme) 0 4px, transparent 4px 8px); }
+  /* Black stripes, with a thin light edge so they stay visible on the dark chart background. */
+  .wx-heat-layer-3 { background: repeating-linear-gradient(45deg, var(--heat-extreme) 0 4px, rgba(255,255,255,0.6) 4px 5px, transparent 5px 8px); }
   /* Fixed light fills with dark text, in both themes: the chip's contrast must not depend
      on the page's text colour, which is light in dark mode. Each is well above 7:1. */
   .wx-heat-chip { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; white-space: nowrap; border: 1px solid; }
@@ -660,8 +661,8 @@
   .photo-box img { display: block; width: 100%; height: auto; max-height: 80vh; object-fit: contain; border-radius: 6px; }
   .climb-link-plain { cursor: default; }
   .wx-heat-chip.wx-heat-1 { color: #3b2f00; background: #f7de7a; border-color: #c99a00; }
-  .wx-heat-chip.wx-heat-2 { color: #4a1c00; background: #f9b07a; border-color: #d2600a; }
-  .wx-heat-chip.wx-heat-3 { color: #4a0008; background: #f5a0a4; border-color: #c4161f; }
+  .wx-heat-chip.wx-heat-2 { color: #4a0008; background: #f5a0a4; border-color: #c4161f; }
+  .wx-heat-chip.wx-heat-3 { color: #ffffff; background: #111111; border-color: #111111; }
   .wx-bar { position: relative; z-index: 1; flex: 1; height: 100%; display: flex; align-items: flex-end; }
   .wx-bar span { display: block; width: 100%; background: var(--link); border-radius: 2px 2px 0 0; }
   .wx-rain-labels { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
