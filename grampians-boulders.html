@@ -659,6 +659,11 @@
   .photo-box { max-width: min(92vw, 900px); }
   .hour-scrub { position: fixed; z-index: 70; transform: translateX(-50%); pointer-events: none; display: flex; flex-direction: column; align-items: flex-start; gap: 0.15rem; min-width: 9rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: var(--text); box-shadow: 0 6px 18px rgba(0,0,0,0.25); font-size: 0.75rem; line-height: 1.35; white-space: nowrap; }
   .hour-scrub[hidden] { display: none; }
+  .hour-scrub-line { position: fixed; width: 2px; margin-left: -1px; background: var(--text); opacity: 0.75; pointer-events: none; z-index: 65; }
+  .hour-scrub-line[hidden] { display: none; }
+  /* A press on the chart is for scrubbing, not for the browser's text selection or callout menu. */
+  .wx-hourly { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  .wx-bars { touch-action: pan-y; }
   .hour-scrub-time { font-size: 0.85rem; }
   .hour-scrub-heat { margin-top: 0.15rem; }
   .photo-box img { display: block; width: 100%; height: auto; max-height: 80vh; object-fit: contain; border-radius: 6px; }
@@ -2185,8 +2190,12 @@ function wxShowStatus(text, withRetry = false) {
   wxBody.innerHTML = `<p class="wx-status">${wxEsc(text)}${withRetry ? ' <button type="button" class="wx-retry">Try again</button>' : ""}</p>`;
 }
 
+let wxRenderDeferred = false;
 function renderWeather() {
   if (!wxData) return;
+  // A press on the chart must not be torn down by a re-render: the touch belongs to the element
+  // it started on. Render once the press has ended.
+  if (typeof scrub !== "undefined" && scrub) { wxRenderDeferred = true; return; }
   const today = wxToday();
   wxRenderedFor = today;
   wxRenderedStale = wxIsStale();
@@ -2454,7 +2463,16 @@ hourScrub.className = "hour-scrub";
 hourScrub.hidden = true;
 hourScrub.setAttribute("role", "status");
 document.body.appendChild(hourScrub);
-let scrub = null;          // { chart, x, y, active, timer } while a touch is on a chart
+// A vertical line across the chart at the hour under the thumb. It lives on the page, not in
+// the chart, so re-rendering the forecast can't remove it.
+const hourLine = document.createElement("div");
+hourLine.className = "hour-scrub-line";
+hourLine.hidden = true;
+document.body.appendChild(hourLine);
+let scrub = null;          // { date, x, y, active, timer } while a touch is on a chart
+// The chart is found again by its date on every move: the forecast re-renders while you're
+// holding (scrolling, a refresh), which replaces the element the press started on.
+const chartFor = (date) => document.querySelector(`.wx-hourly[data-wx-date="${date}"]`);
 let scrubbedAt = 0;        // so the click that follows a scrub doesn't also open the popover
 
 function scrubHourAt(chart, clientX) {
@@ -2467,6 +2485,14 @@ function scrubHourAt(chart, clientX) {
 
 function showHourScrub(chart, k, clientX, clientY) {
   const day = wxData?.[wxSpot]?.find(d => d.date === chart.dataset.wxDate);
+  const bars = chart.querySelector(".wx-bars");
+  if (bars) {
+    const br = bars.getBoundingClientRect();
+    hourLine.style.left = `${br.left + ((k + 0.5) / 24) * br.width}px`;
+    hourLine.style.top = `${br.top}px`;
+    hourLine.style.height = `${br.height}px`;
+    hourLine.hidden = false;
+  }
   const h = day?.hours?.[k];
   if (!h) return;
   const heat = h.heat ? WX_HEAT.find(x => x.lv === h.heat).label : "";
@@ -2489,17 +2515,21 @@ wxBody.addEventListener("touchstart", (e) => {
   const chart = e.target.closest(".wx-hourly");
   if (!chart) return;
   const t = e.touches[0];
-  const start = { chart, x: t.clientX, y: t.clientY, active: false };
+  const start = { date: chart.dataset.wxDate, x: t.clientX, y: t.clientY, active: false };
   start.timer = setTimeout(() => {
     start.active = true;
     if (navigator.vibrate) navigator.vibrate(8);
-    const k = scrubHourAt(chart, start.x);
-    if (k >= 0) showHourScrub(chart, k, start.x, start.y);
+    const c = chartFor(start.date);
+    const k = c ? scrubHourAt(c, start.x) : -1;
+    if (k >= 0) showHourScrub(c, k, start.x, start.y);
   }, 350);
   scrub = start;
 }, { passive: true });
 
-wxBody.addEventListener("touchmove", (e) => {
+// These listen on the document, not the forecast panel: a touch keeps reporting to the element it
+// started on, and that element is replaced whenever the forecast re-renders mid-press. Listening
+// on the panel would then miss the rest of the press.
+document.addEventListener("touchmove", (e) => {
   if (!scrub) return;
   const t = e.touches[0];
   if (!scrub.active) {
@@ -2508,9 +2538,10 @@ wxBody.addEventListener("touchmove", (e) => {
     return;
   }
   e.preventDefault();
-  const k = scrubHourAt(scrub.chart, t.clientX);
-  if (k >= 0) showHourScrub(scrub.chart, k, t.clientX, t.clientY);
-  else hourScrub.hidden = true;
+  const c = chartFor(scrub.date);
+  const k = c ? scrubHourAt(c, t.clientX) : -1;
+  if (k >= 0) showHourScrub(c, k, t.clientX, t.clientY);
+  else { hourScrub.hidden = true; hourLine.hidden = true; }
 }, { passive: false });
 
 function endScrub() {
@@ -2520,9 +2551,27 @@ function endScrub() {
     scrub = null;
   }
   hourScrub.hidden = true;
+  hourLine.hidden = true;
+  if (wxRenderDeferred) { wxRenderDeferred = false; wxSafeRender(); }
 }
-wxBody.addEventListener("touchend", endScrub);
-wxBody.addEventListener("touchcancel", endScrub);
+
+// On a desktop with a mouse: the same hourly breakdown, following the pointer across the wash.
+const wxHoverPointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+function hideHourHover() {
+  hourScrub.hidden = true;
+  hourLine.hidden = true;
+}
+if (wxHoverPointer) {
+  wxBody.addEventListener("mousemove", (e) => {
+    const chart = e.target.closest(".wx-hourly");
+    const k = chart ? scrubHourAt(chart, e.clientX) : -1;
+    if (k < 0) { hideHourHover(); return; }
+    showHourScrub(chart, k, e.clientX, e.clientY);
+  });
+  wxBody.addEventListener("mouseleave", hideHourHover);
+}
+document.addEventListener("touchend", endScrub);
+document.addEventListener("touchcancel", endScrub);
 
 // --- Staying current while the page is open ---
 // Once a minute while visible, and whenever the page comes back to the foreground: move
