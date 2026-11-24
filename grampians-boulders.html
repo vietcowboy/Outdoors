@@ -49,6 +49,10 @@
     --wash-green: #72e39d;
     --wash-orange: #f7d84f;
     --wash-red: #f7706c;
+    /* Heat stripes. Solid enough to read through the rain wash, distinct per level. */
+    --heat-advisory: #e0a800;
+    --heat-warning: #ee6f12;
+    --heat-extreme: #d4202a;
     --text: #1f2320;
     --muted: #6b6f6c;
     --border: #e2ddd5;
@@ -627,6 +631,18 @@
   .wx-temp-dots span { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--temp-color); transform: translate(-50%, -50%); }
   .wx-bars i { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); opacity: 0.6; pointer-events: none; }
   .wx-band { position: absolute; inset: 0; opacity: 0.36; border-radius: 2px; pointer-events: none; }
+  /* Heat: diagonal stripes, so it reads as a different kind of signal from the solid rain wash.
+     Yellow = heat advisory, orange = heat warning, red = extreme heat warning. */
+  .wx-heat { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+  .wx-heat-run { position: absolute; top: 0; bottom: 0; }
+  .wx-heat-1 { background: repeating-linear-gradient(45deg, var(--heat-advisory) 0 2px, transparent 2px 7px); }
+  .wx-heat-2 { background: repeating-linear-gradient(45deg, var(--heat-warning) 0 2.5px, transparent 2.5px 7px); }
+  .wx-heat-3 { background: repeating-linear-gradient(45deg, var(--heat-extreme) 0 3px, transparent 3px 7px); }
+  .wx-heat-key { display: inline-block; width: 0.9rem; height: 0.7rem; vertical-align: -0.1rem; margin-right: 0.25rem; border-radius: 2px; }
+  .wx-heat-chip { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; white-space: nowrap; color: var(--text); background: var(--panel-2, #fff); border: 1px solid; }
+  .wx-heat-chip.wx-heat-1 { border-color: var(--heat-advisory); }
+  .wx-heat-chip.wx-heat-2 { border-color: var(--heat-warning); }
+  .wx-heat-chip.wx-heat-3 { border-color: var(--heat-extreme); }
   .wx-bar { position: relative; z-index: 1; flex: 1; height: 100%; display: flex; align-items: flex-end; }
   .wx-bar span { display: block; width: 100%; background: var(--link); border-radius: 2px 2px 0 0; }
   .wx-rain-labels { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
@@ -1775,7 +1791,8 @@ function wxPunchySummary(day) {
 // many hours it has had to dry since the last real rain. Wet sandstone is
 // slippery and breakable.
 const WX_DAY_START = 7, WX_DAY_END = 19, WX_WET_MM = 0.2;
-const WX_LEVELS = ["good", "average", "bad"], WX_LABELS = ["Good", "Average", "Bad"];
+// Internal level names stay good/average/bad (they drive colours); the words the user reads are these.
+const WX_LEVELS = ["good", "average", "bad"], WX_LABELS = ["Dry / good", "Uncertain", "Wet / bad"];
 function wxLevel(r, dry) {
   if ((r >= 5 && dry < 18) || (r >= 1 && dry < 6)) return 2;
   if (r >= 5 || (r >= 1 && dry < 14) || (r >= WX_WET_MM && dry < 4)) return 1;
@@ -1831,6 +1848,7 @@ function wxHours(hourly, date) {
       prob: wxNum(hourly.precipitation_probability[i + k]) ?? 0,
       temp: wxNum(hourly.temperature_2m[i + k]),
       lv: wxLevel(rain24, dryHours),
+      heat: wxHeatLevel(wxNum(hourly.temperature_2m[i + k])),
     };
   });
 }
@@ -1844,6 +1862,46 @@ function wxCondBand(hours) {
   if (!hours.length) return "";
   const stops = hours.map((h, k) => `${WX_BAND_COLOURS[h.lv]} ${(((k + 0.5) / hours.length) * 100).toFixed(2)}%`);
   return `<div class="wx-band" aria-hidden="true" style="background:linear-gradient(to right,${stops.join(",")})"></div>`;
+}
+
+// The end of a run can be midnight (hour 24), which wxHourLabel would read as 12pm.
+const wxHourEnd = h => h === 24 ? "midnight" : wxHourLabel(h);
+// Heat warnings, by air temperature (°C), as the Bureau-style thresholds the page uses:
+// 25–29 heat advisory, 30–34 heat warning, 35 and above extreme heat warning.
+const WX_HEAT = [
+  { lv: 1, min: 25, label: "Heat advisory" },
+  { lv: 2, min: 30, label: "Heat warning" },
+  { lv: 3, min: 35, label: "Extreme heat warning" },
+];
+function wxHeatLevel(t) {
+  if (t == null) return 0;
+  if (t >= 35) return 3;
+  if (t >= 30) return 2;
+  if (t >= 25) return 1;
+  return 0;
+}
+// Contiguous runs of the same heat level across the day: { lv, from, to, max }.
+function wxHeatRuns(hours) {
+  const runs = [];
+  hours.forEach((h, k) => {
+    if (!h.heat) return;
+    const last = runs[runs.length - 1];
+    if (last && last.lv === h.heat && last.to === k) { last.to = k + 1; last.max = Math.max(last.max, h.temp); }
+    else runs.push({ lv: h.heat, from: k, to: k + 1, max: h.temp });
+  });
+  return runs;
+}
+// Diagonal-striped columns behind the rain bars, one run at a time.
+function wxHeatOverlay(hours) {
+  if (!hours.length) return "";
+  const runs = wxHeatRuns(hours);
+  if (!runs.length) return "";
+  const n = hours.length;
+  const cells = runs.map(r => {
+    const name = WX_HEAT.find(x => x.lv === r.lv).label;
+    return `<div class="wx-heat-run wx-heat-${r.lv}" title="${name}: ${wxHourLabel(r.from)}–${wxHourEnd(r.to)}, up to ${Math.round(r.max)}°C" style="left:${(r.from / n * 100).toFixed(2)}%;width:${((r.to - r.from) / n * 100).toFixed(2)}%"></div>`;
+  }).join("");
+  return `<div class="wx-heat" aria-hidden="true">${cells}</div>`;
 }
 
 // A temperature line (with a value label at every hour) drawn as an SVG
@@ -1890,7 +1948,7 @@ function wxHourly(day) {
   const yAxis = `<div class="wx-y">${ticks.map(v => `<span style="bottom:${(v / max) * 100}%">${v}</span>`).join("")}</div>`;
   const grid = ticks.map(v => `<i style="bottom:${(v / max) * 100}%"></i>`).join("");
   const rainLabels = `<div class="wx-rain-labels" aria-hidden="true">${day.hours.map((h, k) => h.mm >= 0.1 ? `<span data-i3="${k % 3}" style="left:${((k + 0.5) / day.hours.length * 100).toFixed(2)}%">${h.mm.toFixed(1)}</span>` : "").join("")}</div>`;
-  return `<div class="wx-chart">${yAxis}<div class="wx-bars" role="img" aria-label="Hourly rainfall and temperature">${wxCondBand(day.hours)}${grid}${day.hours.map((h, k) => {
+  return `<div class="wx-chart">${yAxis}<div class="wx-bars" role="img" aria-label="Hourly rainfall and temperature">${wxCondBand(day.hours)}${wxHeatOverlay(day.hours)}${grid}${day.hours.map((h, k) => {
     const pct = h.mm < 0.1 ? 0 : Math.max(6, (h.mm / max) * 100);
     const tip = `${wxHourLabel(h.hour)}: ${h.mm < 0.1 ? "0" : h.mm.toFixed(1)} mm, ${Math.round(h.prob)}% chance${h.temp != null ? `, ${Math.round(h.temp)}°` : ""}`;
     return `<div class="wx-bar" data-i3="${k % 3}" title="${tip}"><span style="height:${pct}%;opacity:${(0.35 + 0.65 * h.prob / 100).toFixed(2)}"></span></div>`;
@@ -2117,6 +2175,7 @@ function renderWeather() {
     </li>`;
   }).join("") + "</ul>"
     + (more ? '<p class="wx-more">Keep scrolling for more days…</p>' : "")
+    + '<p class="wx-note"><span class="wx-heat-key wx-heat-1" aria-hidden="true"></span>Heat advisory 25–29°C · <span class="wx-heat-key wx-heat-2" aria-hidden="true"></span>Heat warning 30–34°C · <span class="wx-heat-key wx-heat-3" aria-hidden="true"></span>Extreme heat warning 35°C+ (striped hours)</p>'
     + '<p class="wx-note">Weather forecast provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>';
   wxBody.scrollTop = scroll;
   // The conditions popover was anchored to a chart that no longer exists: re-anchor it
@@ -2390,10 +2449,15 @@ function rebindConditionsPopover() {
 function wxCondRowsHtml(day) {
   if (!day.cond?.length) return '<p class="wx-cond-row-text">No hourly forecast for this day.</p>';
   const allDay = day.cond.length === 1;
-  return day.cond.map(c => {
+  const rows = day.cond.map(c => {
     const when = allDay ? `All day (${wxHourLabel(c.from)}–${wxHourLabel(c.to)})` : `${wxHourLabel(c.from)}–${wxHourLabel(c.to)}`;
     return `<div class="wx-cond-row"><span class="wx-cond ${c.level}">${c.label}</span><span class="wx-cond-row-text"><strong>${when}</strong> · ${c.why}</span></div>`;
-  }).join("");
+  });
+  for (const r of wxHeatRuns(day.hours || [])) {
+    const info = WX_HEAT.find(x => x.lv === r.lv);
+    rows.push(`<div class="wx-cond-row"><span class="wx-heat-chip wx-heat-${r.lv}">${info.label}</span><span class="wx-cond-row-text"><strong>${wxHourLabel(r.from)}–${wxHourEnd(r.to)}</strong> · up to ${Math.round(r.max)}°C</span></div>`);
+  }
+  return rows.join("");
 }
 
 // Place the popover at viewport point (x, y), nudged clear of it and flipped to
