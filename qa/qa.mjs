@@ -237,15 +237,16 @@ chain("device timezone Los Angeles (a day behind Melbourne)", { label: "", ...fr
 chain("device timezone UTC", { label: "", ...fresh, tz: "UTC", expect: { weather: "data", today: true } });
 chain("device timezone Kiritimati (UTC+14, ahead of Melbourne)", { label: "", ...fresh, tz: "Pacific/Kiritimati", expect: { weather: "data", today: true } });
 chain("midnight passes while the page is open", {
-  label: "", ...fresh, clock: "2026-12-01T23:59:52", expect: { weather: "data", today: true },
+  label: "", ...fresh, clock: "2026-12-01T23:59:52", expect: { weather: "data" },
   then: async (s, ctx) => {
-    const before = await panelToday(s);
+    // Wait for the page to pass midnight, then compare its "Today" with the date its own clock
+    // reads at this moment. (Comparing against a reading taken just before the wait was racy.)
     await sleep(10000);
     await s.eval("wxTick()");
     await sleep(800);
     const after = await panelToday(s);
-    const want = addDays(before, 1);
-    return after === want ? [] : [`after midnight "Today" was ${after}, expected ${want}`];
+    const want = melbourneToday(new Date(Date.now() + ctx.st.offset));
+    return after === want && after === "2026-12-02" ? [] : [`after midnight "Today" was ${after}, expected ${want}`];
   },
 });
 chain("new year's eve to new year's day", {

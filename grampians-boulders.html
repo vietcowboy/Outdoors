@@ -583,7 +583,6 @@
   }
   .wx-spot:hover { color: var(--text); }
   .wx-spot[aria-pressed="true"] { border-bottom-color: var(--accent); color: var(--text); font-weight: 600; }
-  .wx-band-popover {
     position: absolute;
     z-index: 600;
     width: 300px;
@@ -595,14 +594,7 @@
     padding: 10px;
   }
   /* While it's tracking the cursor it sits under it, so it has to be click-through. */
-  .wx-band-popover.is-following { pointer-events: none; }
-  .wx-band-popover-title { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
   /* One row per run of same-level hours through the climbing day. */
-  .wx-cond-rows { display: flex; flex-direction: column; gap: 0.45rem; }
-  .wx-cond-row { display: flex; align-items: baseline; gap: 0.4rem; }
-  .wx-cond-row .wx-cond { flex-shrink: 0; cursor: default; }
-  .wx-cond-row-text { font-size: 0.72rem; color: var(--muted); line-height: 1.35; }
-  .wx-cond-row-text strong { color: var(--text); font-weight: 600; }
   /* Weather is a single scrolling feed, so give it more of the viewport than the
      climbs panel gets — the extra height is what makes infinite scroll worth it. */
   #wx-body { max-height: 85vh; overflow-y: auto; }
@@ -650,14 +642,18 @@
   .wx-heat-run { position: absolute; top: 0; bottom: 0; }
   .wx-heat-layer-1 { background: repeating-linear-gradient(45deg, var(--heat-advisory) 0 3px, transparent 3px 8px); }
   .wx-heat-layer-2 { background: repeating-linear-gradient(45deg, var(--heat-warning) 0 3.5px, transparent 3.5px 8px); }
-  .wx-heat-layer-3 { background: repeating-linear-gradient(45deg, var(--heat-extreme) 0 4px, transparent 4px 8px); }
+  .wx-heat-layer-3 { background: repeating-linear-gradient(45deg, var(--heat-extreme) 0 9px, transparent 9px 16px); }
+  /* Skulls, repeating, drawn only where the extreme-heat stripes are (masked by the same stripes). */
+  .wx-heat-skulls { position: absolute; inset: 0; width: 100%; height: 100%; }
   /* Fixed light fills with dark text, in both themes: the chip's contrast must not depend
      on the page's text colour, which is light in dark mode. Each is well above 7:1. */
   .wx-heat-chip { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; white-space: nowrap; border: 1px solid; }
   .photo-btn { display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; margin-left: 0.3rem; padding: 0; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); color: var(--text); cursor: pointer; vertical-align: middle; }
   .photo-btn:hover, .photo-btn:focus-visible { color: var(--link); border-color: var(--link); }
   .photo-box { max-width: min(92vw, 900px); }
-  .hour-scrub { position: fixed; z-index: 70; transform: translateX(-50%); pointer-events: none; display: flex; flex-direction: column; align-items: flex-start; gap: 0.15rem; min-width: 9rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: var(--text); box-shadow: 0 6px 18px rgba(0,0,0,0.25); font-size: 0.75rem; line-height: 1.35; white-space: nowrap; }
+  .hour-scrub { position: fixed; z-index: 70; transform: translateX(-50%); pointer-events: none; display: flex; flex-direction: column; align-items: flex-start; gap: 0.15rem; min-width: 9rem; padding: 0.45rem 0.6rem; border-radius: 8px; background: #406a4c; color: #ffffff; box-shadow: 0 6px 18px rgba(0,0,0,0.25); font-size: 0.75rem; line-height: 1.35; white-space: nowrap; }
+  .hour-scrub-cond { margin-top: 0.15rem; font-size: 0.72rem; }
+  .hour-scrub-cond .wx-cond { margin-right: 0.25rem; }
   .hour-scrub[hidden] { display: none; }
   .hour-scrub-line { position: fixed; width: 2px; margin-left: -1px; background: var(--text); opacity: 0.75; pointer-events: none; z-index: 65; }
   .hour-scrub-line[hidden] { display: none; }
@@ -1518,9 +1514,6 @@
     </div>
   </div>
 
-  <div class="wx-band-popover" id="conditions-popover" hidden>
-    <strong class="wx-band-popover-title">Climbing conditions</strong>
-    <div class="wx-cond-rows" id="conditions-popover-body"></div>
   </div>
 
   <div class="modal-overlay" id="location-modal" hidden>
@@ -1945,7 +1938,14 @@ function wxHeatOverlay(hours) {
     if (!mine.length) return "";
     const stops = mine.map(r => `transparent ${pct(r.from)}%, #000 ${pct(r.from)}%, #000 ${pct(r.to)}%, transparent ${pct(r.to)}%`).join(", ");
     const mask = `linear-gradient(to right, ${stops})`;
-    return `<div class="wx-heat-layer wx-heat-layer-${lv}" style="-webkit-mask-image:${mask};mask-image:${mask}"></div>`;
+    let html = `<div class="wx-heat-layer wx-heat-layer-${lv}" style="-webkit-mask-image:${mask};mask-image:${mask}"></div>`;
+    if (lv === 3) {
+      // The skulls: the same hours, intersected with the same stripe pattern, so they sit on the black stripes only.
+      const stripes = "repeating-linear-gradient(45deg, #000 0 9px, transparent 9px 16px)";
+      // A repeating skull emoji, as SVG text (so it's drawn in colour), masked to the stripes.
+      html += `<svg class="wx-heat-skulls" aria-hidden="true" preserveAspectRatio="none" style="-webkit-mask-image:${mask}, ${stripes};mask-image:${mask}, ${stripes};-webkit-mask-composite:source-in;mask-composite:intersect"><defs><pattern id="wx-skull-pattern" width="16" height="16" patternUnits="userSpaceOnUse"><text x="2" y="13" font-size="12">\u{1F480}</text></pattern></defs><rect width="100%" height="100%" fill="url(#wx-skull-pattern)"/></svg>`;
+    }
+    return html;
   }).join("");
   const hits = runs.map(r => {
     const name = WX_HEAT.find(x => x.lv === r.lv).label;
@@ -2233,7 +2233,6 @@ function renderWeather() {
   wxBody.scrollTop = scroll;
   // The conditions popover was anchored to a chart that no longer exists: re-anchor it
   // to the same day's new chart, so appending days mid-read doesn't dismiss it.
-  rebindConditionsPopover();
 }
 
 // renderWeather never throws past here. If it ever does — data nobody anticipated, a
@@ -2483,7 +2482,14 @@ function scrubHourAt(chart, clientX) {
   return Math.min(23, Math.max(0, Math.floor((clientX - r.left) / r.width * 24)));
 }
 
-function showHourScrub(chart, k, clientX, clientY) {
+// Horizontal position for a tooltip centred on clientX, kept inside the chart's left and right edges.
+function centreWithinChart(bars, clientX, width) {
+  const half = width / 2;
+  const min = bars.left + half, max = bars.right - half;
+  return max < min ? bars.left + bars.width / 2 : Math.min(Math.max(clientX, min), max);
+}
+
+function showHourScrub(chart, k, clientX, clientY, fixed = false) {
   const day = wxData?.[wxSpot]?.find(d => d.date === chart.dataset.wxDate);
   const bars = chart.querySelector(".wx-bars");
   if (bars) {
@@ -2496,14 +2502,24 @@ function showHourScrub(chart, k, clientX, clientY) {
   const h = day?.hours?.[k];
   if (!h) return;
   const heat = h.heat ? WX_HEAT.find(x => x.lv === h.heat).label : "";
+  // The climbing conditions covering this hour (the day's runs, as on the old popover).
+  const run = (day?.cond || []).find(c => h.hour >= c.from && h.hour < c.to);
   const rain = h.mm < 0.1 ? "0 mm" : `${h.mm.toFixed(1)} mm`;
   hourScrub.innerHTML =
     `<strong class="hour-scrub-time">${wxHourLabel(h.hour)}</strong>` +
     `<span>Rain ${rain} · ${Math.round(h.prob)}% chance</span>` +
     `<span>${h.temp != null ? `${Math.round(h.temp)}°C` : "No temperature"}</span>` +
-    (heat ? `<span class="wx-heat-chip wx-heat-${h.heat} hour-scrub-heat">${heat}</span>` : "");
+    (heat ? `<span class="wx-heat-chip wx-heat-${h.heat} hour-scrub-heat">${heat}</span>` : "") +
+    (run ? `<span class="hour-scrub-cond">Climbing: <span class="wx-cond ${run.level}">${run.label}</span></span>` : "");
   hourScrub.hidden = false;
   const w = hourScrub.offsetWidth, hh = hourScrub.offsetHeight;
+  if (fixed && bars) {
+    // Mouse: a fixed band just above the wash, centred on the pointer, never past the chart's edges.
+    const br = bars.getBoundingClientRect();
+    hourScrub.style.left = `${centreWithinChart(br, clientX, w)}px`;
+    hourScrub.style.top = `${Math.max(8, br.top - hh - 8)}px`;
+    return;
+  }
   const left = Math.min(Math.max(clientX, w / 2 + 8), window.innerWidth - w / 2 - 8);
   const top = Math.max(8, clientY - hh - 22);   // above the thumb, clear of it
   hourScrub.style.left = `${left}px`;
@@ -2566,7 +2582,7 @@ if (wxHoverPointer) {
     const chart = e.target.closest(".wx-hourly");
     const k = chart ? scrubHourAt(chart, e.clientX) : -1;
     if (k < 0) { hideHourHover(); return; }
-    showHourScrub(chart, k, e.clientX, e.clientY);
+    showHourScrub(chart, k, e.clientX, e.clientY, true);
   });
   wxBody.addEventListener("mouseleave", hideHourHover);
 }
@@ -2590,129 +2606,6 @@ window.addEventListener("online", () => {
   if (!wxData || !wxCoversToday(wxData) || Date.now() - wxFetchedAt >= WX_REFRESH_AFTER_MS) loadWeather(true);
 });
 setInterval(wxTick, 60 * 1000);
-
-// --- Climbing-conditions popover ---
-// Opened from the rainfall chart itself — hover on devices with a real pointer,
-// tap everywhere else — and broken down by time, one row per run of hours that
-// share a conditions level.
-const conditionsPopover = document.getElementById("conditions-popover");
-const conditionsPopoverBody = document.getElementById("conditions-popover-body");
-const supportsHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-// `var`, and the element looked up lazily, so renderWeather — which runs earlier in
-// the file — can close a stale popover without tripping over a temporal dead zone.
-var conditionsPopoverFor = null;
-function closeConditionsPopover() {
-  const el = document.getElementById("conditions-popover");
-  if (el) el.hidden = true;
-  conditionsPopoverFor = null;
-}
-
-// Called after the feed re-renders: point the open popover at the new element for the
-// same day, or close it if that day is no longer on screen.
-function rebindConditionsPopover() {
-  const date = conditionsPopoverFor?.dataset.wxDate;
-  if (!date) return;
-  const chart = document.querySelector(`.wx-hourly[data-wx-date="${date}"]`);
-  if (!chart) return closeConditionsPopover();
-  conditionsPopoverFor = chart;
-  if (!conditionsPopover.classList.contains("is-following")) positionConditionsPopover(chart);
-}
-
-function wxCondRowsHtml(day) {
-  if (!day.cond?.length) return '<p class="wx-cond-row-text">No hourly forecast for this day.</p>';
-  const allDay = day.cond.length === 1;
-  const rows = day.cond.map(c => {
-    const when = allDay ? `All day (${wxHourLabel(c.from)}–${wxHourLabel(c.to)})` : `${wxHourLabel(c.from)}–${wxHourLabel(c.to)}`;
-    return `<div class="wx-cond-row"><span class="wx-cond ${c.level}">${c.label}</span><span class="wx-cond-row-text"><strong>${when}</strong> · ${c.why}</span></div>`;
-  });
-  for (const r of wxHeatRuns(day.hours || [])) {
-    const info = WX_HEAT.find(x => x.lv === r.lv);
-    rows.push(`<div class="wx-cond-row"><span class="wx-heat-chip wx-heat-${r.lv}">${info.label}</span><span class="wx-cond-row-text"><strong>${wxHourLabel(r.from)}–${wxHourEnd(r.to)}</strong> · up to ${Math.round(r.max)}°C</span></div>`);
-  }
-  return rows.join("");
-}
-
-// Place the popover at viewport point (x, y), nudged clear of it and flipped to
-// whichever side keeps it fully on screen.
-function placeConditionsPopover(x, y, gapX, gapY) {
-  const w = conditionsPopover.offsetWidth, h = conditionsPopover.offsetHeight;
-  const fitsRight = x + gapX + w <= window.innerWidth - 8;
-  const left = Math.max(8, fitsRight ? x + gapX : Math.min(x - gapX - w, window.innerWidth - 8 - w));
-  const below = y + gapY + h <= window.innerHeight - 8;
-  const top = below ? y + gapY : Math.max(8, y - gapY - h);
-  conditionsPopover.style.left = `${window.scrollX + left}px`;
-  conditionsPopover.style.top = `${window.scrollY + top}px`;
-}
-
-// Touch: anchored to the chart, which is tall, so it goes below when there's room
-// and above when there isn't rather than running off the bottom of the screen.
-function positionConditionsPopover(chart) {
-  const rect = chart.getBoundingClientRect();
-  placeConditionsPopover(rect.left, rect.top + rect.height, 0, 6);
-}
-
-// Pointer: tracks the cursor, offset so it never sits under it.
-const WX_CURSOR_GAP_X = 16, WX_CURSOR_GAP_Y = 18;
-function positionConditionsPopoverAtCursor(e) {
-  placeConditionsPopover(e.clientX, e.clientY, WX_CURSOR_GAP_X, WX_CURSOR_GAP_Y);
-}
-
-function openConditionsPopoverFor(chart, e) {
-  const day = wxData?.[wxSpot]?.find(d => d.date === chart.dataset.wxDate);
-  if (!day) return;
-  conditionsPopoverBody.innerHTML = wxCondRowsHtml(day);
-  conditionsPopover.hidden = false;
-  // Following the cursor means the popover can land under it, so it must not
-  // intercept the pointer — that would fire mouseout on the chart and flicker.
-  conditionsPopover.classList.toggle("is-following", !!e);
-  if (e) positionConditionsPopoverAtCursor(e);
-  else positionConditionsPopover(chart);
-  conditionsPopoverFor = chart;
-}
-const WX_CONDS_TRIGGER = ".wx-hourly";
-wxBody.addEventListener("click", (e) => {
-  // A long-press scrub ends with a click; that isn't a tap, so don't open the popover.
-  if (Date.now() - scrubbedAt < 600) return;
-  // Where there's a real pointer, hover drives the popover and a click would only
-  // fight it — the pointer is still over the chart that opened it.
-  if (supportsHover) return;
-  const chart = e.target.closest(WX_CONDS_TRIGGER);
-  if (!chart) return;
-  // A second tap on the same chart dismisses it; tapping another day's chart moves it.
-  if (conditionsPopoverFor === chart) closeConditionsPopover();
-  else openConditionsPopoverFor(chart);
-});
-if (supportsHover) {
-  // One mousemove handler does both jobs: open on entering a chart, and follow the
-  // cursor while it's over one.
-  wxBody.addEventListener("mousemove", (e) => {
-    const chart = e.target.closest(WX_CONDS_TRIGGER);
-    if (!chart) return;
-    if (conditionsPopoverFor === chart) positionConditionsPopoverAtCursor(e);
-    else openConditionsPopoverFor(chart, e);
-  });
-  wxBody.addEventListener("mouseout", (e) => {
-    const chart = e.target.closest(WX_CONDS_TRIGGER);
-    if (chart && !chart.contains(e.relatedTarget)) closeConditionsPopover();
-  });
-  wxBody.addEventListener("mouseleave", closeConditionsPopover);
-}
-// A chart-anchored popover has to follow its chart as the feed scrolls, and give up
-// once that chart has scrolled out of the feed's viewport. A cursor-following one
-// stays where the cursor is, and mouseout closes it when the content slides away.
-wxBody.addEventListener("scroll", () => {
-  const chart = conditionsPopoverFor;
-  if (!chart) return;
-  if (!chart.isConnected) return closeConditionsPopover();
-  const rect = chart.getBoundingClientRect(), panel = wxBody.getBoundingClientRect();
-  if (rect.bottom < panel.top || rect.top > panel.bottom) return closeConditionsPopover();
-  if (!conditionsPopover.classList.contains("is-following")) positionConditionsPopover(chart);
-});
-document.addEventListener("click", (e) => {
-  if (conditionsPopover.hidden) return;
-  if (e.target.closest(WX_CONDS_TRIGGER) || e.target.closest("#conditions-popover")) return;
-  closeConditionsPopover();
-});
 
 // --- Weather / Find climbs tab switcher ---
 const weatherTabs = [document.getElementById("tab-weather"), document.getElementById("tab-weather-wide")].filter(Boolean);
@@ -4412,7 +4305,6 @@ document.addEventListener("keydown", (e) => {
     accessModal.hidden = true;
     photoModal.hidden = true;
     locationModal.hidden = true;
-    closeConditionsPopover();
   }
 });
 
