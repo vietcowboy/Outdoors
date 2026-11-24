@@ -49,6 +49,12 @@
     --wash-green: #72e39d;
     --wash-orange: #f7d84f;
     --wash-red: #f7706c;
+    /* The conditions wash as it appears in dark mode: the wash colours at 36% over the dark panel,
+       as solid fills. Used in both themes, so the look is the same in light and dark mode, and
+       the heat stripes read clearly on it. */
+    --band-green: #406a4c;
+    --band-orange: #706630;
+    --band-red: #70413b;
     /* Heat stripes. Solid enough to read through the rain wash, distinct per level. */
     --heat-advisory: #e0a800;
     --heat-warning: #ee6f12;
@@ -630,7 +636,7 @@
   .wx-temp-dots { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
   .wx-temp-dots span { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--temp-color); transform: translate(-50%, -50%); }
   .wx-bars i { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); opacity: 0.6; pointer-events: none; }
-  .wx-band { position: absolute; inset: 0; opacity: 0.36; border-radius: 2px; pointer-events: none; }
+  .wx-band { position: absolute; inset: 0; border-radius: 2px; pointer-events: none; }
   /* Heat: diagonal stripes, so it reads as a different kind of signal from the solid rain wash.
      Yellow = heat advisory, orange = heat warning, red = extreme heat warning. */
   .wx-heat { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
@@ -1878,7 +1884,7 @@ const wxHourLabel = h => h === 0 ? "12am" : h === 12 ? "12pm" : h < 12 ? `${h}am
 
 // A green/yellow/red wash behind the rainfall bars, showing the conditions
 // level hour by hour. Stops sit at hour centres so neighbouring levels blend.
-const WX_BAND_COLOURS = ["var(--wash-green)", "var(--wash-orange)", "var(--wash-red)"];
+const WX_BAND_COLOURS = ["var(--band-green)", "var(--band-orange)", "var(--band-red)"];
 function wxCondBand(hours) {
   if (!hours.length) return "";
   const stops = hours.map((h, k) => `${WX_BAND_COLOURS[h.lv]} ${(((k + 0.5) / hours.length) * 100).toFixed(2)}%`);
