@@ -2574,7 +2574,7 @@ function setView(view) {
   document.body.classList.toggle("view-climbs", !isWeather);
   // `map` belongs to the main script, which runs after this one and may have failed: a
   // dead map must not break switching tabs.
-  if (!isWeather) setTimeout(() => { try { map.invalidateSize(); } catch (err) { /* no map */ } }, 50);
+  if (!isWeather) setTimeout(() => { try { if (!mapFitted) fitMapToAll(); else map.invalidateSize(); } catch (err) { /* no map */ } }, 50);
 }
 weatherTabs.forEach(b => b.addEventListener("click", () => setView("weather")));
 climbsTabs.forEach(b => b.addEventListener("click", () => setView("climbs")));
@@ -3874,7 +3874,14 @@ PARKING_SPOTS.forEach(p => {
   allBounds.push([p.lat, p.lng]);
 });
 
-map.fitBounds(allBounds, { padding: [30, 30] });
+// The map starts hidden (the weather tab is the default), and Leaflet can't fit a view to a
+// box with no size, so the first fit happens when the map is first shown — see setView.
+let mapFitted = false;
+function fitMapToAll() {
+  map.invalidateSize();
+  map.fitBounds(allBounds, { padding: [30, 30] });
+  mapFitted = true;
+}
 
 // Sets the area filter from a "Show climbs" button in a map popup and scrolls
 // the results table into view — deliberately does not move, zoom, or mark up
