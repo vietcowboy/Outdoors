@@ -1793,7 +1793,7 @@ function wxPunchySummary(day) {
 // slippery and breakable.
 const WX_DAY_START = 7, WX_DAY_END = 19, WX_WET_MM = 0.2;
 // Internal level names stay good/average/bad (they drive colours); the words the user reads are these.
-const WX_LEVELS = ["good", "average", "bad"], WX_LABELS = ["Dry / good", "Uncertain", "Wet / bad"];
+const WX_LEVELS = ["good", "average", "bad"], WX_LABELS = ["Dry", "Uncertain", "Wet / bad"];
 function wxLevel(r, dry) {
   if ((r >= 5 && dry < 18) || (r >= 1 && dry < 6)) return 2;
   if (r >= 5 || (r >= 1 && dry < 14) || (r >= WX_WET_MM && dry < 4)) return 1;
