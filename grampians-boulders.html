@@ -622,10 +622,12 @@
   .wx-day-row { width: 100%; }
   /* Tapping/hovering the chart opens the climbing-conditions breakdown. */
   .wx-hourly { padding: 0.5rem 0 0.1rem; cursor: pointer; }
-  .wx-chart { display: flex; gap: 0.2rem; margin-top: 0.8rem; }
+  .wx-chart { display: flex; gap: 0.2rem; margin-top: 0.8rem; margin-bottom: 1.4rem; }
   .wx-y { position: relative; width: 0.85rem; height: 6rem; font-size: 0.62rem; color: var(--muted); }
   .wx-y span { position: absolute; right: 0; transform: translateY(50%); line-height: 1; }
-  .wx-bars { position: relative; flex: 1; display: flex; align-items: flex-end; gap: 2px; height: 6rem; border-bottom: 1px solid var(--border); }
+  /* No gap between the 24 hour columns: hour k is exactly the (k + 0.5) / 24 point across the chart,
+     which is where the hour line, the wash, the stripes and the time labels are all placed. */
+  .wx-bars { position: relative; flex: 1; display: flex; align-items: flex-end; gap: 0; height: 6rem; border-bottom: 1px solid var(--border); }
   .wx-temp-line { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 2; }
   .wx-temp-labels { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
   .wx-temp-labels span { position: absolute; transform: translate(-50%, -50%); font-size: 0.64rem; font-weight: 700; color: #1f2320; white-space: nowrap; background: var(--temp-color); padding: 1px 4px; border-radius: 3px; }
@@ -653,6 +655,7 @@
   .photo-box { max-width: min(92vw, 900px); }
   .hour-scrub { position: fixed; z-index: 70; transform: translateX(-50%); pointer-events: none; display: flex; flex-direction: column; align-items: flex-start; gap: 0.15rem; min-width: 9rem; padding: 0.45rem 0.6rem; border-radius: 8px; background: #406a4c; color: #ffffff; box-shadow: 0 6px 18px rgba(0,0,0,0.25); font-size: 0.75rem; line-height: 1.35; white-space: nowrap; }
   .hour-scrub-cond { margin-top: 0.15rem; font-size: 0.72rem; }
+  .hour-scrub-why { opacity: 0.85; }
   .hour-scrub-cond .wx-cond { margin-right: 0.25rem; }
   .hour-scrub[hidden] { display: none; }
   .hour-scrub-line { position: fixed; width: 2px; margin-left: -1px; background: var(--text); opacity: 0.75; pointer-events: none; z-index: 65; }
@@ -667,12 +670,13 @@
   .wx-heat-chip.wx-heat-1 { color: #3b2f00; background: #f7de7a; border-color: #c99a00; }
   .wx-heat-chip.wx-heat-2 { color: #4a0008; background: #f5a0a4; border-color: #c4161f; }
   .wx-heat-chip.wx-heat-3 { color: #ffffff; background: #111111; border-color: #111111; }
-  .wx-bar { position: relative; z-index: 1; flex: 1; height: 100%; display: flex; align-items: flex-end; }
+  .wx-bar { position: relative; z-index: 1; flex: 1; height: 100%; display: flex; align-items: flex-end; padding: 0 1px; box-sizing: border-box; }
   .wx-bar span { display: block; width: 100%; background: var(--link); border-radius: 2px 2px 0 0; }
   .wx-rain-labels { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
   .wx-rain-labels span { position: absolute; bottom: 2px; transform: translateX(-50%); font-size: 0.5rem; font-weight: 600; color: var(--on-accent); background: var(--link); line-height: 1; white-space: nowrap; letter-spacing: -0.02em; padding: 1px 3px; border-radius: 3px; }
-  .wx-bar-axis { display: flex; font-size: 0.66rem; color: var(--muted); margin-top: 0.2rem; padding-left: 1.05rem; }
-  .wx-bar-axis span { flex: 1; }
+  /* Time labels sit under the chart, each centred on its hour. */
+  .wx-axis-labels { position: absolute; left: 0; right: 0; top: 100%; margin-top: 0.25rem; height: 0.9rem; pointer-events: none; }
+  .wx-axis-labels span { position: absolute; top: 0; transform: translateX(-50%); font-size: 0.66rem; color: var(--muted); white-space: nowrap; }
   .modal-box p.wx-hourly-empty { font-size: 0.72rem; margin: 0.35rem 0 0; color: var(--muted); }
   .wx-date { display: flex; align-items: center; gap: 0; line-height: 1.25; margin-bottom: 0.5rem; }
   .wx-date-dot { opacity: 0.5; }
@@ -1352,7 +1356,10 @@
   .site-footer { display: flex; padding: 0; color: var(--muted); font-size: 0.78rem; }
   @media (min-width: 961px) {
     body { height: 100%; display: flex; flex-direction: column; }
-    .wrap, .main-layout, .filters-panel { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+    /* The header wrapper keeps its own height; only the main layout takes the remaining space.
+       (The wrapper growing too left an empty band under the header.) */
+    .wrap { display: flex; flex-direction: column; min-height: 0; flex: 0 0 auto; }
+    .main-layout, .filters-panel { display: flex; flex-direction: column; min-height: 0; flex: 1; }
     /* Scoped to the visible view: an unscoped #weather-panel rule would outrank
        .weather-only[hidden] { display: none } and show the panel in climbs mode. */
     body.view-weather #weather-panel { display: flex; flex-direction: column; min-height: 0; flex: 1; }
@@ -1881,6 +1888,7 @@ function wxHours(hourly, date) {
       prob: wxNum(hourly.precipitation_probability[i + k]) ?? 0,
       temp: wxNum(hourly.temperature_2m[i + k]),
       lv: wxLevel(rain24, dryHours),
+      rain24,
       heat: wxHeatLevel(wxNum(hourly.temperature_2m[i + k])),
     };
   });
@@ -2002,8 +2010,7 @@ function wxHourly(day) {
     const pct = h.mm < 0.1 ? 0 : Math.max(6, (h.mm / max) * 100);
     const tip = `${wxHourLabel(h.hour)}: ${h.mm < 0.1 ? "0" : h.mm.toFixed(1)} mm, ${Math.round(h.prob)}% chance${h.temp != null ? `, ${Math.round(h.temp)}°` : ""}`;
     return `<div class="wx-bar" data-i3="${k % 3}" title="${tip}"><span style="height:${pct}%;opacity:${(0.35 + 0.65 * h.prob / 100).toFixed(2)}"></span></div>`;
-  }).join("")}${wxTempLine(day.hours)}${rainLabels}</div></div>
-  <div class="wx-bar-axis">${[0, 3, 6, 9, 12, 15, 18, 21].map(h => `<span>${wxHourLabel(h)}</span>`).join("")}</div>`;
+  }).join("")}${wxTempLine(day.hours)}${rainLabels}<div class="wx-axis-labels" aria-hidden="true">${[0, 3, 6, 9, 12, 15, 18, 21].map(h => `<span style="left:${((h + 0.5) / 24 * 100).toFixed(3)}%">${wxHourLabel(h)}</span>`).join("")}</div></div></div>`;
 }
 
 // --- Victorian public holidays ---
@@ -2502,15 +2509,17 @@ function showHourScrub(chart, k, clientX, clientY, fixed = false) {
   const h = day?.hours?.[k];
   if (!h) return;
   const heat = h.heat ? WX_HEAT.find(x => x.lv === h.heat).label : "";
-  // The climbing conditions covering this hour (the day's runs, as on the old popover).
-  const run = (day?.cond || []).find(c => h.hour >= c.from && h.hour < c.to);
+  // The climbing conditions for this hour, from the same rule as the day's chart: every hour has
+  // one, including the early morning and late evening.
+  const cond = { level: WX_LEVELS[h.lv], label: WX_LABELS[h.lv] };
+  const why = h.rain24 < 0.1 ? "no rain in the previous 24h" : `${h.rain24 < 10 ? h.rain24.toFixed(1) : Math.round(h.rain24)} mm in the previous 24h`;
   const rain = h.mm < 0.1 ? "0 mm" : `${h.mm.toFixed(1)} mm`;
   hourScrub.innerHTML =
     `<strong class="hour-scrub-time">${wxHourLabel(h.hour)}</strong>` +
     `<span>Rain ${rain} · ${Math.round(h.prob)}% chance</span>` +
     `<span>${h.temp != null ? `${Math.round(h.temp)}°C` : "No temperature"}</span>` +
     (heat ? `<span class="wx-heat-chip wx-heat-${h.heat} hour-scrub-heat">${heat}</span>` : "") +
-    (run ? `<span class="hour-scrub-cond">Climbing: <span class="wx-cond ${run.level}">${run.label}</span></span>` : "");
+    `<span class="hour-scrub-cond">Climbing: <span class="wx-cond ${cond.level}">${cond.label}</span> <span class="hour-scrub-why">${why}</span></span>`;
   hourScrub.hidden = false;
   const w = hourScrub.offsetWidth, hh = hourScrub.offsetHeight;
   if (fixed && bars) {
