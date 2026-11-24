@@ -634,10 +634,13 @@
   /* Heat: diagonal stripes, so it reads as a different kind of signal from the solid rain wash.
      Yellow = heat advisory, orange = heat warning, red = extreme heat warning. */
   .wx-heat { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+  /* One full-width stripe surface per heat level, masked to that level's hours. Every level shares
+     the same surface, so the stripes stay in step across neighbouring runs of different colours. */
+  .wx-heat-layer { position: absolute; inset: 0; }
   .wx-heat-run { position: absolute; top: 0; bottom: 0; }
-  .wx-heat-1 { background: repeating-linear-gradient(45deg, var(--heat-advisory) 0 2px, transparent 2px 7px); }
-  .wx-heat-2 { background: repeating-linear-gradient(45deg, var(--heat-warning) 0 2.5px, transparent 2.5px 7px); }
-  .wx-heat-3 { background: repeating-linear-gradient(45deg, var(--heat-extreme) 0 3px, transparent 3px 7px); }
+  .wx-heat-layer-1 { background: repeating-linear-gradient(45deg, var(--heat-advisory) 0 2px, transparent 2px 7px); }
+  .wx-heat-layer-2 { background: repeating-linear-gradient(45deg, var(--heat-warning) 0 2.5px, transparent 2.5px 7px); }
+  .wx-heat-layer-3 { background: repeating-linear-gradient(45deg, var(--heat-extreme) 0 3px, transparent 3px 7px); }
   /* Fixed light fills with dark text, in both themes: the chip's contrast must not depend
      on the page's text colour, which is light in dark mode. Each is well above 7:1. */
   .wx-heat-chip { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; white-space: nowrap; border: 1px solid; }
@@ -1915,11 +1918,21 @@ function wxHeatOverlay(hours) {
   const runs = wxHeatRuns(hours);
   if (!runs.length) return "";
   const n = hours.length;
-  const cells = runs.map(r => {
-    const name = WX_HEAT.find(x => x.lv === r.lv).label;
-    return `<div class="wx-heat-run wx-heat-${r.lv}" title="${name}: ${wxHourLabel(r.from)}–${wxHourEnd(r.to)}, up to ${Math.round(r.max)}°C" style="left:${(r.from / n * 100).toFixed(2)}%;width:${((r.to - r.from) / n * 100).toFixed(2)}%"></div>`;
+  const pct = h => (h / n * 100).toFixed(3);
+  // One stripe layer per level, masked to the hours at that level. Tooltips are kept on
+  // transparent per-run boxes, so hovering still explains each run.
+  const layers = [1, 2, 3].map(lv => {
+    const mine = runs.filter(r => r.lv === lv);
+    if (!mine.length) return "";
+    const stops = mine.map(r => `transparent ${pct(r.from)}%, #000 ${pct(r.from)}%, #000 ${pct(r.to)}%, transparent ${pct(r.to)}%`).join(", ");
+    const mask = `linear-gradient(to right, ${stops})`;
+    return `<div class="wx-heat-layer wx-heat-layer-${lv}" style="-webkit-mask-image:${mask};mask-image:${mask}"></div>`;
   }).join("");
-  return `<div class="wx-heat" aria-hidden="true">${cells}</div>`;
+  const hits = runs.map(r => {
+    const name = WX_HEAT.find(x => x.lv === r.lv).label;
+    return `<div class="wx-heat-run" title="${name}: ${wxHourLabel(r.from)}–${wxHourEnd(r.to)}, up to ${Math.round(r.max)}°C" style="left:${pct(r.from)}%;width:${pct(r.to - r.from)}%"></div>`;
+  }).join("");
+  return `<div class="wx-heat" aria-hidden="true">${layers}${hits}</div>`;
 }
 
 // A temperature line (with a value label at every hour) drawn as an SVG
