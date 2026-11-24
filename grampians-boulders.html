@@ -1350,10 +1350,9 @@
      with 32px of page padding beneath it. On desktop the page itself doesn't scroll,
      so the panel has to flex to whatever height is left over rather than take a fixed
      slice of the viewport — otherwise the footer falls off the bottom edge. */
-  body { padding-bottom: 32px; }
   .filters-panel { margin-bottom: 0; }
-  /* Flex, so the inline image's baseline leading doesn't pad the 16/32px out. */
-  .site-footer { display: flex; padding: 0; color: var(--muted); font-size: 0.78rem; }
+  .visitor-count { margin: 0.75rem 0 0; text-align: center; }
+  .visitor-count img { display: inline-block; vertical-align: middle; }
   @media (min-width: 961px) {
     body { height: 100%; display: flex; flex-direction: column; }
     /* The header wrapper keeps its own height; only the main layout takes the remaining space.
@@ -1501,6 +1500,7 @@
           </a>
         </div>
       </div>
+      <p class="visitor-count"><img src="https://hits.sh/vietcowboy.github.io/Outdoors/grampians-boulders.svg?style=flat-square&label=visitors" alt="visitor count" height="20"></p>
     </div>
   </div>
 
@@ -1650,9 +1650,6 @@
     </div>
   </div>
 
-  <footer class="site-footer">
-    <img src="https://hits.sh/vietcowboy.github.io/Outdoors/grampians-boulders.svg?style=flat-square&label=visitors" alt="visitor count" height="20">
-  </footer>
   </div>
 </div>
 
