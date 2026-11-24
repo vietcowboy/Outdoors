@@ -49,16 +49,14 @@
     --wash-green: #72e39d;
     --wash-orange: #f7d84f;
     --wash-red: #f7706c;
-    /* The conditions wash as it appears in dark mode: the wash colours at 36% over the dark panel,
-       as solid fills. Used in both themes, so the look is the same in light and dark mode, and
-       the heat stripes read clearly on it. */
-    --band-green: #406a4c;
-    --band-orange: #706630;
-    --band-red: #70413b;
+    /* The conditions wash: the wash colours at 36% (the lighter look on light backgrounds). */
+    --band-green: rgba(114, 227, 157, 0.36);
+    --band-orange: rgba(247, 216, 79, 0.36);
+    --band-red: rgba(247, 112, 108, 0.36);
     /* Heat stripes. Solid enough to read through the rain wash, distinct per level. */
-    --heat-advisory: #e0a800;
-    --heat-warning: #ee6f12;
-    --heat-extreme: #d4202a;
+    --heat-advisory: #ffd000;
+    --heat-warning: #ff6400;
+    --heat-extreme: #e0001b;
     --text: #1f2320;
     --muted: #6b6f6c;
     --border: #e2ddd5;
@@ -103,6 +101,9 @@
     :root:not([data-theme="light"]) {
       --bg: #1b1d1a;
       --panel: #24261f;
+      --band-green: #406a4c;
+      --band-orange: #706630;
+      --band-red: #70413b;
       --card: #2d2f27;
       --date-chip-bg: #ffffff;
       --date-chip-text: #1f2320;
@@ -142,6 +143,9 @@
   :root[data-theme="dark"] {
     --bg: #1b1d1a;
     --panel: #24261f;
+    --band-green: #406a4c;
+    --band-orange: #706630;
+    --band-red: #70413b;
     --card: #2d2f27;
     --date-chip-bg: #ffffff;
     --date-chip-text: #1f2320;
@@ -644,9 +648,9 @@
      the same surface, so the stripes stay in step across neighbouring runs of different colours. */
   .wx-heat-layer { position: absolute; inset: 0; }
   .wx-heat-run { position: absolute; top: 0; bottom: 0; }
-  .wx-heat-layer-1 { background: repeating-linear-gradient(45deg, var(--heat-advisory) 0 2px, transparent 2px 7px); }
-  .wx-heat-layer-2 { background: repeating-linear-gradient(45deg, var(--heat-warning) 0 2.5px, transparent 2.5px 7px); }
-  .wx-heat-layer-3 { background: repeating-linear-gradient(45deg, var(--heat-extreme) 0 3px, transparent 3px 7px); }
+  .wx-heat-layer-1 { background: repeating-linear-gradient(45deg, var(--heat-advisory) 0 3px, transparent 3px 8px); }
+  .wx-heat-layer-2 { background: repeating-linear-gradient(45deg, var(--heat-warning) 0 3.5px, transparent 3.5px 8px); }
+  .wx-heat-layer-3 { background: repeating-linear-gradient(45deg, var(--heat-extreme) 0 4px, transparent 4px 8px); }
   /* Fixed light fills with dark text, in both themes: the chip's contrast must not depend
      on the page's text colour, which is light in dark mode. Each is well above 7:1. */
   .wx-heat-chip { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; white-space: nowrap; border: 1px solid; }
