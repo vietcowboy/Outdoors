@@ -638,7 +638,6 @@
   .wx-heat-1 { background: repeating-linear-gradient(45deg, var(--heat-advisory) 0 2px, transparent 2px 7px); }
   .wx-heat-2 { background: repeating-linear-gradient(45deg, var(--heat-warning) 0 2.5px, transparent 2.5px 7px); }
   .wx-heat-3 { background: repeating-linear-gradient(45deg, var(--heat-extreme) 0 3px, transparent 3px 7px); }
-  .wx-heat-key { display: inline-block; width: 0.9rem; height: 0.7rem; vertical-align: -0.1rem; margin-right: 0.25rem; border-radius: 2px; }
   /* Fixed light fills with dark text, in both themes: the chip's contrast must not depend
      on the page's text colour, which is light in dark mode. Each is well above 7:1. */
   .wx-heat-chip { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; white-space: nowrap; border: 1px solid; }
@@ -2177,7 +2176,6 @@ function renderWeather() {
     </li>`;
   }).join("") + "</ul>"
     + (more ? '<p class="wx-more">Keep scrolling for more days…</p>' : "")
-    + '<p class="wx-note"><span class="wx-heat-key wx-heat-1" aria-hidden="true"></span>Heat advisory 25–29°C · <span class="wx-heat-key wx-heat-2" aria-hidden="true"></span>Heat warning 30–34°C · <span class="wx-heat-key wx-heat-3" aria-hidden="true"></span>Extreme heat warning 35°C+ (striped hours)</p>'
     + '<p class="wx-note">Weather forecast provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>';
   wxBody.scrollTop = scroll;
   // The conditions popover was anchored to a chart that no longer exists: re-anchor it
