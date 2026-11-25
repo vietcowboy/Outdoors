@@ -2535,13 +2535,17 @@ document.addEventListener("touchstart", (e) => {
   if (!chart) { scrub = null; hideHourHover(); return; }
   const t = e.touches[0];
   const start = { date: chart.dataset.wxDate, x: t.clientX, y: t.clientY, active: false, moved: false };
-  start.timer = setTimeout(() => {
+  const activate = () => {
     start.active = true;
     if (navigator.vibrate) navigator.vibrate(8);
     const c = chartFor(start.date);
     const k = c ? scrubHourAt(c, start.x) : -1;
     if (k >= 0) showHourScrub(c, k, start.x, start.y, true);
-  }, 350);
+  };
+  // With a tooltip already showing, the reader is moving between hours: start dragging at once
+  // rather than making them hold again. Otherwise wait for the long press.
+  if (!hourScrub.hidden) activate();
+  else start.timer = setTimeout(activate, 350);
   scrub = start;
 }, { passive: true });
 
@@ -2582,10 +2586,11 @@ function endTouch() {
   if (wxRenderDeferred) { wxRenderDeferred = false; wxSafeRender(); }
 }
 
+// The system can cancel a touch part-way (a long press, a gesture). Keep whatever tooltip is
+// showing rather than snapping it shut; a tap outside still closes it.
 function cancelTouch() {
   if (scrub) clearTimeout(scrub.timer);
   scrub = null;
-  hideHourHover();
   if (wxRenderDeferred) { wxRenderDeferred = false; wxSafeRender(); }
 }
 
