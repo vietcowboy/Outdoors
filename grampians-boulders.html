@@ -237,6 +237,7 @@
   .main-layout { display: flex; flex-direction: column; gap: 1rem; }
   .panel.results-panel { padding-left: 0; padding-right: 0; }
   .results-panel th:first-child, .results-panel td:first-child { padding-left: 16px; }
+
   .results-panel th:last-child, .results-panel td:last-child { padding-right: 16px; }
   .page-header {
     display: flex;
@@ -1167,8 +1168,9 @@
     background: var(--card);
     box-shadow: 0 3px 10px rgba(0,0,0,0.18);
   }
-  #results-table th:nth-child(1), #results-table td:nth-child(1) { width: 40%; }
-  #results-table th:nth-child(2), #results-table td:nth-child(2) { width: 30%; }
+  /* The climb column gets the widest share, so its descriptions can run across it. */
+  #results-table th:nth-child(1), #results-table td:nth-child(1) { width: 52%; }
+  #results-table th:nth-child(2), #results-table td:nth-child(2) { width: 22%; }
   #results-table th:nth-child(3), #results-table td:nth-child(3) { width: 30%; }
   th {
     color: var(--muted);
