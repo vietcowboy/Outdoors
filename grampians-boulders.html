@@ -2469,7 +2469,6 @@ let scrub = null;          // { date, x, y, active, timer } while a touch is on 
 // The chart is found again by its date on every move: the forecast re-renders while you're
 // holding (scrolling, a refresh), which replaces the element the press started on.
 const chartFor = (date) => document.querySelector(`.wx-hourly[data-wx-date="${date}"]`);
-let scrubbedAt = 0;        // so the click that follows a scrub doesn't also open the popover
 
 function scrubHourAt(chart, clientX) {
   const bars = chart.querySelector(".wx-bars");
@@ -2525,48 +2524,68 @@ function showHourScrub(chart, k, clientX, clientY, fixed = false) {
   hourScrub.style.top = `${top}px`;
 }
 
-wxBody.addEventListener("touchstart", (e) => {
-  if (e.touches.length !== 1) return;
+// Touch. A long press then a drag moves the tooltip along the wash, following the thumb. A tap on
+// an hour pins the tooltip to that hour; a tap on another hour moves it; a tap outside the wash
+// and the tooltip closes it. The tooltip sits in a fixed band just above the wash, shifted left or
+// right to follow the hour. Touches on the tooltip itself do nothing.
+document.addEventListener("touchstart", (e) => {
+  if (e.touches.length !== 1) { if (scrub) clearTimeout(scrub.timer); scrub = null; return; }
+  if (e.target.closest(".hour-scrub")) { scrub = null; return; }
   const chart = e.target.closest(".wx-hourly");
-  if (!chart) return;
+  if (!chart) { scrub = null; hideHourHover(); return; }
   const t = e.touches[0];
-  const start = { date: chart.dataset.wxDate, x: t.clientX, y: t.clientY, active: false };
+  const start = { date: chart.dataset.wxDate, x: t.clientX, y: t.clientY, active: false, moved: false };
   start.timer = setTimeout(() => {
     start.active = true;
     if (navigator.vibrate) navigator.vibrate(8);
     const c = chartFor(start.date);
     const k = c ? scrubHourAt(c, start.x) : -1;
-    if (k >= 0) showHourScrub(c, k, start.x, start.y);
+    if (k >= 0) showHourScrub(c, k, start.x, start.y, true);
   }, 350);
   scrub = start;
 }, { passive: true });
 
 // These listen on the document, not the forecast panel: a touch keeps reporting to the element it
-// started on, and that element is replaced whenever the forecast re-renders mid-press. Listening
-// on the panel would then miss the rest of the press.
+// started on, and that element is replaced whenever the forecast re-renders mid-press.
 document.addEventListener("touchmove", (e) => {
   if (!scrub) return;
   const t = e.touches[0];
   if (!scrub.active) {
     // Moving before the long press completes means the reader is scrolling, not scrubbing.
-    if (Math.hypot(t.clientX - scrub.x, t.clientY - scrub.y) > 10) { clearTimeout(scrub.timer); scrub = null; }
+    if (Math.hypot(t.clientX - scrub.x, t.clientY - scrub.y) > 10) {
+      clearTimeout(scrub.timer);
+      scrub = null;
+      hideHourHover();
+    }
     return;
   }
   e.preventDefault();
   const c = chartFor(scrub.date);
   const k = c ? scrubHourAt(c, t.clientX) : -1;
-  if (k >= 0) showHourScrub(c, k, t.clientX, t.clientY);
-  else { hourScrub.hidden = true; hourLine.hidden = true; }
+  if (k >= 0) showHourScrub(c, k, t.clientX, t.clientY, true);
+  else hideHourHover();
 }, { passive: false });
 
-function endScrub() {
-  if (scrub) {
-    clearTimeout(scrub.timer);
-    if (scrub.active) scrubbedAt = Date.now();
-    scrub = null;
+function endTouch() {
+  const s = scrub;
+  scrub = null;
+  if (s) {
+    clearTimeout(s.timer);
+    // A tap (no long press, no movement) on the wash pins the tooltip to that hour. After a drag,
+    // the tooltip stays on the hour where the thumb was lifted.
+    if (!s.active && !s.moved) {
+      const c = chartFor(s.date);
+      const k = c ? scrubHourAt(c, s.x) : -1;
+      if (k >= 0) showHourScrub(c, k, s.x, s.y, true);
+    }
   }
-  hourScrub.hidden = true;
-  hourLine.hidden = true;
+  if (wxRenderDeferred) { wxRenderDeferred = false; wxSafeRender(); }
+}
+
+function cancelTouch() {
+  if (scrub) clearTimeout(scrub.timer);
+  scrub = null;
+  hideHourHover();
   if (wxRenderDeferred) { wxRenderDeferred = false; wxSafeRender(); }
 }
 
@@ -2585,8 +2604,8 @@ if (wxHoverPointer) {
   });
   wxBody.addEventListener("mouseleave", hideHourHover);
 }
-document.addEventListener("touchend", endScrub);
-document.addEventListener("touchcancel", endScrub);
+document.addEventListener("touchend", endTouch);
+document.addEventListener("touchcancel", cancelTouch);
 
 // --- Staying current while the page is open ---
 // Once a minute while visible, and whenever the page comes back to the foreground: move
