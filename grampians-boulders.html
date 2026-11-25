@@ -1630,8 +1630,8 @@
         <table id="results-table">
           <thead>
             <tr>
-              <th><span id="result-count">Climb</span></th>
-              <th>Area</th>
+              <th data-key="grade"><span id="result-count">Climb</span><span class="sort-icon">⇅</span></th>
+              <th data-key="area">Area<span class="sort-icon">⇅</span></th>
             </tr>
           </thead>
           <tbody id="results-body"></tbody>
@@ -4326,6 +4326,9 @@ document.getElementById("reset-filters").addEventListener("click", () => {
   updateTrackFill();
   areaFilter.value = "";
   starToggles.forEach(btn => btn.setAttribute("aria-pressed", btn.dataset.value !== "1" ? "true" : "false"));
+  sortKey = "grade";
+  sortDir = 1;
+  updateSortIndicators();
   render();
   map.closePopup();
   map.fitBounds(allBounds, { padding: [30, 30] });
@@ -4377,11 +4380,37 @@ function updateAreaOptions() {
   areaFilter.value = availableAreas.includes(currentVal) ? currentVal : "";
 }
 
+let sortKey = "grade", sortDir = 1;
+function updateSortIndicators() {
+  document.querySelectorAll("th[data-key]").forEach(th => {
+    const icon = th.querySelector(".sort-icon");
+    const active = th.dataset.key === sortKey;
+    th.classList.toggle("sort-active", active);
+    icon.textContent = active ? (sortDir === 1 ? "▲" : "▼") : "⇅";
+    th.setAttribute("aria-sort", active ? (sortDir === 1 ? "ascending" : "descending") : "none");
+  });
+}
+document.querySelectorAll("th[data-key]").forEach(th => {
+  th.setAttribute("role", "button");
+  th.setAttribute("tabindex", "0");
+  const activate = () => {
+    const key = th.dataset.key;
+    if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+    updateSortIndicators();
+    render();
+  };
+  th.addEventListener("click", activate);
+  th.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(); }
+  });
+});
+updateSortIndicators();
+
 let lastRenderKey = "";
 function render() {
   updateAreaOptions();
   // Skip the table rebuild when nothing that affects it has changed.
-  const renderKey = [minSlider.value, maxSlider.value, areaFilter.value, [...getCheckedStars()].sort().join()].join("|");
+  const renderKey = [minSlider.value, maxSlider.value, areaFilter.value, [...getCheckedStars()].sort().join(), sortKey, sortDir].join("|");
   if (renderKey === lastRenderKey) return;
   lastRenderKey = renderKey;
   const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
@@ -4395,12 +4424,17 @@ function render() {
     (b.stars < 0 || checkedStars.has(b.stars))
   );
 
-  // Always grouped: area, then sub-area within it, then grade, then name. Climbs without a
-  // sub-area sort after the named ones in their area.
+  // Grade sort: by grade, then name. Area sort: by area, then sub-area (so each sub-area's climbs
+  // stay together), then grade, then name. Climbs without a sub-area come last within their area.
   const byText = (x, y) => (x || "").toLowerCase().localeCompare((y || "").toLowerCase());
   rows.sort((a, b) => {
-    if (!a.boulder !== !b.boulder) return a.boulder ? -1 : 1;
-    return byText(a.area, b.area) || byText(a.boulder, b.boulder) || a.grade - b.grade || byText(a.name, b.name);
+    if (sortKey === "area") {
+      if (a.area !== b.area) return byText(a.area, b.area) * sortDir;
+      if (!a.boulder !== !b.boulder) return a.boulder ? -1 : 1;
+      if (a.boulder !== b.boulder) return byText(a.boulder, b.boulder);
+    }
+    if (a.grade !== b.grade) return (a.grade - b.grade) * (sortKey === "grade" ? sortDir : 1);
+    return byText(a.name, b.name);
   });
 
   resultCount.textContent = `${rows.length} climb${rows.length === 1 ? "" : "s"}`;
