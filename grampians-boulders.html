@@ -1169,9 +1169,8 @@
     box-shadow: 0 3px 10px rgba(0,0,0,0.18);
   }
   /* The climb column gets the widest share, so its descriptions can run across it. */
-  #results-table th:nth-child(1), #results-table td:nth-child(1) { width: 52%; }
-  #results-table th:nth-child(2), #results-table td:nth-child(2) { width: 22%; }
-  #results-table th:nth-child(3), #results-table td:nth-child(3) { width: 30%; }
+  #results-table th:nth-child(1), #results-table td:nth-child(1) { width: 62%; }
+  #results-table th:nth-child(2), #results-table td:nth-child(2) { width: 38%; }
   th {
     color: var(--muted);
     font-size: 0.76rem;
@@ -1234,7 +1233,7 @@
   .climb-link:hover { text-decoration: underline; }
   .climb-link .climb-name { max-width: 22ch; white-space: normal; overflow-wrap: break-word; }
   .climb-link .go-arrow { color: var(--climb-link); font-size: 0.85em; text-decoration: none; }
-  .boulder-cell { color: var(--muted); }
+  .subarea-name { color: var(--muted); font-size: 0.7rem; }
   .boulder-cell-inner { display: flex; align-items: center; gap: 0.35rem; }
   .boulder-pin-btn {
     display: inline-flex;
@@ -1631,9 +1630,8 @@
         <table id="results-table">
           <thead>
             <tr>
-              <th data-key="grade"><span id="result-count">Climb</span><span class="sort-icon">⇅</span></th>
-              <th data-key="area">Area<span class="sort-icon">⇅</span></th>
-              <th data-key="boulder">Sub-area<span class="sort-icon">⇅</span></th>
+              <th><span id="result-count">Climb</span></th>
+              <th>Area</th>
             </tr>
           </thead>
           <tbody id="results-body"></tbody>
@@ -2529,39 +2527,34 @@ function showHourScrub(chart, k, clientX, clientY, fixed = false) {
 // and the tooltip closes it. The tooltip sits in a fixed band just above the wash, shifted left or
 // right to follow the hour. Touches on the tooltip itself do nothing.
 document.addEventListener("touchstart", (e) => {
-  if (e.touches.length !== 1) { if (scrub) clearTimeout(scrub.timer); scrub = null; return; }
+  if (e.touches.length !== 1) { scrub = null; return; }
   if (e.target.closest(".hour-scrub")) { scrub = null; return; }
   const chart = e.target.closest(".wx-hourly");
   if (!chart) { scrub = null; hideHourHover(); return; }
   const t = e.touches[0];
-  const start = { date: chart.dataset.wxDate, x: t.clientX, y: t.clientY, active: false, moved: false };
-  const activate = () => {
-    start.active = true;
-    if (navigator.vibrate) navigator.vibrate(8);
-    const c = chartFor(start.date);
-    const k = c ? scrubHourAt(c, start.x) : -1;
-    if (k >= 0) showHourScrub(c, k, start.x, start.y, true);
-  };
-  // With a tooltip already showing, the reader is moving between hours: start dragging at once
-  // rather than making them hold again. Otherwise wait for the long press.
-  if (!hourScrub.hidden) activate();
-  else start.timer = setTimeout(activate, 350);
+  // The tooltip appears the moment a thumb lands on the wash. If the touch turns out to be a
+  // vertical scroll, the tooltip is dropped and the page scrolls as normal (see touchmove).
+  const start = { date: chart.dataset.wxDate, x: t.clientX, y: t.clientY, committed: false, scrolled: false };
   scrub = start;
+  const c = chart;
+  const k = scrubHourAt(c, t.clientX);
+  if (k >= 0) {
+    if (navigator.vibrate) navigator.vibrate(8);
+    showHourScrub(c, k, t.clientX, t.clientY, true);
+  }
 }, { passive: true });
 
 // These listen on the document, not the forecast panel: a touch keeps reporting to the element it
-// started on, and that element is replaced whenever the forecast re-renders mid-press.
+// started on, and that element is replaced whenever the forecast re-renders mid-touch.
 document.addEventListener("touchmove", (e) => {
-  if (!scrub) return;
+  if (!scrub || scrub.scrolled) return;
   const t = e.touches[0];
-  if (!scrub.active) {
-    // Moving before the long press completes means the reader is scrolling, not scrubbing.
-    if (Math.hypot(t.clientX - scrub.x, t.clientY - scrub.y) > 10) {
-      clearTimeout(scrub.timer);
-      scrub = null;
-      hideHourHover();
-    }
-    return;
+  const dx = t.clientX - scrub.x, dy = t.clientY - scrub.y;
+  if (!scrub.committed) {
+    if (Math.hypot(dx, dy) <= 10) return;
+    // Mostly vertical: the reader is scrolling the page, so let it go and drop the tooltip.
+    if (Math.abs(dy) > Math.abs(dx)) { scrub.scrolled = true; hideHourHover(); return; }
+    scrub.committed = true;
   }
   e.preventDefault();
   const c = chartFor(scrub.date);
@@ -2571,23 +2564,10 @@ document.addEventListener("touchmove", (e) => {
 }, { passive: false });
 
 function endTouch() {
-  const s = scrub;
   scrub = null;
-  if (s) {
-    clearTimeout(s.timer);
-    // A tap (no long press, no movement) on the wash pins the tooltip to that hour. After a drag,
-    // the tooltip stays on the hour where the thumb was lifted.
-    if (!s.active && !s.moved) {
-      const c = chartFor(s.date);
-      const k = c ? scrubHourAt(c, s.x) : -1;
-      if (k >= 0) showHourScrub(c, k, s.x, s.y, true);
-    }
-  }
   if (wxRenderDeferred) { wxRenderDeferred = false; wxSafeRender(); }
 }
 
-// The system can cancel a touch part-way (a long press, a gesture). Keep whatever tooltip is
-// showing rather than snapping it shut; a tap outside still closes it.
 function cancelTouch() {
   if (scrub) clearTimeout(scrub.timer);
   scrub = null;
@@ -3611,7 +3591,6 @@ const REGIONS = {
 
 const GRADE_MIN = 0, GRADE_MAX = 17;
 const DEFAULT_GRADE_MIN = 3, DEFAULT_GRADE_MAX = 14;
-let sortKey = "grade", sortDir = 1;
 
 const minSlider = document.getElementById("min-grade");
 const maxSlider = document.getElementById("max-grade");
@@ -4347,9 +4326,6 @@ document.getElementById("reset-filters").addEventListener("click", () => {
   updateTrackFill();
   areaFilter.value = "";
   starToggles.forEach(btn => btn.setAttribute("aria-pressed", btn.dataset.value !== "1" ? "true" : "false"));
-  sortKey = "grade";
-  sortDir = 1;
-  updateSortIndicators();
   render();
   map.closePopup();
   map.fitBounds(allBounds, { padding: [30, 30] });
@@ -4358,36 +4334,8 @@ function getCheckedStars() {
   return new Set([...starToggles].filter(btn => btn.getAttribute("aria-pressed") === "true").map(btn => parseInt(btn.dataset.value)));
 }
 
-function updateSortIndicators() {
-  document.querySelectorAll("th[data-key]").forEach(th => {
-    const icon = th.querySelector(".sort-icon");
-    const active = th.dataset.key === sortKey;
-    th.classList.toggle("sort-active", active);
-    if (active) {
-      icon.textContent = sortDir === 1 ? "▲" : "▼";
-      th.setAttribute("aria-sort", sortDir === 1 ? "ascending" : "descending");
-    } else {
-      icon.textContent = "⇅";
-      th.setAttribute("aria-sort", "none");
-    }
-  });
-}
 
-document.querySelectorAll("th[data-key]").forEach(th => {
-  th.setAttribute("role", "button");
-  th.setAttribute("tabindex", "0");
-  const activate = () => {
-    const key = th.dataset.key;
-    if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
-    updateSortIndicators();
-    render();
-  };
-  th.addEventListener("click", activate);
-  th.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(); }
-  });
-});
-updateSortIndicators();
+
 
 function gradeBandClass(grade) {
   if (grade <= 0) return "grade-green";
@@ -4433,7 +4381,7 @@ let lastRenderKey = "";
 function render() {
   updateAreaOptions();
   // Skip the table rebuild when nothing that affects it has changed.
-  const renderKey = [minSlider.value, maxSlider.value, areaFilter.value, [...getCheckedStars()].sort().join(), sortKey, sortDir].join("|");
+  const renderKey = [minSlider.value, maxSlider.value, areaFilter.value, [...getCheckedStars()].sort().join()].join("|");
   if (renderKey === lastRenderKey) return;
   lastRenderKey = renderKey;
   const min = parseInt(minSlider.value), max = parseInt(maxSlider.value);
@@ -4447,18 +4395,12 @@ function render() {
     (b.stars < 0 || checkedStars.has(b.stars))
   );
 
+  // Always grouped: area, then sub-area within it, then grade, then name. Climbs without a
+  // sub-area sort after the named ones in their area.
+  const byText = (x, y) => (x || "").toLowerCase().localeCompare((y || "").toLowerCase());
   rows.sort((a, b) => {
-    let av = a[sortKey] ?? "", bv = b[sortKey] ?? "";
-    if (typeof av === "string") { av = av.toLowerCase(); bv = bv.toLowerCase(); }
-    if (av < bv) return -1 * sortDir;
-    if (av > bv) return 1 * sortDir;
-    // Tie-break: climbs of the same grade are grouped together by area.
-    if (a.grade === b.grade) {
-      const aArea = (a.area || "").toLowerCase(), bArea = (b.area || "").toLowerCase();
-      if (aArea < bArea) return -1;
-      if (aArea > bArea) return 1;
-    }
-    return a.grade - b.grade;
+    if (!a.boulder !== !b.boulder) return a.boulder ? -1 : 1;
+    return byText(a.area, b.area) || byText(a.boulder, b.boulder) || a.grade - b.grade || byText(a.name, b.name);
   });
 
   resultCount.textContent = `${rows.length} climb${rows.length === 1 ? "" : "s"}`;
@@ -4489,13 +4431,8 @@ function render() {
             <span>${b.area}</span>
             ${areaHasPin ? pinButton(b.area) : ""}
           </div>
+          ${b.boulder ? `<div class="boulder-cell-inner"><span class="subarea-name">${b.boulder}</span>${boulderHasPin ? pinButton(b.boulder) : ""}</div>` : ""}
           ${CLOSED_AREAS.includes(b.area) ? `<button type="button" class="closed-tag check-access-tag" data-url="${b.url}">CHECK ACCESS</button>` : ""}
-        </div>
-      </td>
-      <td class="boulder-cell">
-        <div class="boulder-cell-inner">
-          <span>${b.boulder || "—"}</span>
-          ${boulderHasPin ? pinButton(b.boulder) : ""}
         </div>
       </td>
     </tr>
