@@ -583,18 +583,6 @@
   }
   .wx-spot:hover { color: var(--text); }
   .wx-spot[aria-pressed="true"] { border-bottom-color: var(--accent); color: var(--text); font-weight: 600; }
-    position: absolute;
-    z-index: 600;
-    width: 300px;
-    max-width: calc(100vw - 32px);
-    background: var(--popover-bg);
-    border: 1px solid var(--popover-border);
-    border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-    padding: 10px;
-  }
-  /* While it's tracking the cursor it sits under it, so it has to be click-through. */
-  /* One row per run of same-level hours through the climbing day. */
   /* Weather is a single scrolling feed, so give it more of the viewport than the
      climbs panel gets — the extra height is what makes infinite scroll worth it. */
   #wx-body { max-height: 85vh; overflow-y: auto; }
@@ -1358,7 +1346,9 @@
     /* The header wrapper keeps its own height; only the main layout takes the remaining space.
        (The wrapper growing too left an empty band under the header.) */
     .wrap { display: flex; flex-direction: column; min-height: 0; flex: 0 0 auto; }
+    /* The main container stops 32px short of the bottom edge of the screen. */
     .main-layout, .filters-panel { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+    .main-layout { margin-bottom: 32px; }
     /* Scoped to the visible view: an unscoped #weather-panel rule would outrank
        .weather-only[hidden] { display: none } and show the panel in climbs mode. */
     body.view-weather #weather-panel { display: flex; flex-direction: column; min-height: 0; flex: 1; }
