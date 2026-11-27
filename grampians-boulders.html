@@ -4889,7 +4889,7 @@ document.getElementById("reset-filters").addEventListener("click", () => {
   maxSlider.value = DEFAULT_GRADE_MAX;
   updateTrackFill();
   areaFilter.value = "";
-  starToggles.forEach(btn => btn.setAttribute("aria-pressed", btn.dataset.value !== "1" ? "true" : "false"));
+  starToggles.forEach(btn => btn.setAttribute("aria-pressed", Number(btn.dataset.value) >= 2 ? "true" : "false")); // default: 2 and 3 stars on, 0 and 1 off
   sortKey = "grade";
   sortDir = 1;
   updateSortIndicators();
