@@ -1148,7 +1148,8 @@
   }
   .star-toggle-glyph { color: var(--muted); opacity: 0.6; font-size: 1rem; letter-spacing: 1px; transition: color 0.15s ease, opacity 0.15s ease; }
   .star-toggle[aria-pressed="true"] .star-toggle-glyph { color: var(--star); opacity: 1; }
-  .star-toggle:hover { border-color: var(--accent); }
+  /* Hover only where a pointer can hover: on touch screens a tap would otherwise leave the outline on. */
+  @media (hover: hover) { .star-toggle:hover { border-color: var(--accent); } }
   .star-toggle[aria-pressed="true"] {
     background: var(--star-toggle-active-bg);
     border-color: var(--accent);
