@@ -1340,8 +1340,10 @@
      so the panel has to flex to whatever height is left over rather than take a fixed
      slice of the viewport — otherwise the footer falls off the bottom edge. */
   .filters-panel { margin-bottom: 0; }
-  .visitor-count { margin: 0.75rem 0 0; text-align: center; }
+  .visitor-count { margin: 0.75rem 0 0; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; text-align: left; }
   .visitor-count img { display: inline-block; vertical-align: middle; }
+  .legacy-link { font-size: 0.78rem; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+  .legacy-link:hover { color: var(--text); }
   @media (min-width: 961px) {
     body { height: 100%; display: flex; flex-direction: column; }
     /* The header wrapper keeps its own height; only the main layout takes the remaining space.
@@ -1492,7 +1494,7 @@
           </a>
         </div>
       </div>
-      <p class="visitor-count"><img src="https://hits.sh/vietcowboy.github.io/Outdoors/grampians-boulders.svg?style=flat-square&label=visitors" alt="visitor count" height="20"></p>
+      <p class="visitor-count"><img src="https://hits.sh/vietcowboy.github.io/Outdoors/grampians-boulders.svg?style=flat-square&label=visitors" alt="visitor count" height="20"><a class="legacy-link" href="legacy/climbs.html">Legacy database</a></p>
     </div>
   </div>
 
