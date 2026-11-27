@@ -242,9 +242,9 @@ function climbsOnPhotoTable(photo, currentId) {
     const inf = INFERRED_NO.get(d.id);
     const book = raw ? esc(raw) : '<span class="none">—</span>';
     const infer = raw ? '<span class="none">—</span>' : (inf != null ? `<span class="inf">${inf} (inferred)</span>` : '<span class="none">—</span>');
-    return `<tr class="${d.id === currentId ? "hl" : ""}"><td>${esc(d.name) || "<em>(unnamed project)</em>"}</td><td>${esc(d.grade_raw)}</td><td>${esc(d.area)}${d.boulder ? " / " + esc(d.boulder) : ""}</td><td>${book}</td><td>${infer}</td><td>${d.page ?? ""}</td></tr>`;
+    return `<tr class="${d.id === currentId ? "hl" : ""}"><td>${esc(d.name) || "<em>(unnamed project)</em>"}</td><td>${esc(d.grade_raw)}</td><td>${book}</td><td>${infer}</td></tr>`;
   }).join("");
-  return `<table><thead><tr><th>Climb</th><th>Grade</th><th>Area / sub-area</th><th>Climb #</th><th>Inferred climb #</th><th>Page</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
+  return `<table><thead><tr><th>Climb</th><th>Grade</th><th>Climb #</th><th>Inferred climb #</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
 }
 document.getElementById("body").addEventListener("click", e => {
   const b = e.target.closest(".ph"); if (!b) return;
