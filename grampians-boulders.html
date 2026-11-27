@@ -654,6 +654,9 @@
   .wx-bars { touch-action: pan-y; }
   .hour-scrub-time { font-size: 0.85rem; }
   .hour-scrub-heat { margin-top: 0.15rem; }
+  .photo-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 8px; }
+  .photo-nav button { font: inherit; font-size: 1.1rem; width: 2.2rem; height: 2.2rem; border: 1px solid var(--border); background: var(--panel); border-radius: 50%; cursor: pointer; color: var(--text); }
+  .photo-nav[hidden] { display: none; }
   .photo-box img { display: block; width: 100%; height: auto; max-height: 80vh; object-fit: contain; border-radius: 6px; }
   .climb-link-plain { cursor: default; }
   .wx-heat-chip.wx-heat-1 { color: #3b2f00; background: #f7de7a; border-color: #c99a00; }
@@ -1502,6 +1505,7 @@
     <div class="modal-box photo-box" role="dialog" aria-modal="true" aria-labelledby="photo-title">
       <div class="modal-header"><strong id="photo-title"></strong><button type="button" class="modal-close" id="photo-close" aria-label="Close photo">×</button></div>
       <img id="photo-img" alt="" src="">
+      <div class="photo-nav" id="photo-nav" hidden><button type="button" id="photo-prev" aria-label="Previous photo">‹</button><span id="photo-count"></span><button type="button" id="photo-next" aria-label="Next photo">›</button></div>
     </div>
   </div>
   <div class="modal-overlay" id="access-modal" hidden>
@@ -4113,6 +4117,7 @@ const maxSlider = document.getElementById("max-grade");
 const trackFill = document.getElementById("track-fill");
 const areaFilter = document.getElementById("area-filter");
 const resultsBody = document.getElementById("results-body");
+const photosOf = b => b.photos || (b.photo ? [b.photo] : []);
 const resultCount = document.getElementById("result-count");
 const emptyMsg = document.getElementById("empty-msg");
 
@@ -4791,13 +4796,33 @@ const accessModal = document.getElementById("access-modal");
 const accessClose = document.getElementById("access-close");
 const accessLink = document.getElementById("access-link");
 const photoModal = document.getElementById("photo-modal");
+// A climb can have several photos; the pop-up steps through them.
+let photoList = [], photoIdx = 0, photoAltName = "";
+function showPhoto(i) {
+  photoIdx = Math.max(0, Math.min(photoList.length - 1, i));
+  const img = document.getElementById("photo-img");
+  img.src = photoList[photoIdx];
+  img.alt = "Photo of " + photoAltName;
+  const multi = photoList.length > 1;
+  document.getElementById("photo-nav").hidden = !multi;
+  document.getElementById("photo-count").textContent = `${photoIdx + 1} / ${photoList.length}`;
+  document.getElementById("photo-prev").disabled = photoIdx === 0;
+  document.getElementById("photo-next").disabled = photoIdx === photoList.length - 1;
+}
+document.getElementById("photo-prev").addEventListener("click", () => showPhoto(photoIdx - 1));
+document.getElementById("photo-next").addEventListener("click", () => showPhoto(photoIdx + 1));
+document.addEventListener("keydown", (e) => {
+  if (photoModal.hidden) return;
+  if (e.key === "ArrowLeft") showPhoto(photoIdx - 1);
+  if (e.key === "ArrowRight") showPhoto(photoIdx + 1);
+});
 resultsBody.addEventListener("click", (e) => {
   const photoBtn = e.target.closest(".photo-btn");
   if (photoBtn) {
     document.getElementById("photo-title").textContent = photoBtn.dataset.name;
-    const img = document.getElementById("photo-img");
-    img.src = photoBtn.dataset.photo;
-    img.alt = "Photo of " + photoBtn.dataset.name;
+    photoList = JSON.parse(photoBtn.dataset.photos || "[]");
+    photoAltName = photoBtn.dataset.name;
+    showPhoto(0);
     photoModal.hidden = false;
     document.getElementById("photo-close").focus();
     return;
@@ -4970,7 +4995,7 @@ function render() {
           ${b.url ? `<a class="climb-link" href="${b.url}" target="_blank" rel="noopener" title="${b.urlIsAreaPage ? "Links to the sector's problem list — the exact route page for this one wasn't found" : ""}"><span class="climb-name">${b.name}</span><span class="go-arrow">↗</span></a>` : `<span class="climb-link climb-link-plain"><span class="climb-name">${b.name}</span></span>`}
           <div class="problem-meta-row">
             <span class="meta-pair"><span class="grade-pill ${gradeBandClass(b.grade)}">V${b.grade}</span>${b.url ? starBadge(b.stars) : ""}</span>
-            ${b.photo ? `<button type="button" class="photo-btn" data-photo="${b.photo}" data-name="${b.name.replace(/"/g, "&quot;")}" aria-label="Show photo of ${b.name.replace(/"/g, "&quot;")}" title="Show photo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h3l2-2.5h6L17 7h3v12H4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" stroke="currentColor" stroke-width="1.8"/></svg></button>` : ""}
+            ${photosOf(b).length ? `<button type="button" class="photo-btn" data-photos="${JSON.stringify(photosOf(b)).replace(/"/g, '&quot;')}" data-name="${b.name.replace(/"/g, "&quot;")}" aria-label="Show photo of ${b.name.replace(/"/g, "&quot;")}" title="Show photo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h3l2-2.5h6L17 7h3v12H4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" stroke="currentColor" stroke-width="1.8"/></svg></button>` : ""}
           </div>
           ${b.description ? `<p class="climb-desc">${escHtml(b.description)}</p>` : ""}
         </div>
