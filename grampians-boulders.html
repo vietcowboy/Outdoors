@@ -660,6 +660,8 @@
   .photo-climbs th { background: var(--panel); position: sticky; top: 0; }
   .photo-climbs .none { color: var(--muted); }
   .photo-climbs .inf { color: #8a5a00; }
+  :root[data-theme="dark"] .photo-climbs .inf { color: #9be3b0; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .photo-climbs .inf { color: #9be3b0; } }
   .photo-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 8px; }
   .photo-nav button { font: inherit; font-size: 1.1rem; width: 2.2rem; height: 2.2rem; border: 1px solid var(--border); background: var(--panel); border-radius: 50%; cursor: pointer; color: var(--text); }
   .photo-nav[hidden] { display: none; }
